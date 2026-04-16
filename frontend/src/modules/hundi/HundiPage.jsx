@@ -18,7 +18,12 @@ import {
   Zap,
   Lock,
   ArrowRight,
-  Database
+  Database,
+  Users,
+  Calendar,
+  ChevronRight,
+  ListFilter,
+  Check
 } from "lucide-react";
 
 const fmtINR = (n) =>
@@ -29,11 +34,11 @@ const HundiPage = () => {
   const denoms = useMemo(() => [500, 200, 100, 50, 20, 10, 5, 2, 1], []);
   const [counts, setCounts] = useState({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 });
 
-  const [witnesses, setWitnesses] = useState(["Temple Treasurer", "Chief Priest"]);
+  const [witnesses, setWitnesses] = useState(["Temple Treasurer", "Managing Trustee"]);
   const [witnessModalOpen, setWitnessModalOpen] = useState(false);
   const [witnessName, setWitnessName] = useState("");
 
-  const [sessionName, setSessionName] = useState(`AUDIT_NODE_${new Date().getTime().toString().slice(-6)}`);
+  const [sessionName, setSessionName] = useState(`COLLECTION_${new Date().getDate()}${new Date().getMonth()+1}_${new Date().getTime().toString().slice(-4)}`);
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0]);
 
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -74,10 +79,10 @@ const HundiPage = () => {
   const submitSession = async () => {
     setErrorMSG("");
     if (witnesses.length < 2) {
-      return setErrorMSG("Validation Protocol: At least two witnesses are required.");
+      return setErrorMSG("Minimum two witnesses are required for verification.");
     }
     if (total <= 0) {
-      return setErrorMSG("Input Error: Total remittance must exceed zero.");
+      return setErrorMSG("Total amount must be greater than zero.");
     }
 
     setSubmitLoading(true);
@@ -94,52 +99,55 @@ const HundiPage = () => {
       setCounts({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 });
       setTab("history");
     } catch (e) {
-      setErrorMSG(e.response?.data?.detail || "Submission Error");
+      setErrorMSG(e.response?.data?.detail || "Failed to submit collection record.");
     } finally {
       setSubmitLoading(false);
     }
   };
 
   const renderAudit = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="lg:col-span-7 space-y-4"
+        className="lg:col-span-7 space-y-6"
       >
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 bg-slate-900 text-white rounded-xl flex items-center justify-center">
-                   <FileSpreadsheet size={16} />
+                <div className="h-9 w-9 bg-slate-900 text-white rounded-lg flex items-center justify-center">
+                   <FileSpreadsheet size={18} />
                 </div>
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Denomination Ledger</h3>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Denomination Counter</h3>
+                  <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">Enter quantity per note/coin</p>
+                </div>
              </div>
-             <button onClick={() => setCounts({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 })} className="text-[9px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-widest transition-all">
-                Reset
+             <button onClick={() => setCounts({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 })} className="text-[10px] font-bold text-slate-400 hover:text-red-500 uppercase tracking-widest transition-all">
+                Clear All
              </button>
           </div>
           
-          <div className="p-3 space-y-0.5">
+          <div className="p-4 space-y-1">
             {denoms.map((d) => (
-              <div key={d} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl transition-all group">
-                <div className="w-20">
-                  <div className="h-10 flex items-center justify-center rounded-lg bg-white border border-slate-100 font-bold text-slate-900 shadow-sm group-hover:border-slate-300 transition-all text-sm">
-                     <span className="text-[9px] text-slate-400 mr-1.5 uppercase tracking-widest">₹</span> {d}
+              <div key={d} className="flex items-center gap-6 p-4 hover:bg-slate-50/50 rounded-xl transition-all group border border-transparent hover:border-slate-100">
+                <div className="w-24">
+                  <div className="h-11 flex items-center justify-center rounded-lg bg-white border border-slate-200 font-bold text-slate-900 shadow-sm group-hover:border-[#B8860B]/30 transition-all text-sm">
+                     <span className="text-[10px] text-slate-400 mr-2 uppercase">₹</span> {d}
                   </div>
                 </div>
-                <div className="text-slate-200 font-bold">×</div>
-                <div className="flex-1 max-w-[120px]">
+                <div className="text-slate-300 font-bold">×</div>
+                <div className="flex-1 max-w-[140px]">
                   <input
                     type="number"
                     value={counts[d] === 0 ? "" : counts[d]}
                     onChange={(e) => handleCountChange(d, e.target.value)}
-                    placeholder="0"
-                    className="w-full h-10 bg-slate-100 border border-transparent rounded-lg px-4 outline-none focus:bg-white focus:border-slate-900 transition-all font-black text-slate-900 text-center text-sm"
+                    placeholder="Quantity"
+                    className="w-full h-11 bg-slate-50 border border-slate-200 rounded-lg px-4 outline-none focus:bg-white focus:border-slate-900 transition-all font-bold text-slate-900 text-center"
                   />
                 </div>
                 <div className="flex-1 text-right">
-                   <div className="text-[9px] font-black text-slate-900 tracking-tight">{fmtINR(d * (counts[d] || 0))}</div>
+                   <div className="text-xs font-bold text-slate-900 tracking-tight">{fmtINR(d * (counts[d] || 0))}</div>
                 </div>
               </div>
             ))}
@@ -148,78 +156,83 @@ const HundiPage = () => {
       </motion.div>
 
       <motion.div 
-        initial={{ opacity: 0, x: 20 }}
+        initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
-        className="lg:col-span-5 space-y-4"
+        className="lg:col-span-5 space-y-8"
       >
-        <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden border border-slate-800 shadow-2xl shadow-slate-900/40">
-           <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Lock size={48} /></div>
-           <p className="text-primary font-black tracking-[0.3em] uppercase text-[8px] mb-6">Financial Audit Protocol</p>
+        <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden border border-white/5 shadow-xl">
+           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-105 transition-transform"><Lock size={80} /></div>
+           <p className="text-[#B8860B] font-bold tracking-widest uppercase text-[10px] mb-6 flex items-center gap-2">
+             <ShieldCheck size={14} /> Official Remittance Record
+           </p>
            
-           <div className="space-y-4 mb-8">
-             <div className="space-y-1.5">
-                <label className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Registry Node</label>
+           <div className="space-y-6 mb-10">
+             <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Collection Ref #</label>
                 <input 
                   type="text" value={sessionName} onChange={e => setSessionName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-10 text-[11px] font-bold text-white outline-none focus:border-white/30 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-12 text-sm font-bold text-white outline-none focus:border-white/30 transition-all"
                 />
              </div>
-             <div className="space-y-1.5">
-                <label className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Auth Date</label>
+             <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Opening Date</label>
                 <input 
                   type="date" value={sessionDate} onChange={e => setSessionDate(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-10 text-[11px] font-bold text-white outline-none focus:border-white/30 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-12 text-sm font-bold text-white outline-none focus:border-white/30 transition-all"
                 />
              </div>
            </div>
 
-           <div className="space-y-0.5 mb-8">
-              <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Remittance Total</span>
-              <div className="text-3xl font-bold tracking-tighter text-white">{fmtINR(total)}</div>
+           <div className="space-y-1 mb-10 border-t border-white/5 pt-8">
+              <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Total Amount Calculated</span>
+              <div className="text-3xl font-bold tracking-tight text-white">{fmtINR(total)}</div>
            </div>
 
-           <div className="grid grid-cols-2 gap-3 mb-8">
-              <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                 <p className="text-[7px] font-black text-white/20 uppercase tracking-widest">Objects</p>
-                 <p className="text-lg font-bold mt-0.5">{notesCount}</p>
+           <div className="grid grid-cols-2 gap-4 mb-10">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-none mb-2">Total Items</p>
+                 <p className="text-xl font-bold">{notesCount}</p>
               </div>
-              <div className="p-3 bg-white/5 rounded-lg border border-white/5 flex items-center justify-center">
-                 <ShieldCheck size={16} className="text-emerald-500" />
-                 <span className="text-[7px] font-black uppercase tracking-widest ml-1.5">Verified</span>
+              <div className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-center justify-center">
+                 <CheckCircle2 size={20} className="text-emerald-500" />
+                 <span className="text-[10px] font-bold uppercase tracking-widest ml-2">Verified</span>
               </div>
            </div>
 
            {errorMSG && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest leading-relaxed">
-                 {errorMSG}
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold flex items-center gap-2">
+                 <AlertCircle size={14} /> {errorMSG}
               </div>
            )}
 
            <button
              onClick={submitSession} disabled={submitLoading}
-             className="w-full h-12 bg-white text-slate-900 rounded-lg font-black text-[9px] uppercase tracking-[0.2em] shadow-xl hover:bg-slate-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+             className="w-full h-14 bg-white text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-slate-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
            >
-             {submitLoading ? <RefreshCw className="animate-spin" size={14} /> : <>Commit Vault <ArrowRight size={14} /></>}
+             {submitLoading ? <RefreshCw className="animate-spin" size={16} /> : <>Save Collection <ArrowRight size={16} /></>}
            </button>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-           <div className="flex justify-between items-center mb-6">
-              <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Validation Witnesses</h4>
+        <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
+           <div className="flex justify-between items-center mb-8">
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-[#B8860B]" />
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Authorized Witnesses</h4>
+              </div>
               <button onClick={() => setWitnessModalOpen(true)} className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all">
-                <Plus size={14} />
+                <Plus size={16} />
               </button>
            </div>
            
            <div className="space-y-2">
               {witnesses.length === 0 ? (
-                <p className="text-center py-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">Awaiting Validation</p>
+                <p className="text-center py-8 text-[11px] font-medium text-slate-300 uppercase tracking-widest">No witnesses assigned</p>
               ) : (
                 witnesses.map(w => (
-                  <div key={w} className="flex items-center justify-between p-3.5 bg-slate-50/50 rounded-lg border border-slate-100 group">
-                     <span className="text-[11px] font-bold text-slate-900 uppercase tracking-tight">{w}</span>
-                     <button onClick={() => setWitnesses(prev => prev.filter(x => x !== w))} className="text-slate-200 hover:text-red-500 transition-colors">
-                        <X size={12} />
+                  <div key={w} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border border-slate-100 group">
+                     <span className="text-xs font-bold text-slate-700">{w}</span>
+                     <button onClick={() => setWitnesses(prev => prev.filter(x => x !== w))} className="text-slate-300 hover:text-red-500 transition-colors">
+                        <X size={14} />
                      </button>
                   </div>
                 ))
@@ -233,44 +246,44 @@ const HundiPage = () => {
   const renderHistory = () => (
     <motion.div 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]"
     >
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto text-[13px]">
         <table className="w-full text-left">
           <thead>
-            <tr className="bg-slate-50/50 text-slate-400 border-b border-slate-50">
-              <th className="px-10 py-5 text-[9px] font-black uppercase tracking-widest">Session Hash</th>
-              <th className="px-6 py-5 text-[9px] font-black uppercase tracking-widest">Remittance</th>
-              <th className="px-6 py-5 text-[9px] font-black uppercase tracking-widest">Auth By</th>
-              <th className="px-10 py-5 text-[9px] font-black uppercase tracking-widest text-right">Timestamp</th>
+            <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-wider">Reference Name</th>
+              <th className="px-6 py-5 text-[11px] font-bold uppercase tracking-wider">Total Remittance</th>
+              <th className="px-6 py-5 text-[11px] font-bold uppercase tracking-wider">Witnesses</th>
+              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-wider text-right">Date & Time</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {sessionsLoading ? (
-               <tr><td colSpan="4" className="py-20 text-center"><div className="w-10 h-10 border-4 border-slate-100 border-t-primary rounded-full animate-spin mx-auto"></div></td></tr>
+               <tr><td colSpan="4" className="py-20 text-center animate-pulse text-[11px] font-bold text-slate-300 uppercase tracking-widest">Loading collection logs...</td></tr>
             ) : sessions.length === 0 ? (
-               <tr><td colSpan="4" className="py-20 text-center text-slate-300 font-black text-[10px] uppercase tracking-widest">No vault records detected</td></tr>
+               <tr><td colSpan="4" className="py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No collection records found</td></tr>
             ) : sessions.map(s => (
               <tr key={s.id} className="hover:bg-slate-50/50 transition-all group">
-                <td className="px-10 py-4">
-                   <div className="flex items-center gap-2.5">
-                      <div className="h-7 w-7 rounded bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all font-mono text-[9px]">#</div>
-                      <span className="text-[11px] font-bold text-slate-900 uppercase tracking-tight">{s.name || `SESSION_${s.id}`}</span>
+                <td className="px-8 py-5">
+                   <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all text-[10px] font-bold">#</div>
+                      <span className="font-bold text-slate-900">{s.name || `Session ${s.id}`}</span>
                    </div>
                 </td>
-                <td className="px-6 py-4">
-                   <span className="text-base font-black text-slate-900 tracking-tighter">{fmtINR(s.total_amount)}</span>
+                <td className="px-6 py-5">
+                   <span className="text-base font-bold text-slate-900 tracking-tight">{fmtINR(s.total_amount)}</span>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-5">
                    <div className="flex flex-wrap gap-1.5">
                      {s.witnesses?.slice(0, 2).map((w, idx) => (
-                       <span key={idx} className="px-2 py-0.5 bg-slate-100 text-[8px] font-black text-slate-500 rounded uppercase tracking-widest">{w.name || w}</span>
+                       <span key={idx} className="px-2 py-0.5 bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-100 rounded-md uppercase tracking-tight">{w.name || w}</span>
                      ))}
-                     {s.witnesses?.length > 2 && <span className="text-[8px] font-black text-slate-300">+{s.witnesses.length - 2}</span>}
+                     {s.witnesses?.length > 2 && <span className="text-[10px] font-bold text-slate-300">+{s.witnesses.length - 2} more</span>}
                    </div>
                 </td>
-                <td className="px-10 py-4 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                   {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                <td className="px-8 py-5 text-right text-[11px] font-bold text-slate-400">
+                   {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} • {new Date(s.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                 </td>
               </tr>
             ))}
@@ -281,55 +294,52 @@ const HundiPage = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 md:px-0">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-             <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-2xl shadow-slate-900/30">
-                <Wallet size={18} />
-             </div>
-             <h1 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase leading-none">Vault Audit</h1>
-          </div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-             <Zap size={10} className="text-primary" /> Hundi Remittance & Physical Counting Node
-          </p>
+    <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
+        <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                <Wallet size={24} />
+            </div>
+            <div>
+               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Hundi Collections</h1>
+               <p className="text-xs font-medium text-slate-500 mt-0.5">
+                   Record and verify physical box collections with multiple witnesses
+               </p>
+            </div>
         </div>
 
-        <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 shadow-inner">
-          <button
-            onClick={() => setTab('audit')}
-            className={`px-6 h-9 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${tab === 'audit' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            <ShieldCheck size={12} /> New Audit
-          </button>
-          <button
-            onClick={() => setTab('history')}
-            className={`px-6 h-9 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${tab === 'history' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            <History size={12} /> Vault Log
-          </button>
+        <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-fit">
+          <TabButton active={tab === 'audit'} onClick={() => setTab('audit')} label="New Collection" icon={Plus} />
+          <TabButton active={tab === 'history'} onClick={() => setTab('history')} label="Collection Log" icon={History} />
         </div>
       </header>
 
-      {tab === "audit" ? renderAudit() : renderHistory()}
+      <AnimatePresence mode="wait">
+        {tab === "audit" ? renderAudit() : renderHistory()}
+      </AnimatePresence>
 
       <AnimatePresence>
         {witnessModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setWitnessModalOpen(false)}
             />
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              initial={{ scale: 0.98, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              className="bg-white w-full max-w-xs rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-slate-100"
+              exit={{ scale: 0.98, opacity: 0, y: 10 }}
+              className="bg-white w-full max-w-sm rounded-2xl shadow-2xl relative z-10 overflow-hidden border border-slate-100"
             >
-              <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-white">
-                <h2 className="text-lg font-bold text-slate-900 tracking-tight uppercase">Validator</h2>
-                <button onClick={() => setWitnessModalOpen(false)} className="h-8 w-8 text-slate-300 hover:text-slate-900 transition-colors"><X size={20} /></button>
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div className="flex items-center gap-3">
+                   <div className="h-8 w-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">
+                      <Users size={16} />
+                   </div>
+                   <h2 className="text-base font-bold text-slate-900">Add Witness</h2>
+                </div>
+                <button onClick={() => setWitnessModalOpen(false)} className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-colors"><X size={18} /></button>
               </div>
               <form onSubmit={e => {
                 e.preventDefault();
@@ -341,10 +351,10 @@ const HundiPage = () => {
                 }
               }} className="p-8 space-y-6">
                 <div className="space-y-2">
-                   <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Identity</label>
-                   <input autoFocus value={witnessName} onChange={e => setWitnessName(e.target.value)} required className="w-full h-11 px-4 rounded-xl bg-slate-50 border border-slate-100 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs" placeholder="Name / Role" />
+                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name / Designation</label>
+                   <input autoFocus value={witnessName} onChange={e => setWitnessName(e.target.value)} required className="w-full h-11 px-4 rounded-xl bg-slate-50 border border-slate-200 font-semibold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all text-sm" placeholder="e.g. Temple President" />
                 </div>
-                <button type="submit" className="w-full h-11 bg-slate-900 text-white rounded-lg font-bold text-[9px] uppercase tracking-widest">Authorize</button>
+                <button type="submit" className="w-full h-11 bg-slate-900 text-white rounded-lg font-bold text-xs uppercase tracking-widest active:scale-95 transition-all shadow-md">Authorize Witness</button>
               </form>
             </motion.div>
           </div>
@@ -353,5 +363,16 @@ const HundiPage = () => {
     </div>
   );
 };
+
+const TabButton = ({ active, onClick, label, icon: Icon }) => (
+    <button
+        onClick={onClick}
+        className={`px-6 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
+            active ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-400 hover:text-slate-600'
+        }`}
+    >
+        <Icon size={14} /> {label}
+    </button>
+);
 
 export default HundiPage;

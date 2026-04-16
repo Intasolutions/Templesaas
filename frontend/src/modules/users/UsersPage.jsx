@@ -21,7 +21,9 @@ import {
   Database,
   Zap,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Key,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../shared/api/client';
@@ -56,6 +58,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
@@ -110,6 +114,8 @@ export default function UsersPage() {
       module_permissions: {}
     });
     setIsFormOpen(false);
+    setErrorMsg('');
+    setSubmitting(false);
   };
 
   const handleEdit = (user) => {
@@ -129,6 +135,8 @@ export default function UsersPage() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setErrorMsg('');
     try {
       const payload = { ...formData };
       if (editingUserId && !payload.password) delete payload.password;
@@ -142,6 +150,14 @@ export default function UsersPage() {
       resetForm();
     } catch (error) {
       console.error("Form Submit Error:", error);
+      const data = error.response?.data;
+      if (typeof data === 'object') {
+        setErrorMsg(Object.values(data)[0]);
+      } else {
+        setErrorMsg("Failed to save user account.");
+      }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -167,30 +183,28 @@ export default function UsersPage() {
   const getRoleConfig = (roleId) => ROLES.find(r => r.id === roleId) || ROLES[ROLES.length - 1];
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20">
+    <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
       {/* Prime Header */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-4 md:px-0">
-        <div className="space-y-4">
-            <div className="flex items-center gap-4">
-                <div className="h-12 w-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-slate-900/30">
-                    <ShieldCheck size={24} />
-                </div>
-                <div>
-                   <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Security Matrix</h1>
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
-                       <Database size={10} className="text-primary" /> Authority Node Management
-                   </p>
-                </div>
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
+        <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                <Users size={24} />
+            </div>
+            <div>
+               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Staff Management</h1>
+               <p className="text-xs font-medium text-slate-500 mt-0.5">
+                   Manage temple administrators, priests, and staff roles
+               </p>
             </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {!isFormOpen && (
             <button
               onClick={() => setIsFormOpen(true)}
-              className="h-11 px-6 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/40 flex items-center gap-2.5 active:scale-95"
+              className="h-10 px-5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-95"
             >
-              <UserPlus size={18} /> Register Authority
+              <UserPlus size={16} /> New Staff Member
             </button>
           )}
         </div>
@@ -200,59 +214,64 @@ export default function UsersPage() {
         {isFormOpen ? (
           <motion.div
             key="form"
-            initial={{ opacity: 0, scale: 0.98, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98, y: 20 }}
-            className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden"
           >
-            <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
-               <div className="space-y-2">
-                  <div className="h-9 w-9 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+            <div className="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+               <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600">
                     <UserCog size={18} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 tracking-tighter uppercase leading-none">
-                      {editingUserId ? "Modify Clearance" : "New Authorization"}
+                    <h2 className="text-base font-bold text-slate-900">
+                      {editingUserId ? "Edit User Account" : "Create New Account"}
                     </h2>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-1.5 flex items-center gap-2">
-                      <Fingerprint size={10} className="text-primary" /> Identity Vector Definition
-                    </p>
+                    <p className="text-[10px] font-medium text-slate-400">Enter personal details and assign role-based permissions</p>
                   </div>
                </div>
-               <button onClick={resetForm} className="h-9 w-9 flex items-center justify-center rounded-full bg-white border border-slate-100 text-slate-300 hover:text-slate-900 transition-all shadow-sm">
+               <button onClick={resetForm} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-all">
                  <X size={18} />
                </button>
             </div>
 
-            <form onSubmit={handleFormSubmit} className="p-10 space-y-12">
+            <form onSubmit={handleFormSubmit} className="p-8 space-y-10">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <InputGroup label="System Identifier" value={formData.new_username} onChange={val => setFormData({...formData, new_username: val})} placeholder="e.g. mahadev_admin" icon={Search} symbol="@" />
-                <InputGroup label="Access Token" type="password" value={formData.password} onChange={val => setFormData({...formData, password: val})} placeholder="••••••••" icon={Fingerprint} desc={editingUserId ? "Leave empty to preserve..." : "Required for handshake"} />
-                <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Protocol Role</label>
+                <InputGroup label="Full Name" value={formData.first_name} onChange={val => setFormData({...formData, first_name: val})} placeholder="e.g. Rahul Sharma" icon={Users} />
+                <InputGroup label="Username" value={formData.new_username} onChange={val => setFormData({...formData, new_username: val})} placeholder="rahul_admin" symbol="@" />
+                <InputGroup label="Password" type="password" value={formData.password} onChange={val => setFormData({...formData, password: val})} placeholder="••••••••" icon={Key} desc={editingUserId ? "Leave blank to keep current password" : "Minimum 8 characters"} />
+                
+                <div className="space-y-2">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Selection Role</label>
                     <div className="relative">
                       <select 
                         value={formData.role} 
                         onChange={e => setFormData({ ...formData, role: e.target.value })} 
-                        className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-5 pr-6 font-bold text-[11px] text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all appearance-none cursor-pointer shadow-inner"
+                        className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 font-semibold text-sm text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all appearance-none cursor-pointer"
                       >
                         {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                       </select>
-                      <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none rotate-90" />
+                      <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none rotate-90" />
                     </div>
                 </div>
+                <InputGroup label="Email Address" value={formData.email} onChange={val => setFormData({...formData, email: val})} placeholder="rahul@example.com" icon={Mail} />
+                <InputGroup label="Phone Number" value={formData.phone} onChange={val => setFormData({...formData, phone: val})} placeholder="+91 99999 00000" icon={Phone} />
               </div>
 
-              <div className="pt-8 border-t border-slate-50">
-                 <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8 flex items-center gap-3">
-                    <Shield size={12} className="text-slate-900" /> Modular Security Restrictions
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="pt-8 border-t border-slate-100">
+                 <div className="mb-6">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Shield size={16} className="text-[#B8860B]" /> Module Permissions
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-0.5">Control which parts of the application this user can access and modify</p>
+                 </div>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {APP_MODULES.map(mod => (
-                        <div key={mod.id} className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-slate-300 transition-all group overflow-hidden relative">
-                           <div className="absolute -bottom-4 -right-4 opacity-[0.03] group-hover:scale-125 transition-transform"><Layers size={60} /></div>
-                           <p className="text-[11px] font-black text-slate-900 mb-4 uppercase tracking-tight group-hover:text-primary transition-colors">{mod.name}</p>
-                           <div className="flex gap-1.5 relative z-10">
+                        <div key={mod.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-[#B8860B]/20 transition-all">
+                           <p className="text-[11px] font-bold text-slate-800 mb-3">{mod.name}</p>
+                           <div className="flex gap-1.5">
                               {['view', 'edit', 'delete'].map(perm => {
                                  const active = (formData.module_permissions[mod.id] || []).includes(perm);
                                  return (
@@ -260,8 +279,8 @@ export default function UsersPage() {
                                          type="button"
                                          key={perm}
                                          onClick={() => handleTogglePermission(mod.id, perm)}
-                                         className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${
-                                             active ? 'bg-slate-900 border-slate-900 text-white shadow-xl' : 'bg-white border-slate-100 text-slate-300 hover:border-slate-300'
+                                         className={`flex-1 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border transition-all ${
+                                             active ? 'bg-[#B8860B] border-[#B8860B] text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
                                          }`}
                                      >
                                          {perm}
@@ -274,10 +293,18 @@ export default function UsersPage() {
                  </div>
               </div>
 
-              <div className="flex justify-end items-center gap-6 pt-8 border-t border-slate-50 mt-10 bg-slate-50/30 -mx-10 -mb-10 p-8">
-                 <button type="button" onClick={resetForm} className="text-[9px] font-black uppercase tracking-widest text-slate-300 hover:text-red-500 transition-colors">Abort Clearance</button>
-                 <button type="submit" className="h-11 px-10 rounded-xl bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest shadow-2xl shadow-slate-900/40 hover:scale-[1.02] active:scale-95 transition-all">
-                    {editingUserId ? "Commit Update" : "Finalize Authorization"}
+              {errorMsg && (
+                <div className="px-8 pb-4">
+                  <div className="p-4 bg-red-50 text-red-500 rounded-xl flex items-center gap-3 border border-red-100 text-xs font-bold uppercase tracking-tight">
+                    <AlertCircle size={18} /> {errorMsg}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end items-center gap-4 pt-8 border-t border-slate-100">
+                 <button type="button" onClick={resetForm} className="px-6 py-2.5 text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors">Discard</button>
+                 <button type="submit" disabled={submitting} className="px-8 py-2.5 rounded-lg bg-slate-900 text-white font-bold text-xs shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-2">
+                    {submitting ? <Zap className="animate-spin" size={14} /> : (editingUserId ? "Save Changes" : "Create Account")}
                  </button>
               </div>
             </form>
@@ -287,73 +314,71 @@ export default function UsersPage() {
             key="table"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mx-4 md:mx-0"
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
           >
-            <div className="px-10 py-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/20">
+            <div className="px-8 py-4 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
                <div className="relative group max-w-sm w-full">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={16} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input 
                     type="text" 
-                    placeholder="Audit personnel identification..." 
+                    placeholder="Search staff by name or user ID..." 
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full h-12 pl-14 pr-6 bg-white border border-slate-100 rounded-xl text-[11px] font-bold text-slate-900 outline-none focus:ring-4 focus:ring-slate-50 transition-all shadow-inner"
+                    className="w-full h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-[#B8860B] transition-all"
                   />
                </div>
-               <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-                  <Database size={12} className="text-primary" /> Active Authority Ledger • {filteredUsers.length} Records
+               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Database size={12} /> {filteredUsers.length} Active Accounts
                </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto text-[13px]">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-white border-b border-slate-50">
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Personnel Node</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Security Sector</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Permission</th>
-                    <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Overrides</th>
+                  <tr className="border-b border-slate-100">
+                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</th>
+                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Access Role</th>
+                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Privileges</th>
+                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
                    {loading ? (
-                       <tr><td colSpan="4" className="py-32 text-center text-[11px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Establishing Nexus Connection...</td></tr>
+                       <tr><td colSpan="4" className="py-20 text-center text-xs font-bold text-slate-300 uppercase tracking-widest animate-pulse">Loading data...</td></tr>
                    ) : filteredUsers.length === 0 ? (
-                       <tr><td colSpan="4" className="py-24 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">No matching authority protocols detected</td></tr>
+                       <tr><td colSpan="4" className="py-20 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No users found</td></tr>
                    ) : filteredUsers.map(user => {
                        const role = getRoleConfig(user.role);
                        return (
                            <tr key={user.id} className="group hover:bg-slate-50/50 transition-all">
-                              <td className="px-10 py-6">
-                                 <div className="flex items-center gap-5">
-                                     <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black shadow-lg shadow-slate-900/20 group-hover:scale-110 transition-transform text-sm">
+                              <td className="px-8 py-5">
+                                 <div className="flex items-center gap-4">
+                                     <div className="h-9 w-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
                                         {(user.first_name?.[0] || user.username?.[0] || 'U').toUpperCase()}
                                      </div>
                                      <div>
-                                        <p className="text-sm font-black text-slate-900 tracking-tighter uppercase leading-none">{user.first_name || "Nexus"} {user.last_name}</p>
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 leading-none">
-                                           <Fingerprint size={8} className="text-primary/40" /> @{user.username}
-                                        </p>
+                                        <p className="font-bold text-slate-900">{user.first_name || "User"} {user.last_name}</p>
+                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">@{user.username}</p>
                                      </div>
                                  </div>
                               </td>
-                              <td className="px-10 py-6">
-                                 <span className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border shadow-sm ${role.color}`}>
+                              <td className="px-8 py-5">
+                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${role.color}`}>
                                     {role.name}
                                  </span>
                               </td>
-                              <td className="px-10 py-6">
-                                 <div className="flex items-center gap-1.5 text-[9px] font-black text-slate-500 uppercase tracking-widest leading-none">
-                                    <div className="h-1 w-1 rounded-full bg-primary" />
-                                    {Object.keys(user.module_permissions || {}).length} Modular Links
+                              <td className="px-8 py-5">
+                                 <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                                    <ShieldCheck size={14} className="text-[#B8860B]" />
+                                    {Object.keys(user.module_permissions || {}).length} Access Point(s)
                                  </div>
                               </td>
-                              <td className="px-10 py-6 text-right">
-                                 <div className="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-3 group-hover:translate-x-0">
-                                    <button onClick={() => handleEdit(user)} className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+                              <td className="px-8 py-5 text-right">
+                                 <div className="flex justify-end items-center gap-2">
+                                    <button onClick={() => handleEdit(user)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
                                        <Edit size={14} />
                                     </button>
-                                    <button className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-100 transition-all shadow-sm">
+                                    <button className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
                                        <Trash2 size={14} />
                                     </button>
                                  </div>
@@ -365,8 +390,8 @@ export default function UsersPage() {
               </table>
             </div>
 
-            <div className="p-10 border-t border-slate-50 flex justify-between items-center bg-slate-50/30">
-                <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Primary Security Ledger Node</div>
+            <div className="p-8 border-t border-slate-50 flex justify-between items-center bg-slate-50/20">
+                <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Management Ledger v1.0</div>
                 <Pagination currentPage={page} totalPages={Math.ceil(count/pageSize)} onPageChange={setPage} count={count} pageSize={pageSize} />
             </div>
           </motion.div>
@@ -378,27 +403,27 @@ export default function UsersPage() {
 
 function InputGroup({ label, value, onChange, placeholder, icon: Icon, symbol, type="text", desc }) {
     return (
-        <div className="space-y-2.5">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
+        <div className="space-y-2">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
                 {label}
             </label>
             <div className="relative group">
                 {symbol ? (
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-900 font-black text-xs">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
                         {symbol}
                     </div>
-                ) : (
-                    <Icon size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-200 group-focus-within:text-slate-900 transition-colors" />
-                )}
+                ) : Icon ? (
+                    <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />
+                ) : null}
                 <input 
                     type={type}
                     value={value}
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className={`w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-${symbol ? '10' : '14'} pr-6 font-bold text-[11px] text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner`}
+                    className={`w-full h-11 bg-slate-50 border border-slate-200 rounded-xl ${symbol || Icon ? 'pl-11' : 'pl-4'} pr-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all`}
                 />
             </div>
-            {desc && <p className="text-[8px] font-bold text-slate-300 ml-1 tracking-tight">{desc}</p>}
+            {desc && <p className="text-[10px] font-medium text-slate-400 tracking-tight">{desc}</p>}
         </div>
     );
 }

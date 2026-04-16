@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Check, ArrowRight, Zap, Shield, Globe, Award, Sparkles } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
 import DemoBookingModal from './DemoBookingModal';
 
 const PricingPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const handleSelectPlan = (plan) => {
+        // Redirect to registration with the chosen plan
+        navigate(`/register?plan=${plan}`);
+    };
 
     return (
         <MarketingLayout>
@@ -31,13 +38,13 @@ const PricingPage = () => {
                         <span className="text-slate-400">Every Heritage Size.</span>
                     </h1>
                     <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto mb-24 leading-relaxed">
-                        No hidden fees. Institutional infrastructure designed for the sanctity of Kerala's heritage.
+                        No hidden fees. Institutional infrastructure designed for the sanctity of heritage institutions.
                     </p>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                         <PricingCard 
                             title="Heritage Lite"
-                            price="0"
+                            price="1,500"
                             desc="For local community temples starting their digital journey."
                             features={[
                                 "Bilingual Receipt Entry",
@@ -46,12 +53,12 @@ const PricingPage = () => {
                                 "Standard Email Support"
                             ]}
                             icon={Zap}
-                            onCta={() => setIsModalOpen(true)}
+                            onCta={() => handleSelectPlan('LITE')}
                         />
 
                         <PricingCard 
-                            title="Major Devaswom"
-                            price="2,499"
+                            title="Major Devaswom (PRO)"
+                            price="2,500"
                             desc="Infrastructure for institutions with complex sevas & high traffic."
                             features={[
                                 "Multi-Counter TCC Display",
@@ -62,12 +69,12 @@ const PricingPage = () => {
                             ]}
                             icon={Shield}
                             isFeatured
-                            onCta={() => setIsModalOpen(true)}
+                            onCta={() => handleSelectPlan('PRO')}
                         />
 
                         <PricingCard 
-                            title="Royal Heritage"
-                            price="Custom"
+                            title="Institution Max"
+                            price="3,000"
                             desc="Customized ecosystem for mega-temples and Boards."
                             features={[
                                 "Dedicated Regional Server",
@@ -77,7 +84,7 @@ const PricingPage = () => {
                                 "Biometric Staff Tracking"
                             ]}
                             icon={Award}
-                            onCta={() => setIsModalOpen(true)}
+                            onCta={() => handleSelectPlan('PRO_MAX')}
                         />
                     </div>
                 </div>

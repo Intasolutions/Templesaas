@@ -111,7 +111,7 @@ export function useDevotees() {
             setEditingId(null);
             fetchMasters();
         } catch (e) {
-            setError(t('action_failed', "Action failed. Record might exist or system is busy."));
+            setError(extractDRFError(e));
         }
     };
 
@@ -144,6 +144,13 @@ export function useDevotees() {
     const onAddClick = () => {
         resetForm();
         setAddOpen(true);
+    };
+
+    const onAddMasterClick = () => {
+        setEditingId(null);
+        setMasterForm({ name: "" });
+        setError("");
+        setMasterOpen(true);
     };
 
     const onEditClick = (devotee) => {
@@ -235,8 +242,8 @@ export function useDevotees() {
         actions: {
             setSearch, setSearchField, setDateFilter, setOrdering, setPage, setTab,
             setPromoOpen, setAddOpen, setHistoryOpen, setMasterOpen, setForm, setMasterForm,
-            setDownloadMenuOpen, fetchMasters, fetchDevotees, saveMaster, saveDevotee,
-            onAddClick, onEditClick, openHistory, onDownload, setError,
+            setEditingId, setDownloadMenuOpen, fetchMasters, fetchDevotees, saveMaster, saveDevotee,
+            onAddClick, onAddMasterClick, onEditClick, openHistory, onDownload, setError,
             deleteDevotee, deleteMaster
         }
     };

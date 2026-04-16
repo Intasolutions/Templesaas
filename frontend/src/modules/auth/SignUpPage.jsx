@@ -18,7 +18,8 @@ const SignUpPage = () => {
             adminName: params.get('name') || '',
             email: params.get('email') || '',
             password: '',
-            isTrial: !!params.get('email'), // Assume trial if coming from the modal's redirect
+            isTrial: !!params.get('email'), 
+            plan: params.get('plan') || 'LITE', // Default to LITE if none provided
         };
     });
     const [isLoading, setIsLoading] = useState(false);
@@ -59,6 +60,7 @@ const SignUpPage = () => {
                 password: formData.password,
                 admin_name: formData.adminName,
                 is_trial: formData.isTrial,
+                plan_name: formData.plan, // Send the selected plan
             });
 
             const { token } = res.data;

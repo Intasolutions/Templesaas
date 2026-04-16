@@ -31,20 +31,19 @@ export default function UpgradePage() {
         setStatusMessage(null);
 
         try {
-            // 1. Create order on backend
-            const orderRes = await api.post("/core/billing/create-order/", { plan_name: planName });
-            const orderData = orderRes.data;
+            // 1. Create subscription on backend
+            // Endpoints changed from create-order to create-subscription
+            const subRes = await api.post("/core/billing/create-subscription/", { plan_name: planName });
+            const subData = subRes.data;
 
             const options = {
-                key: orderData.razorpay_key,
-                amount: orderData.amount,
-                currency: orderData.currency,
+                key: subData.razorpay_key,
+                subscription_id: subData.subscription_id, // Key change: use subscription_id
                 name: "Temple Management SaaS",
-                description: `Upgrade to ${orderData.plan_name}`,
-                order_id: orderData.order_id,
+                description: `Recurring Subscription: ${subData.plan_name}`,
                 prefill: {
-                    name: orderData.prefill_name,
-                    email: orderData.prefill_email,
+                    name: subData.prefill_name || "",
+                    email: subData.prefill_email || "",
                 },
                 theme: {
                     color: tenant?.brand_color || "#f97316",
@@ -52,9 +51,9 @@ export default function UpgradePage() {
                 handler: async (response) => {
                     setLoading(true);
                     try {
-                        // 2. Verify payment on backend
-                        const verifyRes = await api.post("/core/billing/verify/", {
-                            razorpay_order_id: response.razorpay_order_id,
+                        // 2. Verify subscription on backend
+                        const verifyRes = await api.post("/core/billing/verify-subscription/", {
+                            razorpay_subscription_id: response.razorpay_subscription_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                             plan_name: planName
@@ -63,10 +62,10 @@ export default function UpgradePage() {
                         if (verifyRes.data.success) {
                             setStatusMessage({ type: "success", text: verifyRes.data.message });
                             // Update local tenant data to reflect new plan immediately
-                            setTenantData({ ...tenant, plan_name: verifyRes.data.new_plan });
+                            setTenantData({ ...tenant, plan_name: planName });
                         }
                     } catch (err) {
-                        setStatusMessage({ type: "error", text: "Verification failed. Please contact support." });
+                        setStatusMessage({ type: "error", text: "Subscription verification failed. Please contact support." });
                     } finally {
                         setLoading(false);
                     }
@@ -79,8 +78,8 @@ export default function UpgradePage() {
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (error) {
-            console.error("Payment Error:", error);
-            setStatusMessage({ type: "error", text: error.response?.data?.error || "Failed to initiate payment." });
+            console.error("Subscription Error:", error);
+            setStatusMessage({ type: "error", text: error.response?.data?.error || "Failed to initiate subscription." });
             setLoading(false);
         }
     };
@@ -127,15 +126,15 @@ export default function UpgradePage() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto w-full"
+                className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto w-full"
             >
-                {/* Lite Plan (Default) */}
+                {/* Lite Plan */}
                 <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 flex flex-col relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-slate-300">
                     <div className="mb-8">
                         <h3 className="text-2xl font-black text-slate-800">Lite {tenant?.plan_name === 'LITE' && <span className="text-emerald-500 font-bold text-xs border border-emerald-100 ml-2 px-2 py-0.5 rounded-lg bg-emerald-50 uppercase tracking-widest">Active</span>}</h3>
                         <p className="text-slate-500 font-medium mt-2">Essential management for local temples.</p>
                         <div className="mt-6 flex items-baseline gap-1">
-                            <span className="text-5xl font-black text-slate-800">₹999</span>
+                            <span className="text-5xl font-black text-slate-800">₹1,500</span>
                             <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">/ month</span>
                         </div>
                     </div>
@@ -145,9 +144,7 @@ export default function UpgradePage() {
                         <FeatureItem text="Pooja & Seva Bookings" active />
                         <FeatureItem text="Hundi Collection Tracking" active />
                         <FeatureItem text="Basic Inventory Management" active />
-                        <FeatureItem text="Advanced Financial Reports" />
-                        <FeatureItem text="TV Queue Display Modes" />
-                        <FeatureItem text="Webhooks & API Integrations" />
+                        <FeatureItem text="Basic Reports" active />
                     </div>
 
                     <button 
@@ -166,7 +163,7 @@ export default function UpgradePage() {
                 <div className="bg-gradient-to-b from-orange-600 to-red-700 rounded-[2.5rem] p-1 shadow-2xl shadow-orange-500/30 flex flex-col relative transform md:-translate-y-4 transition-all duration-300 hover:scale-105">
                     <div className="absolute top-0 right-10 transform -translate-y-1/2">
                         <div className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-black text-xs px-4 py-1.5 rounded-full shadow-lg tracking-widest uppercase">
-                            Most Powerful
+                            Popular Choice
                         </div>
                     </div>
 
@@ -175,21 +172,18 @@ export default function UpgradePage() {
                             <h3 className="text-2xl font-black text-white flex items-center gap-3">
                                 Temple PRO <Zap size={24} className="text-yellow-400 fill-yellow-400" />
                             </h3>
-                            <p className="text-orange-100 font-medium mt-2">Maximum automation for high-traffic temples.</p>
+                            <p className="text-orange-100 font-medium mt-2">Maximum automation for growing temples.</p>
                             <div className="mt-6 flex items-baseline gap-1">
-                                <span className="text-5xl font-black text-white">₹4,999</span>
+                                <span className="text-5xl font-black text-white">₹2,500</span>
                                 <span className="text-orange-200 font-bold uppercase tracking-widest text-xs">/ month</span>
                             </div>
                         </div>
 
                         <div className="space-y-4 flex-1">
-                            <FeatureItem text="Unlimited Devotee Database" active dark />
-                            <FeatureItem text="Pooja & Seva Bookings" active dark />
-                            <FeatureItem text="Hundi Collection Tracking" active dark />
-                            <FeatureItem text="Basic Inventory Management" active dark />
+                            <FeatureItem text="All Lite Features" active dark />
                             <FeatureItem text="Advanced Financial Reports" active dark />
                             <FeatureItem text="TV Queue Display Modes" active dark />
-                            <FeatureItem text="Webhooks & API Integrations" active dark />
+                            <FeatureItem text="Inventory Tracking" active dark />
                         </div>
 
                         <button 
@@ -200,9 +194,39 @@ export default function UpgradePage() {
                             }`}
                         >
                             {loading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={20} />}
-                            {tenant?.plan_name === 'PRO' ? 'Current Active Plan' : 'Upgrade to PRO Now'}
+                            {tenant?.plan_name === 'PRO' ? 'Current Active Plan' : 'Upgrade to PRO'}
                         </button>
                     </div>
+                </div>
+
+                {/* Pro Max Plan */}
+                <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 flex flex-col relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-slate-300">
+                    <div className="mb-8">
+                        <h3 className="text-2xl font-black text-slate-800">Pro Max {tenant?.plan_name === 'PRO_MAX' && <span className="text-emerald-500 font-bold text-xs border border-emerald-100 ml-2 px-2 py-0.5 rounded-lg bg-emerald-50 uppercase tracking-widest">Active</span>}</h3>
+                        <p className="text-slate-500 font-medium mt-2">The ultimate suite for large institutions.</p>
+                        <div className="mt-6 flex items-baseline gap-1">
+                            <span className="text-5xl font-black text-slate-800">₹3,000</span>
+                            <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">/ month</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4 flex-1">
+                        <FeatureItem text="All Pro Features" active />
+                        <FeatureItem text="API & Custom Integrations" active />
+                        <FeatureItem text="Multi-Branch Management" active />
+                        <FeatureItem text="Dedicated Support" active />
+                    </div>
+
+                    <button 
+                        disabled={tenant?.plan_name === 'PRO_MAX' || loading}
+                        onClick={() => handleUpgrade('PRO_MAX')}
+                        className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                            tenant?.plan_name === 'PRO_MAX' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-black'
+                        }`}
+                    >
+                        {loading && <Loader2 size={18} className="animate-spin" />}
+                        {tenant?.plan_name === 'PRO_MAX' ? 'Current Plan' : 'Switch to Pro Max'}
+                    </button>
                 </div>
             </motion.div>
 

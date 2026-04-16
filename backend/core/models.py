@@ -16,6 +16,7 @@ class Plan(models.Model):
     
     name = models.CharField(max_length=20, choices=PLAN_CHOICES, unique=True)
     allowed_apps = models.JSONField(default=list, help_text="List of app labels allowed for this plan")
+    razorpay_plan_id = models.CharField(max_length=100, blank=True, null=True, help_text="Plan ID from Razorpay Dashboard")
     
     def __str__(self):
         return self.name
@@ -40,6 +41,9 @@ class Tenant(models.Model):
     db_name = models.CharField(max_length=63, unique=True, help_text="Internal identifier")
     plan = models.ForeignKey(Plan, on_delete=models.PROTECT, null=True, blank=True)
     
+    # Razorpay Specific
+    razorpay_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    
     # Location for Panchangam calculations
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -61,3 +65,33 @@ class Tenant(models.Model):
 
     def __str__(self):
         return self.name
+
+class Subscription(models.Model):
+    """
+    Links a Tenant to a recurring Razorpay Subscription
+    """
+    STATUS_CHOICES = [
+        ('created', 'Created'),
+        ('authenticated', 'Authenticated'),
+        ('active', 'Active'),
+        ('past_due', 'Past Due'),
+        ('halted', 'Halted'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+        ('expired', 'Expired'),
+    ]
+
+    tenant = models.OneToOneField(Tenant, on_delete=models.CASCADE, related_name='subscription')
+    razorpay_subscription_id = models.CharField(max_length=100, unique=True)
+    razorpay_plan_id = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='created')
+    
+    current_period_start = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    
+    ended_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.tenant.name} - {self.status}"

@@ -99,7 +99,7 @@ export default function MarketingLayout({ children }) {
 
                     <div className="hidden md:flex items-center gap-4">
                         <button onClick={() => navigate('/login')} className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-4 py-2">Sign in</button>
-                        <button onClick={() => navigate('/login')} className="bg-slate-900 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-black transition-all shadow-sm">Get Started</button>
+                        <button onClick={() => navigate('/pricing')} className="bg-slate-900 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-black transition-all shadow-sm">Get Started</button>
                     </div>
 
                     <button className="lg:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>

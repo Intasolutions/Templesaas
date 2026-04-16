@@ -42,6 +42,7 @@ class TenantSignupView(APIView):
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
         admin_name = data.get('admin_name', '').strip()
+        plan_name = data.get('plan_name', Plan.LITE).upper()
 
         # ── Validation ──────────────────────────────────────────────────
         errors = {}
@@ -73,8 +74,10 @@ class TenantSignupView(APIView):
         # ── Atomic creation ─────────────────────────────────────────────
         try:
             with transaction.atomic():
-                # Get LITE plan (created by fixture/management command)
-                lite_plan = Plan.objects.filter(name=Plan.LITE).first()
+                # Get the requested plan (fallback to LITE if not found)
+                target_plan = Plan.objects.filter(name=plan_name).first()
+                if not target_plan:
+                    target_plan = Plan.objects.filter(name=Plan.LITE).first()
 
                 # 1. Create Tenant
                 tenant = Tenant.objects.create(
@@ -82,9 +85,9 @@ class TenantSignupView(APIView):
                     subdomain=subdomain,
                     db_name=f"tenant_{subdomain.replace('-', '_')}",
                     contact_email=email,
-                    plan=lite_plan,
+                    plan=target_plan,
                     is_active=True,
-                    is_trial=data.get('is_trial', False)
+                    is_trial=True # Everyone starts with a trial
                 )
 
                 # 2. Create Django User  (username = subdomain for uniqueness)

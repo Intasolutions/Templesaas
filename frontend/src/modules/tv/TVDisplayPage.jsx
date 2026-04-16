@@ -57,6 +57,23 @@ export default function TVDisplayPage() {
         ));
     };
 
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    
+    const toggleFullscreen = () => {
+        const elem = document.getElementById('tv-display-node');
+        if (!elem) return;
+
+        if (!document.fullscreenElement) {
+            elem.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+            setIsFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsFullscreen(false);
+        }
+    };
+
     const handleDeploy = () => {
         setIsDeploying(true);
         setTimeout(() => {
@@ -112,9 +129,14 @@ export default function TVDisplayPage() {
         fetchLiveBroadcastData();
         const dataInterval = setInterval(fetchLiveBroadcastData, 60000);
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        
+        const fsHandler = () => setIsFullscreen(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', fsHandler);
+        
         return () => {
             clearInterval(timer);
             clearInterval(dataInterval);
+            document.removeEventListener('fullscreenchange', fsHandler);
         };
     }, []);
 
@@ -132,37 +154,52 @@ export default function TVDisplayPage() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-20">
-            {/* Prime Header */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-4 md:px-0">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                        <div className="h-14 w-14 bg-slate-900 rounded-[1.4rem] flex items-center justify-center text-white shadow-2xl shadow-slate-900/30">
-                            <Monitor size={28} />
-                        </div>
-                        <div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Signage Node</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
-                                <ShieldCheck size={12} className="text-primary" /> Active Broadcast Command
-                            </p>
+            {/* Prime Header - Hidden in Fullscreen */}
+            {!isFullscreen && (
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-4 md:px-0">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <div className="h-14 w-14 bg-slate-900 rounded-[1.4rem] flex items-center justify-center text-white shadow-2xl shadow-slate-900/30">
+                                <Monitor size={28} />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Signage Node</h1>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
+                                    <ShieldCheck size={12} className="text-primary" /> Active Broadcast Command
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-4">
-                    <button className="h-14 px-6 bg-white border border-slate-100 text-slate-900 rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-slate-50 transition-all">
-                        <Maximize2 size={18} className="text-slate-400" /> Fullscreen 4K
-                    </button>
-                    <button onClick={handleDeploy} disabled={isDeploying} className="h-14 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 active:scale-95 transition-all">
-                        {isDeploying ? <RefreshCw size={20} className="animate-spin text-primary" /> : <Zap size={20} />}
-                        {isDeploying ? 'Synchronizing...' : 'Deploy Protocol'}
-                    </button>
-                </div>
-            </header>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <button 
+                            onClick={toggleFullscreen}
+                            className={`h-14 px-6 rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 transition-all border ${
+                                isFullscreen ? 'bg-primary text-white border-primary shadow-xl shadow-primary/20' : 'bg-white border-slate-100 text-slate-900 hover:bg-slate-50'
+                            }`}
+                        >
+                            <Maximize2 size={18} className={isFullscreen ? 'text-white' : 'text-slate-400'} /> {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen 4K'}
+                        </button>
+                        <button onClick={handleDeploy} disabled={isDeploying} className="h-14 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[11px] uppercase tracking-[0.2em] flex items-center gap-3 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 active:scale-95 transition-all">
+                            {isDeploying ? <RefreshCw size={20} className="animate-spin text-primary" /> : <Zap size={20} />}
+                            {isDeploying ? 'Synchronizing...' : 'Deploy Protocol'}
+                        </button>
+                    </div>
+                </header>
+            )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 px-4 md:px-0">
+            <div className={`grid grid-cols-1 ${isFullscreen ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-12 px-4 md:px-0`}>
                 {/* Cinematic Preview Display */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="aspect-video bg-slate-950 rounded-[3.5rem] border-[16px] border-slate-900 shadow-2xl overflow-hidden relative group">
+                <div className={`${isFullscreen ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-8`}>
+                    <div id="tv-display-node" className={`aspect-video bg-slate-950 shadow-2xl overflow-hidden relative group transition-all duration-700 ${isFullscreen ? 'border-none rounded-none !max-w-none w-screen h-screen fixed inset-0 z-[500]' : 'rounded-[3.5rem] border-[16px] border-slate-900'}`}>
+                        {isFullscreen && (
+                            <button 
+                                onClick={toggleFullscreen}
+                                className="absolute top-10 right-10 h-12 w-12 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-900 backdrop-blur-md flex items-center justify-center z-[600] opacity-0 group-hover:opacity-100 transition-all border border-white/10"
+                            >
+                                <X size={20} />
+                            </button>
+                        )}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.1),transparent)]" />
                         
                         {/* Status Overlays */}
@@ -270,25 +307,28 @@ export default function TVDisplayPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between px-6">
-                        <div className="flex items-center gap-6">
-                           <button onClick={() => setIsPlaying(!isPlaying)} className="h-14 w-14 rounded-[1.2rem] bg-slate-900 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/20">
-                              {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
-                           </button>
-                           <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Playhead Control</p>
-                              <p className="text-xs font-bold text-slate-900 mt-1">{isPlaying ? 'Continuous Node Rotation' : 'Fixed Protocol Display'}</p>
-                           </div>
+                    {!isFullscreen && (
+                        <div className="flex items-center justify-between px-6">
+                            <div className="flex items-center gap-6">
+                            <button onClick={() => setIsPlaying(!isPlaying)} className="h-14 w-14 rounded-[1.2rem] bg-slate-900 text-white flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/20">
+                                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                            </button>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Playhead Control</p>
+                                <p className="text-xs font-bold text-slate-900 mt-1">{isPlaying ? 'Continuous Node Rotation' : 'Fixed Protocol Display'}</p>
+                            </div>
+                            </div>
+                            <div className="text-right">
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Resolution Payload</p>
+                            <p className="text-xs font-bold text-slate-900 mt-1 uppercase">Ultra-High Fidelity • 60 FPS</p>
+                            </div>
                         </div>
-                        <div className="text-right">
-                           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Resolution Payload</p>
-                           <p className="text-xs font-bold text-slate-900 mt-1 uppercase">Ultra-High Fidelity • 60 FPS</p>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Controls & Configuration */}
-                <div className="space-y-10">
+                {/* Controls & Configuration - Hidden in Fullscreen */}
+                {!isFullscreen && (
+                    <div className="space-y-10">
                     <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:scale-125 transition-transform duration-700">
                            <Settings size={120} />
@@ -349,6 +389,7 @@ export default function TVDisplayPage() {
                        </div>
                     </div>
                 </div>
+                )}
             </div>
         </div>
     );
