@@ -54,5 +54,10 @@ export const DevoteeService = {
     async exportDevotees(format) {
         const res = await api.get(`/devotees/export/${format}/`, { responseType: "blob" });
         return res.data;
+    },
+
+    async getStats() {
+        const res = await api.get("/devotees/stats/");
+        return res.data;
     }
 };

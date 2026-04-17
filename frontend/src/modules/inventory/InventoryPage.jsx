@@ -240,7 +240,7 @@ export default function InventoryPage() {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                 <Box size={24} />
             </div>
             <div>
@@ -256,7 +256,7 @@ export default function InventoryPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={16} />
             <input 
               value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-10 w-64 bg-white border border-slate-200 rounded-lg pl-11 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-[#B8860B] transition-all"
+              className="h-10 w-64 bg-white border border-slate-200 rounded-lg pl-11 pr-4 text-xs font-medium text-slate-900 outline-none focus:border-primary transition-all"
               placeholder="Search items..."
             />
           </div>
@@ -294,10 +294,10 @@ export default function InventoryPage() {
 
       {/* Tab Switcher */}
       <div className="flex border-b border-slate-100">
-         <button onClick={() => { setActiveTab("items"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'items' ? 'border-[#B8860B] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+         <button onClick={() => { setActiveTab("items"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'items' ? 'border-primary text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             Master Inventory
          </button>
-         <button onClick={() => { setActiveTab("history"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'history' ? 'border-[#B8860B] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+         <button onClick={() => { setActiveTab("history"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'history' ? 'border-primary text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             Stock Log & Prices
          </button>
       </div>
@@ -305,9 +305,9 @@ export default function InventoryPage() {
       {/* Filter Ribbon */}
       {activeTab === 'items' && (
         <div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
-           <button onClick={() => setCategoryFilter("all")} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm ${categoryFilter === "all" ? 'bg-[#B8860B] text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>All Items</button>
+           <button onClick={() => setCategoryFilter("all")} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm ${categoryFilter === "all" ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>All Items</button>
            {categories.map(cat => (
-              <button key={cat.id} onClick={() => setCategoryFilter(cat.id)} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm whitespace-nowrap ${categoryFilter === cat.id ? 'bg-[#B8860B] text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>{cat.name}</button>
+              <button key={cat.id} onClick={() => setCategoryFilter(cat.id)} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm whitespace-nowrap ${categoryFilter === cat.id ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>{cat.name}</button>
            ))}
         </div>
       )}
@@ -551,7 +551,7 @@ export default function InventoryPage() {
              <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl shadow-2xl relative z-10 w-full max-w-lg flex flex-col overflow-hidden border border-slate-100">
                 <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
                    <div>
-                      <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
                          <ShieldCheck size={14} /> Audit Trail Verified
                       </p>
                       <h2 className="text-xl font-bold text-slate-900 tracking-tight">Record Stock Movement</h2>
@@ -620,7 +620,7 @@ function StatCard({ label, value, icon, trend, color }) {
     };
 
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 hover:border-[#B8860B]/20 transition-all group">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 hover:border-primary/20 transition-all group">
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${colors[color] || 'bg-slate-50'}`}>
                 {icon}
             </div>

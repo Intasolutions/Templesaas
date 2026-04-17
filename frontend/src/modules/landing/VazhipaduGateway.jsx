@@ -48,7 +48,7 @@ const VazhipaduGateway = () => {
                                     }}
                                 />
                                 <img 
-                                    src="/temple-hero-blended.png" 
+                                    src="/vazhipadu_hero.png" 
                                     alt="Vazhipadu CMS Operations" 
                                     className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
                                 />
@@ -73,26 +73,38 @@ const VazhipaduGateway = () => {
                             desc="Automatic translation between English and Malayalam for receipts and internal reports." 
                          />
                          <FeatureBullet 
-                            icon={Globe}
-                            title="Global E-Prasad Hub" 
-                            desc="Integrated logistics engine with real-time DHL, BlueDart, and Delhivery tracking for international devotees." 
+                            icon={Layers}
+                            title="Dual-Source Hub" 
+                            desc="Unified management for both physical counter bookings (Offline) and the Devotee Portal (Online)." 
                          />
                          <FeatureBullet 
                             icon={Zap}
-                            title="AI Demand Forecast" 
-                            desc="Predictive modeling for Mandalam festival seasons to optimize staff and ritual inventory." 
+                            title="Dynamic Receipts" 
+                            desc="Automated sequential receipt issuance with daily serialization and precision timestamps." 
                          />
                          <FeatureBullet 
-                            title="Inventory Link" 
-                            desc="Automatic deduction of ritual ingredients from the central store upon booking." 
+                            title="Finance Handshake" 
+                            desc="Real-time synchronization with the central ledger for every confirmed ritual booking." 
                          />
                          <FeatureBullet 
                             title="QR Verification" 
-                            desc="Unique QR codes on every receipt for secure Prasad collection and verification." 
+                            desc="Secure payload generation for Prasadam collection, ensuring zero-fraud ritual fulfillment." 
                          />
                          <FeatureBullet 
-                            title="Cloud Sync" 
-                            desc="Works offline during internet outages and syncs to the cloud once restored." 
+                            title="Cloud Resilience" 
+                            desc="Offline-first capability ensuring counters remain operational even during internet outages." 
+                         />
+                         <FeatureBullet 
+                            title="Prasad Logistics" 
+                            desc="Integrated tracking for E-Prasad shipments with BlueDart and DHL connectivity." 
+                         />
+                         <FeatureBullet 
+                            title="Astral Telemetry" 
+                            desc="Booking logic dynamically synchronized with high-precision local lat/long panchangam data." 
+                         />
+                         <FeatureBullet 
+                            title="Loyalty Rewards" 
+                            desc="Automated reward point accrual for devotees based on institutional engagement protocols." 
                          />
                     </div>
                 </div>

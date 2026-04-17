@@ -41,6 +41,10 @@ class Tenant(models.Model):
     db_name = models.CharField(max_length=63, unique=True, help_text="Internal identifier")
     plan = models.ForeignKey(Plan, on_delete=models.PROTECT, null=True, blank=True)
     
+    # Authorized Signatory (for receipts)
+    authorized_signatory_name = models.CharField(max_length=150, blank=True, help_text="Name of the official signing receipts (e.g., K. Balakrishnan)")
+    authorized_signatory_designation = models.CharField(max_length=100, blank=True, help_text="Official designation (e.g., Executive Officer)")
+    
     # Razorpay Specific
     razorpay_customer_id = models.CharField(max_length=100, blank=True, null=True)
     

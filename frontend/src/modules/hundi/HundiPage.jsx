@@ -145,7 +145,7 @@ const HundiPage = () => {
             {denoms.map((d) => (
               <div key={d} className="flex items-center gap-6 p-4 hover:bg-slate-50/50 rounded-xl transition-all group border border-transparent hover:border-slate-100">
                 <div className="w-24">
-                  <div className="h-11 flex items-center justify-center rounded-lg bg-white border border-slate-200 font-bold text-slate-900 shadow-sm group-hover:border-[#B8860B]/30 transition-all text-sm">
+                  <div className="h-11 flex items-center justify-center rounded-lg bg-white border border-slate-200 font-bold text-slate-900 shadow-sm group-hover:border-primary/30 transition-all text-sm">
                      <span className="text-[10px] text-slate-400 mr-2 uppercase">₹</span> {d}
                   </div>
                 </div>
@@ -175,7 +175,7 @@ const HundiPage = () => {
       >
         <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden border border-white/5 shadow-xl">
            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-105 transition-transform"><Lock size={80} /></div>
-           <p className="text-[#B8860B] font-bold tracking-widest uppercase text-[10px] mb-6 flex items-center gap-2">
+           <p className="text-primary font-bold tracking-widest uppercase text-[10px] mb-6 flex items-center gap-2">
              <ShieldCheck size={14} /> Official Remittance Record
            </p>
            
@@ -231,7 +231,7 @@ const HundiPage = () => {
         <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
            <div className="flex justify-between items-center mb-8">
               <div className="flex items-center gap-2">
-                <Users size={16} className="text-[#B8860B]" />
+                <Users size={16} className="text-primary" />
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Authorized Witnesses</h4>
               </div>
               {checkPermission('hundi', 'edit') && (
@@ -286,9 +286,9 @@ const HundiPage = () => {
                  <Calendar size={16} className="text-slate-400" />
                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Filter Range:</span>
                  <div className="flex items-center gap-2">
-                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-[#B8860B] outline-none transition-all shadow-sm" />
+                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-primary outline-none transition-all shadow-sm" />
                     <span className="text-slate-300">to</span>
-                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-[#B8860B] outline-none transition-all shadow-sm" />
+                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-primary outline-none transition-all shadow-sm" />
                  </div>
               </div>
               <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -356,7 +356,7 @@ const HundiPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                 <Wallet size={24} />
             </div>
             <div>
@@ -446,7 +446,7 @@ const HundiPage = () => {
             >
               <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
                  <div>
-                    <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
                        <ShieldCheck size={14} /> Audit Trace Verified
                     </p>
                     <h2 className="text-xl font-bold text-slate-900 tracking-tight">{selectedSession.name || "Hundi Remittance"}</h2>
@@ -468,7 +468,7 @@ const HundiPage = () => {
                              <div key={d} className="py-3 flex justify-between items-center group">
                                 <div className="flex items-center gap-4">
                                    <div className="w-16 text-xs font-bold text-slate-400 uppercase group-hover:text-slate-900 transition-colors tracking-widest">₹ {d}</div>
-                                   <div className="text-slate-300 group-hover:text-[#B8860B] transition-colors">×</div>
+                                   <div className="text-slate-300 group-hover:text-primary transition-colors">×</div>
                                    <div className="text-sm font-bold text-slate-900">{count}</div>
                                 </div>
                                 <div className="font-bold text-slate-900 tracking-tight text-sm">{fmtINR(d * count)}</div>

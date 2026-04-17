@@ -12,11 +12,18 @@ import SignUpPage from "../../modules/auth/SignUpPage.jsx";
 import VazhipaduGateway from "../../modules/landing/VazhipaduGateway.jsx";
 import AnalyticsPage from "../../modules/landing/AnalyticsPage.jsx";
 import PanchangamPage from "../../modules/landing/PanchangamPage.jsx";
+import DocsPage from "../../modules/landing/DocsPage.jsx";
+import SupportPage from "../../modules/landing/SupportPage.jsx";
 import ManagementPage from "../../modules/landing/ManagementPage.jsx";
 import CrmPage from "../../modules/landing/CrmPage.jsx";
+import StaffPage from "../../modules/landing/StaffPage.jsx";
+import SignageLandingPage from "../../modules/landing/SignageLandingPage.jsx";
 import SecurityPage from "../../modules/landing/SecurityPage.jsx";
 import TermsPage from "../../modules/landing/TermsPage.jsx";
 import PrivacyPage from "../../modules/landing/PrivacyPage.jsx";
+import RefundPolicyPage from "../../modules/landing/RefundPolicyPage.jsx";
+import CookiePolicyPage from "../../modules/landing/CookiePolicyPage.jsx";
+import SaasAgreementPage from "../../modules/landing/SaasAgreementPage.jsx";
 import PartnerPage from "../../modules/landing/PartnerPage.jsx";
 import BillingPage from "../../modules/billing/BillingPage.jsx";
 
@@ -52,11 +59,18 @@ export default function AppRoutes() {
       <Route path="/products/vazhipadu" element={<VazhipaduGateway />} />
       <Route path="/products/analytics" element={<AnalyticsPage />} />
       <Route path="/products/panchangam" element={<PanchangamPage />} />
+      <Route path="/products/signage" element={<SignageLandingPage />} />
       <Route path="/solutions/management" element={<ManagementPage />} />
-      <Route path="/solutions/crm" element={<CrmPage />} />
+      <Route path="/docs" element={<DocsPage />} />
+      <Route path="/support" element={<SupportPage />} />
+      <Route path="/solutions/staff" element={<StaffPage />} />
+      <Route path="/products/crm" element={<CrmPage />} />
       <Route path="/solutions/security" element={<SecurityPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/refund-policy" element={<RefundPolicyPage />} />
+      <Route path="/cookie-policy" element={<CookiePolicyPage />} />
+      <Route path="/saas-agreement" element={<SaasAgreementPage />} />
       <Route path="/partner" element={<PartnerPage />} />
 
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />

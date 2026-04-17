@@ -10,13 +10,12 @@ const SecurityPage = () => {
     return (
         <MarketingLayout>
             <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-            
             <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                                 Institutional Governance
+                                 Sovereign Data Protection
                             </div>
                             <h1 className="text-6xl md:text-[84px] font-extrabold text-slate-900 tracking-tight mb-10 leading-[0.95]">
                                 Trust & <br />
@@ -34,27 +33,27 @@ const SecurityPage = () => {
                             animate={{ opacity: 1, scale: 1 }} 
                             className="relative"
                         >
-                             <div className="relative w-full aspect-square max-w-[550px] mx-auto group">
+                             <div className="relative w-full aspect-[4/3] max-w-[650px] mx-auto group">
                                 <div 
                                     className="absolute inset-0 z-10"
                                     style={{
-                                        background: 'radial-gradient(circle at 50% 50%, transparent 20%, rgba(255,255,255,1) 90%), linear-gradient(to top, white 5%, transparent 30%)'
+                                        background: 'radial-gradient(circle at 50% 10%, transparent 20%, rgba(255,255,255,1) 95%)'
                                     }}
                                 />
                                 <img 
-                                    src="/security-hero.png" 
+                                    src="/security_hero.png" 
                                     alt="Institutional Vault Security" 
-                                    className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
+                                    className="w-full h-full object-cover rounded-[3rem] shadow-2xl group-hover:scale-[1.02] transition-transform duration-1000 border border-slate-100"
                                 />
                              </div>
                              
                              {/* Security Badge */}
                              <div className="absolute -bottom-10 -left-10 bg-slate-900 p-8 rounded-[40px] shadow-2xl text-white z-20">
                                  <div className="flex items-center gap-4">
-                                     <div className="h-10 w-10 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 font-bold"><Shield size={20} /></div>
+                                     <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold"><Shield size={20} /></div>
                                      <div>
                                          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest leading-none mb-1">Protection Level</p>
-                                         <p className="text-xl font-extrabold text-white leading-none">AES-256 Core</p>
+                                         <p className="text-xl font-extrabold text-white leading-none">AES-256 CORE</p>
                                      </div>
                                  </div>
                              </div>
@@ -63,24 +62,57 @@ const SecurityPage = () => {
                 </div>
             </section>
 
-            <section className="py-40 bg-slate-50 border-y border-slate-100">
+            <section className="py-40 bg-white border-y border-slate-100">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-                         <FeatureBullet title="Data Sovereignty" desc="Your institutional data remains yours. We use private storage nodes that ensure zero third-party access." />
-                         <FeatureBullet title="Audit Log Integrity" desc="Every transaction and ritual booking is logged with an immutable audit trail for complete transparency." />
-                         <FeatureBullet title="Heritage Compliance" desc="Designed to meet the specific legal and religious compliance standards of Kerala Devaswom Boards." />
+                         <FeatureBullet 
+                            title="Institutional Isolation" 
+                            desc="Multi-tenant architecture ensures that your institution's data is logically and physically siloed from others." 
+                         />
+                         <FeatureBullet 
+                            title="Regional Redundancy" 
+                            desc="Data is continuously backed up across multiple regional nodes (TVM-CORE, EKM-RESERVE) for disaster recovery." 
+                         />
+                         <FeatureBullet 
+                            title="Z-Leak Auditing" 
+                            desc="End-to-end encryption for every transaction record, ensuring zero leakage of sensitive financial data." 
+                         />
+                         <FeatureBullet 
+                            title="Biometric Integration" 
+                            desc="Support for advanced physical counter security via biometric staff authentication and identity protocols." 
+                         />
+                         <FeatureBullet 
+                            title="Cloud Security Alliance" 
+                            desc="Built following CSA guidelines for secure cloud infrastructure and institutional data safety." 
+                         />
+                         <FeatureBullet 
+                            title="Heritage Protocol" 
+                            desc="Digital preservation of administrative records in compliance with long-term heritage archival laws." 
+                         />
                     </div>
-                </div>
-            </section>
-            <section className="py-40 bg-slate-50 border-y border-slate-100">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-                         <FeatureBullet title="Institutional Isolation" desc="Multi-tenant architecture ensures that your institution's data is logically and physically siloed from others." />
-                         <FeatureBullet title="Regional Redundancy" desc="Data is continuously backed up across multiple regional nodes (TVM-CORE, EKM-RESERVE) for disaster recovery." />
-                         <FeatureBullet title="Z-Leak Auditing" desc="End-to-end encryption for every transaction record, ensuring zero leakage of sensitive financial data." />
-                         <FeatureBullet title="Biometric Integration" desc="Support for advanced physical counter security via biometric staff authentication and identity protocols." />
-                         <FeatureBullet title="Cloud Security Alliance" desc="Built following CSA guidelines for secure cloud infrastructure and institutional data safety." />
-                         <FeatureBullet title="Heritage Protocol" desc="Digital preservation of administrative records in compliance with long-term heritage archival laws." />
+
+                    <div className="mt-40 bg-slate-900 rounded-[3rem] p-16 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-16 opacity-5"><Lock size={120} /></div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
+                            <div>
+                                <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-8">
+                                    Zero-Trust <br /> Architecture.
+                                </h2>
+                                <p className="text-lg text-white/50 font-medium leading-relaxed max-w-md">
+                                    Our core philosophy is simple: never trust, always verify. Every system access is audited, and every database entry is signed with institutional keys.
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-2">
+                                    <p className="text-3xl font-black text-primary">24/7</p>
+                                    <p className="text-[10px] uppercase font-black text-white/30 tracking-[0.2em]">Threat Monitoring</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <p className="text-3xl font-black text-white">99.9%</p>
+                                    <p className="text-[10px] uppercase font-black text-white/30 tracking-[0.2em]">Uptime SLI</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -90,9 +122,11 @@ const SecurityPage = () => {
 
 const FeatureBullet = ({ title, desc }) => (
     <div className="space-y-4">
-        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100"><Check size={20} strokeWidth={3} /></div>
-        <h4 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h4>
-        <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
+        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100">
+            <Check size={20} strokeWidth={3} />
+        </div>
+        <h4 className="text-xl font-bold text-slate-900 tracking-tight uppercase">{title}</h4>
+        <p className="text-slate-500 font-medium leading-relaxed uppercase tracking-tight text-xs opacity-80">{desc}</p>
     </div>
 );
 

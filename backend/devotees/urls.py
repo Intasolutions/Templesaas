@@ -10,6 +10,7 @@ from .views import (
     DevoteeExportCSVView,
     DevoteeExportExcelView,
     DevoteeExportPDFView,
+    DevoteeStatsView,
 )
 
 app_name = "devotees"
@@ -30,4 +31,5 @@ urlpatterns = [
     path("export/csv/", DevoteeExportCSVView.as_view(), name="devotee-export-csv"),
     path("export/excel/", DevoteeExportExcelView.as_view(), name="devotee-export-excel"),
     path("export/pdf/", DevoteeExportPDFView.as_view(), name="devotee-export-pdf"),
+    path("stats/", DevoteeStatsView.as_view(), name="devotee-stats"),
 ]

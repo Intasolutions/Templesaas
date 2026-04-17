@@ -28,6 +28,13 @@ class PoojaListCreateView(TenantMixin, generics.ListCreateAPIView):
     search_fields = ["name"]
     ordering_fields = ["id", "name", "amount", "created_at"]
     ordering = ["-id"]
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        festival_event = self.request.query_params.get('festival_event')
+        if festival_event:
+            qs = qs.filter(festival_event_id=festival_event)
+        return qs
 
 
 class PoojaDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):

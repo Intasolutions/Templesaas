@@ -1,57 +1,41 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-export default function Pagination({ currentPage, totalPages, onPageChange, count, pageSize }) {
+export default function Pagination({ currentPage, totalPages, onPageChange, count, pageSize = 10 }) {
     const { t } = useTranslation();
     
     if (count === 0) return null;
 
     return (
-        <div className="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-b-[2rem]">
-            <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-500">
-                    {t('page', 'Page')} {currentPage} {t('of', 'of')} {totalPages}
-                </span>
+        <div className="flex flex-col md:flex-row items-center justify-between py-6 gap-6">
+            <div className="space-y-1 text-center md:text-left">
+                <p className="text-xs font-bold text-slate-800 tracking-tight">
+                    {t('page', 'Page')} {currentPage} {t('of', 'of')} {totalPages || 1}
+                </p>
                 {count > 0 && (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         {t('showing', 'Showing')} {Math.min(count, (currentPage - 1) * pageSize + 1)}-{Math.min(count, currentPage * pageSize)} {t('of', 'of')} {count} {t('records', 'Records')}
-                    </span>
+                    </p>
                 )}
             </div>
-            <div className="flex gap-2">
+            
+            <div className="flex items-center gap-2">
                 <button 
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))} 
                     disabled={currentPage <= 1} 
-                    className="p-2 border border-slate-200 rounded-xl bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all hover:border-primary/30"
+                    className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all active:scale-90"
                 >
-                    <ChevronLeft size={16} />
+                    <ChevronLeft size={18} />
                 </button>
-                <div className="hidden sm:flex items-center gap-1">
-                    {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                        // Simple page numbers around current page
-                        let pageNum = currentPage;
-                        if (totalPages <= 5) pageNum = i + 1;
-                        else if (currentPage <= 3) pageNum = i + 1;
-                        else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                        else pageNum = currentPage - 2 + i;
-
-                        return (
-                            <button
-                                key={pageNum}
-                                onClick={() => onPageChange(pageNum)}
-                                className={`w-10 h-10 rounded-xl text-sm font-bold border transition-all ${currentPage === pageNum ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                            >
-                                {pageNum}
-                            </button>
-                        );
-                    })}
+                <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-900 text-white text-xs font-black shadow-lg shadow-slate-900/20">
+                    {currentPage}
                 </div>
                 <button 
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} 
                     disabled={currentPage >= totalPages} 
-                    className="p-2 border border-slate-200 rounded-xl bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all hover:border-primary/30"
+                    className="h-10 w-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-slate-900 disabled:opacity-30 transition-all active:scale-90"
                 >
-                    <ChevronRight size={16} />
+                    <ChevronRight size={18} />
                 </button>
             </div>
         </div>

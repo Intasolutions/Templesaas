@@ -50,7 +50,7 @@ const integrationList = [
         icon: Mail,
         status: "active",
         type: "Email Notifications",
-        color: "text-[#B8860B] bg-yellow-50 border-yellow-100"
+        color: "text-primary bg-yellow-50 border-yellow-100"
     },
     {
         id: "maps",
@@ -69,7 +69,7 @@ export default function IntegrationsPage() {
             {/* Header Section */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                    <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                         <Link2 size={24} />
                     </div>
                     <div>
@@ -85,7 +85,7 @@ export default function IntegrationsPage() {
                     <input 
                         type="text" 
                         placeholder="Search integrations..." 
-                        className="w-full h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-[#B8860B] transition-all"
+                        className="w-full h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-primary transition-all"
                     />
                 </div>
             </header>
@@ -98,7 +98,7 @@ export default function IntegrationsPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.05 }}
                         key={item.id} 
-                        className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-[#B8860B]/20 transition-all flex flex-col justify-between h-full group"
+                        className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:border-primary/20 transition-all flex flex-col justify-between h-full group"
                     >
                         <div>
                             <div className="flex items-start justify-between mb-6">
@@ -115,13 +115,13 @@ export default function IntegrationsPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.type}</span>
-                                <h3 className="text-base font-bold text-slate-900 group-hover:text-[#B8860B] transition-colors flex items-center gap-2">
+                            <div className="space-y-1">
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest opacity-60">{item.type}</p>
+                                <p className="text-xs font-bold text-slate-900 group-hover:text-primary tracking-tight transition-colors flex items-center gap-2">
                                     {item.name}
-                                    <ExternalLink size={12} className="opacity-0 group-hover:opacity-40 transition-opacity" />
-                                </h3>
-                                <p className="text-[11px] font-medium text-slate-500 leading-relaxed line-clamp-2">
+                                    <ExternalLink size={10} className="opacity-0 group-hover:opacity-40 transition-opacity" />
+                                </p>
+                                <p className="text-[11px] font-medium text-slate-500 leading-relaxed line-clamp-2 opacity-70">
                                     {item.description}
                                 </p>
                             </div>
@@ -153,7 +153,7 @@ export default function IntegrationsPage() {
                     </div>
                     
                     <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8">
-                        <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-[#B8860B] transition-all">
+                        <div className="h-14 w-14 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-primary transition-all">
                             <ShieldCheck size={28} className="text-white" />
                         </div>
                         <div className="flex-1 text-center lg:text-left">

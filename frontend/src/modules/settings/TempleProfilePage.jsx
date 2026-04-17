@@ -34,6 +34,8 @@ export default function TempleProfilePage() {
         brand_color: '#f97316', // Orange-500
         latitude: '',
         longitude: '',
+        authorized_signatory_name: '',
+        authorized_signatory_designation: '',
     });
 
     const [logo, setLogo] = useState(null);
@@ -76,6 +78,8 @@ export default function TempleProfilePage() {
                 brand_color: tenant.brand_color || '#f97316',
                 latitude: tenant.latitude || '10.5276',
                 longitude: tenant.longitude || '76.2144',
+                authorized_signatory_name: tenant.authorized_signatory_name || '',
+                authorized_signatory_designation: tenant.authorized_signatory_designation || '',
             });
             if (tenant.logo) setLogoPreview(tenant.logo);
         }
@@ -185,7 +189,7 @@ export default function TempleProfilePage() {
                                     >
                                         <div className="flex flex-col items-center text-white">
                                             <Camera size={24} className="mb-1" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">{t('change_logo', 'Change')}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">{t('change_logo', 'Change')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -200,15 +204,15 @@ export default function TempleProfilePage() {
                         </div>
 
                         <div className="flex-1 mb-1">
-                            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md uppercase">
+                            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight drop-shadow-md uppercase">
                                 {formData.name || t('temple_name_placeholder', 'Your Temple Name')}
                             </h1>
                             <div className="flex items-center gap-2.5 mt-2">
-                                <span className="px-2.5 py-0.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 text-[9px] font-black text-orange-200 uppercase tracking-widest">
+                                <span className="px-2.5 py-0.5 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 text-[9px] font-bold text-orange-200 uppercase tracking-widest">
                                     {tenant?.plan || 'PRO'} Workspace
                                 </span>
                                 <span className="h-1 w-1 rounded-full bg-white/40" />
-                                <span className="text-white/60 text-xs font-black uppercase tracking-widest">
+                                <span className="text-white/60 text-xs font-bold uppercase tracking-widest">
                                     {tenant?.subdomain || 'mahadeva'}.temple.io
                                 </span>
                             </div>
@@ -230,8 +234,8 @@ export default function TempleProfilePage() {
                                     <Sparkles size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-black text-slate-800 tracking-tight uppercase leading-none">{t('identity_title', 'Identity & Contact')}</h2>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1.5">{t('identity_desc', 'Essential details for your automation.')}</p>
+                                    <h2 className="text-lg font-bold text-slate-800 tracking-tight uppercase leading-none">{t('identity_title', 'Identity & Contact')}</h2>
+                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">{t('identity_desc', 'Essential details for your automation.')}</p>
                                 </div>
                             </div>
 
@@ -266,7 +270,38 @@ export default function TempleProfilePage() {
                                     value={formData.website} 
                                     onChange={handleChange} 
                                     icon={Globe}
-                                    placeholder="www.temple.com"
+                                    />
+                            </div>
+                        </div>
+
+                        {/* Official Signing Authority */}
+                        <div className="bg-white rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 border border-slate-100">
+                            <div className="flex items-center gap-3 mb-8">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-inner">
+                                    <CheckCircle2 size={20} />
+                                </div>
+                                <div>
+                                    <h2 className="text-lg font-bold text-slate-800 tracking-tight uppercase leading-none">Signing Authority</h2>
+                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">Official details for authorized receipts.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <FormInput 
+                                    label="Authorized Signatory Name" 
+                                    name="authorized_signatory_name" 
+                                    value={formData.authorized_signatory_name} 
+                                    onChange={handleChange} 
+                                    icon={Save}
+                                    placeholder="e.g. K. Balakrishnan"
+                                />
+                                <FormInput 
+                                    label="Official Designation" 
+                                    name="authorized_signatory_designation" 
+                                    value={formData.authorized_signatory_designation} 
+                                    onChange={handleChange} 
+                                    icon={Sparkles}
+                                    placeholder="e.g. Executive Officer"
                                 />
                             </div>
                         </div>
@@ -280,14 +315,14 @@ export default function TempleProfilePage() {
                                     <MapPin size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-black text-slate-800 tracking-tight uppercase leading-none">{t('location_title', 'Geographic Location')}</h2>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1.5">{t('location_desc', 'Precise coordinates for calculations.')}</p>
+                                    <h2 className="text-lg font-bold text-slate-800 tracking-tight uppercase leading-none">{t('location_title', 'Geographic Location')}</h2>
+                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1.5">{t('location_desc', 'Precise coordinates for calculations.')}</p>
                                 </div>
                             </div>
 
                             <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Physical Address</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Physical Address</label>
                                     <div className="relative group">
                                         <textarea
                                             name="address"
@@ -323,7 +358,7 @@ export default function TempleProfilePage() {
                                         type="button"
                                         onClick={handleDetectLocation}
                                         disabled={isDetecting}
-                                        className="absolute -top-12 right-0 h-10 px-4 rounded-xl bg-blue-50 text-blue-600 font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-100 transition-all active:scale-95 disabled:opacity-50"
+                                        className="absolute -top-12 right-0 h-10 px-4 rounded-xl bg-blue-50 text-blue-600 font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-blue-100 transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         {isDetecting ? <Loader2 size={12} className="animate-spin" /> : <LocateFixed size={12} />}
                                         Detect Current Location
@@ -332,14 +367,14 @@ export default function TempleProfilePage() {
 
                                 {/* Map Visualization with Circle Radius */}
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Geofence Perimeter (500m Radius)</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Geofence Perimeter (500m Radius)</label>
                                     <div className="h-64 w-full rounded-3xl bg-slate-100 border border-slate-100 overflow-hidden relative shadow-inner">
                                         <MapPreview 
                                             lat={parseFloat(formData.latitude)} 
                                             lng={parseFloat(formData.longitude)} 
                                             radius={500} 
                                         />
-                                        <div className="absolute bottom-4 left-4 z-[100] px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                                        <div className="absolute bottom-4 left-4 z-[100] px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-600">
                                             Verification Zone Active
                                         </div>
                                     </div>
@@ -358,12 +393,12 @@ export default function TempleProfilePage() {
                                 <div className="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600 shadow-inner">
                                     <Palette size={20} />
                                 </div>
-                                <h2 className="text-lg font-black text-slate-800 tracking-tight uppercase transition-colors">{t('branding', 'Branding')}</h2>
+                                <h2 className="text-lg font-bold text-slate-800 tracking-tight uppercase transition-colors">{t('branding', 'Branding')}</h2>
                             </div>
 
                             <div className="space-y-10">
                                 <div className="space-y-4">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">Theme Accent Color</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Theme Accent Color</label>
                                     <div className="flex items-center gap-6">
                                         <div 
                                             className="h-20 w-20 rounded-[2rem] shadow-xl border-4 border-white ring-8 ring-slate-50 relative overflow-hidden group" 
@@ -394,7 +429,7 @@ export default function TempleProfilePage() {
                                         type="submit"
                                         disabled={isSaving}
                                         className={cn(
-                                            "w-full py-5 rounded-3xl font-black text-white shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group",
+                                            "w-full py-5 rounded-3xl font-bold text-white shadow-2xl flex items-center justify-center gap-3 transition-all duration-300 relative overflow-hidden group",
                                             success ? "bg-emerald-500" : "bg-primary active:scale-95 hover:bg-primary/90 shadow-primary/30"
                                         )}
                                     >
@@ -442,7 +477,7 @@ export default function TempleProfilePage() {
                             <CheckCircle2 size={20} />
                         </div>
                         <div>
-                            <p className="font-black tracking-tight text-lg">Changes Persisted</p>
+                            <p className="font-bold tracking-tight text-lg">Changes Persisted</p>
                             <p className="text-white/60 text-xs font-semibold uppercase tracking-[0.2em] mt-0.5">Temple profile is updated</p>
                         </div>
                         <button onClick={() => setSuccess(false)} className="ml-auto text-white/30 hover:text-white transition-colors">
@@ -551,7 +586,7 @@ function FormInput({ label, icon: Icon, value, onChange, name, placeholder, smal
     return (
         <div className="space-y-1.5 group">
             <label className={cn(
-                "text-[8px] font-black uppercase tracking-widest transition-all duration-300 ml-1",
+                "text-[8px] font-bold uppercase tracking-widest transition-all duration-300 ml-1",
                 isFocused ? "text-primary" : "text-slate-400"
             )}>
                 {label}

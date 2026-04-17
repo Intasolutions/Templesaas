@@ -17,34 +17,56 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import ClockInModal from "../users/ClockInModal";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import Pagination from "../../components/common/Pagination";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 const AttendancePage = () => {
     const { t } = useTranslation();
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm, 500);
     const [showClockIn, setShowClockIn] = useState(false);
 
-    useEffect(() => {
-        fetchLogs();
-    }, []);
+    const [pagination, setPagination] = useState({
+        current: 1,
+        count: 0,
+        next: null,
+        previous: null
+    });
 
-    const fetchLogs = async () => {
+    useEffect(() => {
+        fetchLogs(1);
+    }, [debouncedSearch]);
+
+    const fetchLogs = async (page = 1) => {
         setLoading(true);
         try {
-            const res = await api.get("/users/attendance/");
-            setLogs(res.data.results || res.data || []);
+            const params = new URLSearchParams({ page });
+            if (debouncedSearch) params.append("search", debouncedSearch);
+
+            const res = await api.get(`/users/attendance/?${params}`);
+            const data = res.data;
+            
+            if (data.results) {
+                setLogs(data.results);
+                setPagination({
+                    current: page,
+                    count: data.count,
+                    next: data.next,
+                    previous: data.previous
+                });
+            } else {
+                setLogs(Array.isArray(data) ? data : []);
+                setPagination(prev => ({ ...prev, count: data.length || 0, current: page }));
+            }
         } catch (err) {
             console.error("Error fetching logs:", err);
         } finally {
             setLoading(false);
         }
     };
-
-    const filteredLogs = Array.isArray(logs) ? logs.filter(log => 
-        log.username?.toLowerCase().includes(searchTerm.toLowerCase())
-    ) : [];
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-20">
@@ -56,8 +78,8 @@ const AttendancePage = () => {
                             <Clock size={24} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Arrival Matrix</h1>
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-none">Arrival Matrix</h1>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-2">
                                 <Database size={10} className="text-primary" /> Real-time Presence Monitoring
                             </p>
                         </div>
@@ -77,7 +99,7 @@ const AttendancePage = () => {
                     </div>
                     <button 
                         onClick={() => setShowClockIn(true)}
-                        className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center gap-2.5 active:scale-95"
+                        className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center gap-2.5 active:scale-95"
                     >
                         Personnel Protocol
                     </button>
@@ -86,22 +108,6 @@ const AttendancePage = () => {
 
             {/* Presence Analytics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 md:px-0">
-                <MetricCard 
-                    label="Validated Access" 
-                    value={filteredLogs.filter(l => l.is_verified).length} 
-                    icon={CheckCircle2} 
-                    trend="SECURE" 
-                    color="emerald" 
-                    subtext="Verified Spatial Node Entries" 
-                />
-                <MetricCard 
-                    label="Flagged Access" 
-                    value={filteredLogs.filter(l => !l.is_verified).length} 
-                    icon={AlertTriangle} 
-                    trend="RISK" 
-                    color="primary" 
-                    subtext="Unverified Authentication Attempts" 
-                />
                 <MetricCard 
                     label="Active Cycle" 
                     value="Alpha" 
@@ -116,12 +122,12 @@ const AttendancePage = () => {
             <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden group mx-4 md:mx-0">
                 <div className="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/20">
                     <div>
-                        <h2 className="text-[10px] font-black text-slate-400 flex items-center gap-3 uppercase tracking-[0.3em]">
+                        <h2 className="text-[10px] font-bold text-slate-400 flex items-center gap-3 uppercase tracking-widest">
                             <Layers size={16} className="text-slate-900" /> Personnel Identification Ledger
                         </h2>
-                        <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mt-1">Monitoring personnel check-ins and verified geolocation vectors</p>
+                        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-1">Monitoring personnel check-ins and verified geolocation vectors</p>
                     </div>
-                    <button className="h-10 px-5 rounded-xl border border-slate-100 bg-white text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm flex items-center gap-2">
+                    <button className="h-10 px-5 rounded-xl border border-slate-100 bg-white text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all shadow-sm flex items-center gap-2">
                         <Filter size={12} /> Filter Cycle
                     </button>
                 </div>
@@ -130,59 +136,59 @@ const AttendancePage = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-white border-b border-slate-50">
-                                <th className="px-10 py-6 text-[9px] font-black uppercase tracking-widest text-slate-400">Personnel Hub</th>
-                                <th className="px-8 py-6 text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">Security State</th>
-                                <th className="px-10 py-6 text-[9px] font-black uppercase tracking-widest text-slate-400">Spatial Telemetry</th>
-                                <th className="px-10 py-6 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">Time Ledger</th>
+                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">Personnel Hub</th>
+                                <th className="px-8 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Security State</th>
+                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">Spatial Telemetry</th>
+                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">Time Ledger</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {loading ? (
-                                <tr><td colSpan="4" className="py-32 text-center text-[10px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Establishing Logic Connection...</td></tr>
-                            ) : filteredLogs.length === 0 ? (
-                                <tr><td colSpan="4" className="py-24 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">No presence recorded in current operational cycle</td></tr>
-                            ) : filteredLogs.map(log => (
+                                <tr><td colSpan="4" className="py-32 text-center text-[10px] font-bold text-slate-200 uppercase tracking-widest animate-pulse">Establishing Logic Connection...</td></tr>
+                            ) : logs.length === 0 ? (
+                                <tr><td colSpan="4" className="py-24 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">No presence recorded in current operational cycle</td></tr>
+                            ) : logs.map(log => (
                                 <tr key={log.id} className="group/row hover:bg-slate-50/50 transition-all">
                                     <td className="px-10 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center font-black text-slate-400 group-hover/row:bg-slate-900 group-hover/row:text-white transition-all shadow-inner uppercase text-sm">
+                                            <div className="h-10 w-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center font-bold text-slate-400 group-hover/row:bg-slate-900 group-hover/row:text-white transition-all shadow-inner uppercase text-sm">
                                                 {log.username?.[0]}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-slate-900 tracking-tighter uppercase leading-none">{log.username}</p>
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1.5 leading-none">{log.date}</p>
+                                                <p className="text-sm font-bold text-slate-900 tracking-tight uppercase leading-none">{log.username}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 leading-none">{log.date}</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-10 py-6 text-center">
                                         {log.is_verified ? (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-black uppercase tracking-widest">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold uppercase tracking-widest">
                                                 <CheckCircle2 size={10} /> Verified
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 text-red-500 border border-red-100 text-[8px] font-black uppercase tracking-widest">
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-red-50 text-red-500 border border-red-100 text-[10px] font-bold uppercase tracking-widest">
                                                 <AlertTriangle size={10} className="animate-pulse" /> Flagged
                                             </span>
                                         )}
                                     </td>
                                     <td className="px-10 py-6">
                                         <div className="flex flex-col gap-1.5">
-                                            <div className="text-[9px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
+                                            <div className="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-1.5">
                                                 <MapPin size={10} className="text-primary" /> {log.verification_method || 'GPS Uplink'}
                                             </div>
-                                            {log.latitude && (
-                                                <div className="text-[7px] font-black text-slate-300 uppercase tracking-tighter opacity-60">
-                                                    COORD: {parseFloat(log.latitude).toFixed(4)}°N, {parseFloat(log.longitude).toFixed(4)}°E
+                                            {log.latitude && log.longitude && (
+                                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                                                    LOC: {parseFloat(log.latitude).toFixed(4)}°N, {parseFloat(log.longitude).toFixed(4)}°E
                                                 </div>
                                             )}
                                         </div>
                                     </td>
                                     <td className="px-10 py-6 text-right">
                                         <div className="flex flex-col items-end gap-1.5">
-                                            <div className="font-black text-sm text-slate-900 tracking-tighter">
+                                            <div className="font-bold text-sm text-slate-900 tracking-tight">
                                                 {log.in_time} <span className="text-slate-200">/</span> {log.out_time || "--:--"}
                                             </div>
-                                            <button className="flex items-center gap-1.5 text-[8px] font-black text-slate-300 uppercase tracking-widest hover:text-slate-900 transition-colors group/btn">
+                                            <button className="flex items-center gap-1.5 text-[10px] font-bold text-slate-300 uppercase tracking-widest hover:text-slate-900 transition-colors group/btn">
                                                 Audit <ArrowUpRight size={10} className="group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 transition-transform" />
                                             </button>
                                         </div>
@@ -192,10 +198,14 @@ const AttendancePage = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="p-8 border-t border-slate-50 bg-slate-50/30 flex justify-center">
-                    <button className="text-[9px] font-black uppercase tracking-widest text-slate-300 group-hover:text-slate-900 transition-all flex items-center gap-3">
-                        Personnel Presence Node Synchronization Portal <ArrowUpRight size={12} />
-                    </button>
+                <div className="p-8 border-t border-slate-50 bg-slate-50/30">
+                    <Pagination 
+                        currentPage={pagination.current} 
+                        totalPages={Math.ceil(pagination.count / 10) || 1} 
+                        onPageChange={fetchLogs} 
+                        count={pagination.count} 
+                        pageSize={10} 
+                    />
                 </div>
             </div>
 
@@ -225,13 +235,13 @@ function MetricCard({ label, value, icon: Icon, color, trend, subtext }) {
                     <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${isSlate ? 'bg-white/10 border border-white/10' : colors[color]} group-hover:rotate-12 transition-transform shadow-inner`}>
                         <Icon size={20} />
                     </div>
-                    <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${isSlate ? 'bg-primary text-white shadow-lg shadow-primary/20' : colors[color]}`}>
+                    <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest ${isSlate ? 'bg-primary text-white shadow-lg shadow-primary/20' : colors[color]}`}>
                         {trend}
                     </div>
                 </div>
-                <p className={`text-[9px] font-black uppercase tracking-[0.3em] ${isSlate ? 'text-white/40' : 'text-slate-400'}`}>{label}</p>
-                <h3 className={`text-2xl font-black mt-2 tracking-tighter leading-none ${isSlate ? 'text-white' : 'text-slate-900'}`}>{value}</h3>
-                <p className={`text-[8px] font-black mt-4 uppercase tracking-widest flex items-center gap-2 ${isSlate ? 'text-white/20' : 'text-slate-300'}`}>
+                <p className={`text-[10px] font-bold uppercase tracking-widest ${isSlate ? 'text-white/40' : 'text-slate-400'}`}>{label}</p>
+                <h3 className={`text-2xl font-bold mt-2 tracking-tight leading-none ${isSlate ? 'text-white' : 'text-slate-900'}`}>{value}</h3>
+                <p className={`text-[10px] font-bold mt-4 uppercase tracking-widest flex items-center gap-2 ${isSlate ? 'text-white/20' : 'text-slate-300'}`}>
                     <Database size={10} /> {subtext}
                 </p>
             </div>

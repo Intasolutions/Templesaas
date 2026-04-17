@@ -258,3 +258,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3002",
     "http://127.0.0.1:3002",
 ]
+
+# --------------------------------------------
+# Development Email Backend
+# --------------------------------------------
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

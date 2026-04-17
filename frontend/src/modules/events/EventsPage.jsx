@@ -17,10 +17,14 @@ import {
   Zap,
   ShieldCheck,
   ChevronRight,
+  ChevronLeft,
   Database,
   Layers,
-  Info
+  Info,
+  User,
+  CreditCard
 } from 'lucide-react';
+import Pagination from '../../components/common/Pagination';
 
 const EventsPage = () => {
   const { t } = useTranslation();
@@ -28,6 +32,7 @@ const EventsPage = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({ count: 0, next: null, previous: null, current: 1 });
 
   // Modal State
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -44,16 +49,40 @@ const EventsPage = () => {
   });
   const [errorMsg, setErrorMsg] = useState('');
   const [editingEvent, setEditingEvent] = useState(null);
+  
+  // Ticketing State
+  const [isTicketOpen, setIsTicketOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [devotees, setDevotees] = useState([]);
+  const [ticketForm, setTicketForm] = useState({
+      devotee_id: '',
+      payment_mode: 'UPI',
+      amount: '0'
+  });
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchEvents(1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  async function fetchEvents() {
+  async function fetchEvents(page = 1) {
     setLoading(true);
     try {
-      const res = await api.get("/events/");
-      setEvents(res.data?.results || res.data || []);
+      const res = await api.get(`/events/?page=${page}&search=${searchTerm}`);
+      if (res.data.results) {
+        setEvents(res.data.results);
+        setPagination({
+          count: res.data.count,
+          next: res.data.next,
+          previous: res.data.previous,
+          current: page
+        });
+      } else {
+        setEvents(res.data);
+        setPagination({ count: res.data.length, next: null, previous: null, current: 1 });
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -123,6 +152,62 @@ const EventsPage = () => {
     ), [events, searchTerm]
   );
 
+  const fetchDevotees = async () => {
+    try {
+      const res = await api.get('/devotees/');
+      setDevotees(res.data.results || res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleIssuePass = (evt) => {
+    setSelectedEvent(evt);
+    setTicketForm({
+        ...ticketForm,
+        amount: evt.pass_price
+    });
+    fetchDevotees();
+    setIsTicketOpen(true);
+  };
+
+  const submitTicket = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+        // 1. Get the Auto-created Pooja for this event
+        const poojaRes = await api.get(`/pooja/?festival_event=${selectedEvent.id}`);
+        const pooja = (poojaRes.data.results || poojaRes.data)[0];
+
+        if (!pooja) {
+            alert(`The ticketing service for "${selectedEvent.name}" has not been initialized yet. \n\nPlease try toggling the 'Ticketing Protocol' OFF and ON again in the settings to auto-create it.`);
+            setSubmitting(false);
+            return;
+        }
+
+        // 2. Create Booking
+        const bookingRes = await api.post('/bookings/', {
+            devotee: ticketForm.devotee_id,
+            pooja: pooja.id,
+            amount: ticketForm.amount,
+            payment_status: 'success',
+            payment_mode: ticketForm.payment_mode.toLowerCase(),
+            status: 'confirmed',
+            booking_date: new Date().toISOString().split('T')[0]
+        });
+
+        // 3. Trigger Download
+        window.open(`${api.defaults.baseURL}/bookings/${bookingRes.data.id}/pdf/`, '_blank');
+        
+        setIsTicketOpen(false);
+        fetchEvents(); // Update occupancy
+    } catch (err) {
+        alert(err.response?.data?.detail || "Booking failed");
+    } finally {
+        setSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-20">
       {/* Prime Header */}
@@ -134,7 +219,7 @@ const EventsPage = () => {
              </div>
              <h1 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase">Ritual Registry</h1>
           </div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
              <Layers size={10} className="text-primary" /> Festival Lifecycle & Global Observances
           </p>
         </div>
@@ -145,7 +230,7 @@ const EventsPage = () => {
             <input 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-11 w-64 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-4 text-[9px] font-black uppercase tracking-widest outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-50 transition-all shadow-inner"
+              className="h-11 w-64 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-4 text-[9px] font-bold uppercase tracking-widest outline-none focus:bg-white focus:border-slate-900 focus:ring-4 focus:ring-slate-50 transition-all shadow-inner"
               placeholder="Audit Registry..."
             />
           </div>
@@ -163,31 +248,45 @@ const EventsPage = () => {
       {loading ? (
         <div className="py-40 flex flex-col items-center justify-center space-y-6">
           <div className="w-12 h-12 border-4 border-slate-100 border-t-primary rounded-full animate-spin"></div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Mounting Records...</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">Mounting Records...</p>
         </div>
       ) : filteredEvents.length === 0 ? (
         <div className="py-20 text-center bg-slate-50/50 rounded-[3rem] border-2 border-dashed border-slate-100">
            <div className="h-20 w-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-100 shadow-xl">
              <Calendar size={32} />
            </div>
-           <p className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Registry Void: No Events Programmed</p>
+           <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-400">Registry Void: No Events Programmed</p>
         </div>
       ) : (
-        <motion.div 
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          {filteredEvents.map(evt => (
-            <EventCard 
-              key={evt.id} 
-              event={evt} 
-              onEdit={() => openEdit(evt)} 
-              onDelete={() => handleDelete(evt.id)} 
-              canEdit={checkPermission('events', 'edit')}
-              canDelete={checkPermission('events', 'delete')}
-            />
-          ))}
-        </motion.div>
+        <>
+          <motion.div 
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {events.map(evt => (
+              <EventCard 
+                key={evt.id} 
+                event={evt} 
+                onEdit={() => openEdit(evt)} 
+                onDelete={() => handleDelete(evt.id)} 
+                onIssue={() => handleIssuePass(evt)}
+                canEdit={checkPermission('events', 'edit')}
+                canDelete={checkPermission('events', 'delete')}
+              />
+            ))}
+          </motion.div>
+
+          {/* Pagination Controls */}
+          <div className="pt-10 border-t border-slate-100/60">
+              <Pagination 
+                 currentPage={pagination.current} 
+                 totalPages={Math.ceil(pagination.count / 10) || 1} 
+                 onPageChange={fetchEvents} 
+                 count={pagination.count} 
+                 pageSize={10} 
+              />
+          </div>
+        </>
       )}
 
       {/* Creation/Edit Modal */}
@@ -213,7 +312,7 @@ const EventsPage = () => {
                      </div>
                      {editingEvent ? 'Protocol Update' : 'New Observance'}
                    </h2>
-                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2.5 flex items-center gap-2">
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2.5 flex items-center gap-2">
                      <Database size={10} /> {editingEvent ? `#${editingEvent.id}` : 'Draft Protocol'}
                    </p>
                 </div>
@@ -225,7 +324,7 @@ const EventsPage = () => {
               <div className="p-10 overflow-y-auto max-h-[60vh] custom-scrollbar">
                 <form id="event-form" onSubmit={handleSubmit} className="space-y-8">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Universal Designation</label>
+                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Universal Designation</label>
                     <input 
                       required value={form.name} onChange={(e) => setForm({...form, name: e.target.value})}
                       className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -235,14 +334,14 @@ const EventsPage = () => {
 
                   <div className="grid grid-cols-2 gap-6">
                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Initiation</label>
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Initiation</label>
                         <input 
                           type="date" required value={form.start_date} onChange={(e) => setForm({...form, start_date: e.target.value})}
                           className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
                         />
                      </div>
                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Completion</label>
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Completion</label>
                         <input 
                           type="date" required value={form.end_date} onChange={(e) => setForm({...form, end_date: e.target.value})}
                           className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -251,7 +350,7 @@ const EventsPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Spatial Node</label>
+                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Spatial Node</label>
                     <input 
                       value={form.location} onChange={(e) => setForm({...form, location: e.target.value})}
                       className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -262,7 +361,7 @@ const EventsPage = () => {
                   <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 space-y-4">
                      <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
-                           <span className="text-[9px] font-black uppercase tracking-widest text-primary">Ticketing Protocol</span>
+                           <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Ticketing Protocol</span>
                            <p className="text-[7px] text-white/40 uppercase tracking-widest font-medium">Digital Access & Capacity</p>
                         </div>
                         <button 
@@ -275,11 +374,11 @@ const EventsPage = () => {
                      {form.enable_digital_passes && (
                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
                           <div className="space-y-1.5">
-                             <label className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Remittance</label>
+                             <label className="text-[7px] font-bold text-white/30 uppercase tracking-[0.2em]">Remittance</label>
                              <input type="number" value={form.pass_price} onChange={(e) => setForm({...form, pass_price: e.target.value})} className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-3 text-white font-bold outline-none focus:border-primary text-xs" />
                           </div>
                           <div className="space-y-1.5">
-                             <label className="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Registry Cap</label>
+                             <label className="text-[7px] font-bold text-white/30 uppercase tracking-[0.2em]">Registry Cap</label>
                              <input type="number" value={form.max_capacity} onChange={(e) => setForm({...form, max_capacity: e.target.value})} className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-3 text-white font-bold outline-none focus:border-primary text-xs" />
                           </div>
                        </div>
@@ -287,7 +386,7 @@ const EventsPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Observance Abstract</label>
+                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Observance Abstract</label>
                     <textarea 
                       rows={4} value={form.description} onChange={(e) => setForm({...form, description: e.target.value})}
                       className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner resize-none text-[11px] leading-relaxed"
@@ -298,14 +397,14 @@ const EventsPage = () => {
                   {errorMsg && (
                     <div className="p-5 bg-red-50 text-red-600 rounded-2xl flex items-center gap-3 border border-red-100">
                        <AlertCircle size={18} />
-                       <span className="text-[10px] font-black uppercase tracking-widest">{errorMsg}</span>
+                       <span className="text-[10px] font-bold uppercase tracking-widest">{errorMsg}</span>
                     </div>
                   )}
                 </form>
               </div>
 
               <div className="p-10 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
-                <button type="button" onClick={() => !submitting && setIsAddOpen(false)} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+                <button type="button" onClick={() => !submitting && setIsAddOpen(false)} className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
                   Abort
                 </button>
                 <button form="event-form" type="submit" disabled={submitting} className="h-11 px-10 bg-slate-900 text-white rounded-xl font-bold text-[9px] uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/40 hover:bg-slate-800 disabled:opacity-50">
@@ -316,11 +415,79 @@ const EventsPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Ticket Issuance Modal */}
+      <AnimatePresence>
+        {isTicketOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+              onClick={() => !submitting && setIsTicketOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 40 }}
+              className="bg-white rounded-[2.5rem] shadow-2xl relative z-10 w-full max-w-lg flex flex-col overflow-hidden border border-slate-100"
+            >
+              <div className="p-10 border-b border-slate-50">
+                   <h2 className="text-xl font-bold text-slate-900 tracking-tighter uppercase flex items-center gap-3">
+                     <Ticket size={24} className="text-primary" /> Issue Event Pass
+                   </h2>
+                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">{selectedEvent?.name}</p>
+              </div>
+
+              <div className="p-10 space-y-8">
+                <form id="ticket-form" onSubmit={submitTicket} className="space-y-6">
+                   <div className="space-y-2">
+                      <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Select Devotee</label>
+                      <select 
+                        required 
+                        className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner text-xs"
+                        value={ticketForm.devotee_id}
+                        onChange={(e) => setTicketForm({...ticketForm, devotee_id: e.target.value})}
+                      >
+                         <option value="">Choose Devotee...</option>
+                         {devotees.map(d => <option key={d.id} value={d.id}>{d.full_name}</option>)}
+                      </select>
+                   </div>
+
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Payment Mode</label>
+                         <select 
+                           className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner text-xs"
+                           value={ticketForm.payment_mode}
+                           onChange={(e) => setTicketForm({...ticketForm, payment_mode: e.target.value})}
+                         >
+                            <option value="UPI">UPI / Scan</option>
+                            <option value="CASH">Cash</option>
+                         </select>
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Pass Price</label>
+                         <div className="h-12 bg-slate-100/50 rounded-xl flex items-center px-5 font-bold text-slate-900 text-xs">
+                           ₹{selectedEvent?.pass_price}
+                         </div>
+                      </div>
+                   </div>
+                </form>
+              </div>
+
+              <div className="p-10 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
+                <button type="button" onClick={() => setIsTicketOpen(false)} className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Abort</button>
+                <button form="ticket-form" type="submit" disabled={submitting} className="h-11 px-10 bg-slate-900 text-white rounded-xl font-bold text-[9px] uppercase tracking-[0.3em] shadow-2xl">
+                   {submitting ? 'Generating...' : 'Confirm & Download'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-function EventCard({ event, onEdit, onDelete, canEdit, canDelete }) {
+function EventCard({ event, onEdit, onDelete, onIssue, canEdit, canDelete }) {
   const now = new Date();
   const start = new Date(event.start_date);
   const end = new Date(event.end_date);
@@ -345,7 +512,7 @@ function EventCard({ event, onEdit, onDelete, canEdit, canDelete }) {
       <div className="flex justify-between items-start mb-8 relative z-10">
          <div className="flex items-center gap-2.5">
             <div className={`h-2 w-2 rounded-full ${config.color} ${isLive ? 'animate-pulse' : ''}`} />
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{config.label}</span>
+            <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400">{config.label}</span>
          </div>
          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-3 group-hover:translate-x-0">
             {canEdit && (
@@ -365,7 +532,7 @@ function EventCard({ event, onEdit, onDelete, canEdit, canDelete }) {
         <h3 className="text-lg font-bold text-slate-900 tracking-tighter uppercase mb-1.5 group-hover:text-primary transition-colors leading-tight">
           {event.name}
         </h3>
-        <div className="flex items-center gap-2 mb-4 text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 w-fit px-2.5 py-1 rounded-lg">
+        <div className="flex items-center gap-2 mb-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 w-fit px-2.5 py-1 rounded-lg">
            <Calendar size={10} /> {new Date(event.start_date).toLocaleDateString()} — {new Date(event.end_date).toLocaleDateString()}
         </div>
         <p className="text-[11px] font-bold text-slate-500 leading-relaxed line-clamp-3 mb-6 uppercase">
@@ -374,18 +541,21 @@ function EventCard({ event, onEdit, onDelete, canEdit, canDelete }) {
       </div>
 
       <div className="pt-6 border-t border-slate-50 flex items-center justify-between mt-auto relative z-10">
-         <div className="flex items-center gap-2 text-[9px] font-black text-slate-900 uppercase tracking-widest">
+         <div className="flex items-center gap-2 text-[9px] font-bold text-slate-900 uppercase tracking-widest">
             <div className="h-5 w-5 rounded-lg bg-slate-50 flex items-center justify-center text-slate-300">
                <MapPin size={10} />
             </div>
             {event.location || 'Central Complex'}
          </div>
          {event.enable_digital_passes ? (
-           <div className="h-7 px-3 bg-primary text-white text-[8px] font-black rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 uppercase tracking-widest">
-              ₹{event.pass_price}
-           </div>
+           <button 
+             onClick={onIssue}
+             className="h-8 px-4 bg-primary text-white text-[8px] font-bold rounded-lg flex items-center justify-center shadow-lg shadow-primary/20 uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all"
+           >
+              <Ticket size={12} className="mr-2" /> Issue Pass
+           </button>
          ) : (
-           <div className="h-7 px-3 bg-slate-50 text-slate-400 text-[8px] font-black rounded-lg flex items-center justify-center uppercase tracking-widest border border-slate-100">
+           <div className="h-7 px-3 bg-slate-50 text-slate-400 text-[8px] font-bold rounded-lg flex items-center justify-center uppercase tracking-widest border border-slate-100">
               Free Access
            </div>
          )}

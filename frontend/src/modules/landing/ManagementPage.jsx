@@ -41,7 +41,7 @@ const ManagementPage = () => {
                                     }}
                                 />
                                 <img 
-                                    src="/management-hero.png" 
+                                    src="/management_hero.png" 
                                     alt="Temple Management Operations" 
                                     className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
                                 />
@@ -63,7 +63,7 @@ const ManagementPage = () => {
             </section>
             <section className="py-40 bg-slate-50 border-y border-slate-100">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
                          <FeatureBullet title="Multi-Temple Hierarchy" desc="Manage hundreds of temple nodes from a single central registry for Devaswom Boards and Private Trusts." />
                          <FeatureBullet title="Staff RBAC Protocol" desc="Granular Role-Based Access Control to ensure only authorized personnel can access sensitive ledger data." />
                          <FeatureBullet title="Asset & Property Log" desc="Institutional tracking of temple properties, land, and valuable heritage assets with GPS tagging." />
@@ -71,9 +71,59 @@ const ManagementPage = () => {
                          <FeatureBullet title="Institutional Comms" desc="Integrated notification system for temple employees and administrators across all regional nodes." />
                          <FeatureBullet title="Legal Tracking" desc="Monitor institutional compliance, board meeting minutes, and local government mandates." />
                     </div>
-                </div>
-            </section>
-        </MarketingLayout>
+
+                    <div className="mt-40 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                        <div className="space-y-8">
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">Board-Level Oversight</span>
+                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-[1.1]">
+                                Centralized <br />Trust Command.
+                            </h2>
+                            <p className="text-lg text-slate-500 font-medium leading-relaxed">
+                                Devalayam provides temple boards with unparalleled visibility into regional operations. Monitor counter-level collections, staff attendance, and ritual throughput across all nodes in real-time.
+                            </p>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
+                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Consolidated Financial Statements</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
+                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Regional Node Comparison Analytics</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
+                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Audit-Ready Compliance Logs</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="bg-slate-900 rounded-[3rem] p-12 text-white">
+                             <div className="flex items-center justify-between mb-12">
+                                <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center"><Target size={20} /></div>
+                                <span className="text-[10px] uppercase font-black tracking-widest opacity-40">System Node 01</span>
+                             </div>
+                             <div className="space-y-8">
+                                 <div>
+                                     <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-2">Total Node Capacity</p>
+                                     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                         <div className="h-full bg-primary w-[75%]" />
+                                     </div>
+                                 </div>
+                                 <div className="grid grid-cols-2 gap-8">
+                                      <div>
+                                          <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-1">Active Counters</p>
+                                          <p className="text-3xl font-black tracking-tighter text-white uppercase">4 Nodes</p>
+                                      </div>
+                                      <div>
+                                          <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-1">Audit Sync</p>
+                                          <p className="text-3xl font-black tracking-tighter text-emerald-400 uppercase">100%</p>
+                                      </div>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+        </div>
+    </section>
+</MarketingLayout>
     );
 };
 

@@ -23,7 +23,9 @@ const PoojaBookingPage = () => {
         includeShipping: false,
         shippingName: '',
         shippingAddress: '',
-        shippingPhone: ''
+        shippingPhone: '',
+        paymentStatus: 'pending',
+        paymentMode: 'cash'
     });
 
     const [poojas, setPoojas] = useState([]);
@@ -114,8 +116,9 @@ const PoojaBookingPage = () => {
             const payload = {
                 devotee: devoteeId,
                 booking_date: formData.date || new Date().toISOString().split('T')[0],
-                status: 'confirmed',
-                payment_status: 'pending',
+                status: formData.paymentStatus === 'success' ? 'confirmed' : 'pending',
+                payment_status: formData.paymentStatus,
+                payment_mode: formData.paymentMode,
                 source: authMode === 'prasadam' ? 'online' : 'offline',
                 shipping_details: formData.includeShipping ? {
                     recipient_name: formData.shippingName || formData.devoteeName,
@@ -146,8 +149,8 @@ const PoojaBookingPage = () => {
         return (
             <div className="max-w-4xl mx-auto space-y-12 py-12 px-4 text-center">
                 <header className="space-y-4 mb-16">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">Security Authorization</h1>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Select Service Protocol to Proceed</p>
+                    <h1 className="text-4xl font-bold text-slate-900 tracking-tighter uppercase leading-none">Security Authorization</h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">Select Service Protocol to Proceed</p>
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -174,7 +177,7 @@ const PoojaBookingPage = () => {
                 </div>
                 
                 <div className="flex justify-center pt-12">
-                   <button onClick={() => navigate('/bookings')} className="text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3 transition-all group">
+                   <button onClick={() => navigate('/bookings')} className="text-[10px] font-bold text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3 transition-all group">
                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Protocol Exit • Return to Registry
                    </button>
                 </div>
@@ -187,7 +190,7 @@ const PoojaBookingPage = () => {
             {/* High-Fidelity Header */}
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 md:px-0">
                 <div>
-                   <button onClick={() => setAuthMode(null)} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all mb-4 group">
+                   <button onClick={() => setAuthMode(null)} className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all mb-4 group">
                        <div className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-all">
                            <ArrowLeft size={12} />
                        </div>
@@ -196,13 +199,13 @@ const PoojaBookingPage = () => {
                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight uppercase">
                        {authMode === 'ritual' ? 'Ritual Portal' : 'Logistics Portal'}
                    </h1>
-                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-2 flex items-center gap-2">
+                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-2 flex items-center gap-2">
                        <Zap size={10} className="text-amber-500" /> 
                        {authMode === 'ritual' ? 'Booking Authorization & Service Initialization' : 'E-Prasad Shipment & Distribution Authorization'}
                    </p>
                 </div>
                 <div className="hidden md:flex flex-col items-end">
-                    <div className="h-9 px-4 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest">
+                    <div className="h-9 px-4 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
                         <ShieldCheck size={12} /> System Secure
                     </div>
                 </div>
@@ -216,7 +219,7 @@ const PoojaBookingPage = () => {
                             <StepHeader number="01" title="Identity Protocol" sub="Verify Devotee Credentials" />
                             <div className="space-y-6 mt-10">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Legal Name (Identifier)</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Legal Name (Identifier)</label>
                                     <input 
                                         name="devoteeName" required value={formData.devoteeName} onChange={handleChange}
                                         className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -225,7 +228,7 @@ const PoojaBookingPage = () => {
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Mobile Uplink</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Mobile Uplink</label>
                                         <input 
                                             name="phone" required value={formData.phone} onChange={handleChange}
                                             className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -233,7 +236,7 @@ const PoojaBookingPage = () => {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Astral Node</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Astral Node</label>
                                         <select 
                                             name="nakshatra" value={formData.nakshatra} onChange={handleChange}
                                             className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner appearance-none cursor-pointer text-xs"
@@ -255,7 +258,7 @@ const PoojaBookingPage = () => {
                              />
                              <div className="space-y-6 mt-10">
                                  <div className="space-y-1.5">
-                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                                     <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">
                                          {authMode === 'ritual' ? 'Service Node (Type)' : 'Prasad Item'}
                                      </label>
                                      <select 
@@ -265,7 +268,7 @@ const PoojaBookingPage = () => {
                                          <option value="">Select...</option>
                                          {authMode === 'ritual' ? 
                                              poojas.map(p => (
-                                                 <option key={p.id} value={p.id}>{p.name} — ₹{p.amount}</option>
+                                                 <option key={p.id} value={p.id}>{p.name} — ₹{p.amount || '0.00'}</option>
                                              )) :
                                              prasads.map(p => (
                                                  <option key={p.id} value={p.id}>{p.name} — ₹{p.price}</option>
@@ -274,7 +277,7 @@ const PoojaBookingPage = () => {
                                      </select>
                                  </div>
                                  <div className="space-y-1.5">
-                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Universal Date</label>
+                                     <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Universal Date</label>
                                      <input 
                                          type="date" name="date" required value={formData.date} onChange={handleChange}
                                          className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
@@ -283,7 +286,7 @@ const PoojaBookingPage = () => {
  
                                  {authMode === 'ritual' && slots.length > 0 && (
                                      <div className="pt-4">
-                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-4 block">Available Time Slots</label>
+                                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1 mb-4 block">Available Time Slots</label>
                                          <div className="grid grid-cols-4 gap-3">
                                              {slots.map(s => (
                                                  <button
@@ -294,12 +297,42 @@ const PoojaBookingPage = () => {
                                                          : 'bg-white text-slate-400 border-slate-100 hover:border-slate-900 hover:text-slate-900'
                                                      }`}
                                                  >
-                                                     {s.start_time.slice(0, 5)}
+                                                     {s.start_time ? s.start_time.slice(0, 5) : '--:--'}
                                                  </button>
                                              ))}
                                          </div>
                                      </div>
                                  )}
+
+                                 {/* Financial Settlement */}
+                                 <div className="pt-8 border-t border-slate-50 space-y-6">
+                                     <div className="flex items-center gap-2 mb-2">
+                                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-900">Financial Settlement</h4>
+                                     </div>
+                                     <div className="grid grid-cols-2 gap-6">
+                                         <div className="space-y-1.5">
+                                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Payment Status</label>
+                                             <select 
+                                                 name="paymentStatus" value={formData.paymentStatus} onChange={handleChange}
+                                                 className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner appearance-none cursor-pointer text-xs"
+                                             >
+                                                 <option value="pending">Pending (To be paid)</option>
+                                                 <option value="success">Paid (Payment Received)</option>
+                                             </select>
+                                         </div>
+                                         <div className="space-y-1.5">
+                                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Payment Mode</label>
+                                             <select 
+                                                 name="paymentMode" value={formData.paymentMode} onChange={handleChange}
+                                                 className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner appearance-none cursor-pointer text-xs"
+                                             >
+                                                 <option value="cash">Cash</option>
+                                                 <option value="upi">UPI / QR</option>
+                                                 <option value="card">Card</option>
+                                             </select>
+                                         </div>
+                                     </div>
+                                 </div>
                              </div>
                          </div>
                         
@@ -310,7 +343,7 @@ const PoojaBookingPage = () => {
                                     <StepHeader number="03" title="Prasad Delivery" sub="E-Prasad Distribution Logistics" />
                                     <button 
                                         type="button" onClick={() => setFormData({...formData, includeShipping: !formData.includeShipping})}
-                                        className={`h-9 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${
+                                        className={`h-9 px-4 rounded-xl text-[8px] font-bold uppercase tracking-widest border transition-all ${
                                             formData.includeShipping ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white text-slate-400 border-slate-100 hover:text-slate-900'
                                         }`}
                                     >
@@ -323,7 +356,7 @@ const PoojaBookingPage = () => {
                                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-6 overflow-hidden">
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Recipient Name</label>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Recipient Name</label>
                                                     <input 
                                                         value={formData.shippingName} onChange={(e) => setFormData({...formData, shippingName: e.target.value})}
                                                         className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs"
@@ -331,7 +364,7 @@ const PoojaBookingPage = () => {
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Delivery Uplink (Phone)</label>
+                                                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Delivery Uplink (Phone)</label>
                                                     <input 
                                                         value={formData.shippingPhone} onChange={(e) => setFormData({...formData, shippingPhone: e.target.value})}
                                                         className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs"
@@ -340,7 +373,7 @@ const PoojaBookingPage = () => {
                                                 </div>
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Dispatch Destination (Full Address)</label>
+                                                <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Dispatch Destination (Full Address)</label>
                                                 <textarea 
                                                     rows={3} value={formData.shippingAddress} onChange={(e) => setFormData({...formData, shippingAddress: e.target.value})}
                                                     className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs resize-none"
@@ -396,17 +429,17 @@ const PoojaBookingPage = () => {
                             </h3>
                             
                             <div className="space-y-8">
-                                <AuditItem label="Tithi" value={panchangData.panchang.tithi} />
-                                <AuditItem label="Nakshatra" value={panchangData.panchang.nakshatra} />
-                                <AuditItem label="Malayalam Month" value={panchangData.panchang.malayalam_masam || "Karkidakam"} />
+                                <AuditItem label="Tithi" value={panchangData?.tithi || 'N/A'} />
+                                <AuditItem label="Nakshatra" value={panchangData?.nakshatra || 'N/A'} />
+                                <AuditItem label="Malayalam Month" value={panchangData?.malayalam_month || "Karkidakam"} />
                                 
                                 <div className="pt-6 border-t border-white/5 space-y-4">
-                                    <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/30">Operational Windows</p>
+                                    <p className="text-[8px] font-bold uppercase tracking-[0.3em] text-white/30">Operational Windows</p>
                                     <div className="grid grid-cols-1 gap-2">
-                                        {panchangData.suggestions?.slice(0, 2).map((m, i) => (
+                                        {(panchangData?.suggestions || []).slice(0, 2).map((m, i) => (
                                             <div key={i} className="p-3 bg-white/5 rounded-xl border border-white/5 flex justify-between items-center group-hover:bg-white/10 transition-all">
                                                 <span className="text-[10px] font-bold text-white/60">{m.name}</span>
-                                                <span className="text-[10px] font-black text-primary">{m.start}</span>
+                                                <span className="text-[10px] font-bold text-primary">{m.start}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -418,13 +451,13 @@ const PoojaBookingPage = () => {
                             <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-slate-200 shadow-inner">
                                 <CalendarIcon size={24} />
                             </div>
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Await Synchronization</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Await Synchronization</h4>
                             <p className="text-[10px] font-medium text-slate-400 mt-2 uppercase leading-relaxed">Select a date to pull astronomical audit data from the registry.</p>
                         </div>
                     )}
                     
                     <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-amber-700 mb-3 flex items-center gap-2">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-3 flex items-center gap-2">
                             <Zap size={14} /> Protocol Notice
                         </h4>
                         <p className="text-[10px] font-medium text-amber-900/60 leading-relaxed uppercase tracking-widest text-justify">
@@ -452,9 +485,9 @@ function SelectionCard({ title, desc, icon, onClick, color }) {
                 <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-8 border border-white/10">
                     {icon}
                 </div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">{title}</h3>
+                <h3 className="text-2xl font-bold uppercase tracking-tighter mb-4">{title}</h3>
                 <p className="text-[11px] font-medium opacity-60 leading-relaxed uppercase tracking-widest">{desc}</p>
-                <div className="mt-10 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest">
+                <div className="mt-10 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest">
                     Initialize Protocol <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
                 </div>
             </div>
@@ -465,12 +498,12 @@ function SelectionCard({ title, desc, icon, onClick, color }) {
 function StepHeader({ number, title, sub }) {
     return (
         <div className="flex items-center gap-5">
-            <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-[10px] shadow-xl shadow-slate-900/20">
+            <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shadow-xl shadow-slate-900/20">
                 {number}
             </div>
             <div>
                 <h3 className="text-lg font-bold text-slate-900 tracking-tight leading-none uppercase">{title}</h3>
-                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-1">{sub}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-1">{sub}</p>
             </div>
         </div>
     );
@@ -479,7 +512,7 @@ function StepHeader({ number, title, sub }) {
 function AuditItem({ label, value }) {
     return (
         <div className="flex justify-between items-center group/item">
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/30 group-hover/item:text-white/60 transition-colors">{label}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-white/30 group-hover/item:text-white/60 transition-colors">{label}</span>
             <span className="text-xs font-bold tracking-tight text-white/90">{value}</span>
         </div>
     );

@@ -14,6 +14,7 @@ import {
   IdCard
 } from "lucide-react";
 import { useDevotees } from "./application/useDevotees";
+import Pagination from "../../components/common/Pagination";
 
 const ID_PROOF_CHOICES = [
   { value: "aadhar", key: "aadhar", label: "Aadhar Card" },
@@ -47,7 +48,7 @@ export default function DevoteesPage() {
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                 <Users size={24} />
             </div>
             <div>
@@ -60,7 +61,10 @@ export default function DevoteesPage() {
 
         <div className="flex items-center gap-3">
           {checkPermission('devotees', 'view') && (
-            <button className="h-10 px-4 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 shadow-sm">
+            <button 
+              onClick={() => actions.onDownload('csv')}
+              className="h-10 px-4 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 shadow-sm active:scale-95"
+            >
                 <DownloadIcon size={14} /> Export CSV
             </button>
           )}
@@ -77,9 +81,9 @@ export default function DevoteesPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-         <StatsCard label="Registered Devotees" value={state.count || state.devotees.length} icon={Users} color="slate" />
-         <StatsCard label="Identity Verified" value={state.proofsCount} icon={Verified} color="emerald" />
-         <StatsCard label="Joined this Month" value="12" icon={Clock} color="orange" trend="+24%" />
+         <StatsCard label="Registered Devotees" value={state.stats.count || 0} icon={Users} color="slate" />
+         <StatsCard label="Identity Verified" value={state.stats.verified || 0} icon={Verified} color="emerald" />
+         <StatsCard label="Joined this Month" value={state.stats.this_month || 0} icon={Clock} color="orange" trend={`${state.stats.trend >= 0 ? '+' : ''}${state.stats.trend}%`} />
          <StatsCard label="Nakshatra Groups" value={state.nakshatras.length} icon={Moon} color="blue" />
       </div>
 
@@ -91,7 +95,7 @@ export default function DevoteesPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-             <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden h-10 w-full md:w-auto focus-within:border-[#B8860B] transition-all">
+             <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden h-10 w-full md:w-auto focus-within:border-primary transition-all">
                 <select 
                     value={state.searchField} 
                     onChange={e => actions.setSearchField(e.target.value)}
@@ -115,7 +119,7 @@ export default function DevoteesPage() {
              <button 
                 onClick={() => actions.setDateFilter(prev => prev === 'last_30' ? 'all' : 'last_30')}
                 className={`h-10 px-4 rounded-lg text-xs font-semibold border transition-all flex items-center gap-2 ${
-                    state.dateFilter === 'last_30' ? 'bg-[#B8860B] border-[#B8860B] text-white shadow-md shadow-yellow-900/10' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-900'
+                    state.dateFilter === 'last_30' ? 'bg-primary border-primary text-white shadow-md shadow-yellow-900/10' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-900'
                 }`}
              >
                 <Calendar size={14} /> {state.dateFilter === 'last_30' ? "Last 30 Days" : "All Records"}
@@ -213,7 +217,7 @@ export default function DevoteesPage() {
                        </td>
                        <td className="px-8 py-5">
                            {d.nakshatra_name ? (
-                               <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#B8860B]/5 text-[#B8860B] text-[10px] font-bold uppercase tracking-wider border border-[#B8860B]/10">
+                               <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/10">
                                    <Moon size={12} />
                                    {d.nakshatra_name}
                                </div>
@@ -241,7 +245,7 @@ export default function DevoteesPage() {
                                     <Edit size={14} />
                                 </button>
                              )}
-                             <button onClick={() => actions.openHistory(d)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-[#B8860B] hover:bg-yellow-50 transition-all">
+                             <button onClick={() => actions.openHistory(d)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-primary hover:bg-yellow-50 transition-all">
                                 <FileText size={14} />
                              </button>
                              {checkPermission('devotees', 'delete') && (
@@ -316,7 +320,7 @@ export default function DevoteesPage() {
 
                 <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 space-y-6">
                     <div className="flex items-center gap-2">
-                       <CheckCircle2 size={16} className="text-[#B8860B]" />
+                       <CheckCircle2 size={16} className="text-primary" />
                        <h3 className="text-xs font-bold text-slate-900 uppercase tracking-widest">ID Verification Details</h3>
                     </div>
                     
@@ -326,7 +330,7 @@ export default function DevoteesPage() {
                            <select 
                              value={state.form.id_proof_type} 
                              onChange={(e) => actions.setForm({ ...state.form, id_proof_type: e.target.value })} 
-                             className="w-full h-11 bg-white border border-slate-200 rounded-lg px-4 outline-none font-semibold text-sm text-slate-900 transition-all focus:border-[#B8860B] appearance-none"
+                             className="w-full h-11 bg-white border border-slate-200 rounded-lg px-4 outline-none font-semibold text-sm text-slate-900 transition-all focus:border-primary appearance-none"
                            >
                               <option value="">Select Document</option>
                               {ID_PROOF_CHOICES.map((c) => <option key={c.value} value={c.value}>{t(c.key, c.label)}</option>)}
@@ -338,7 +342,7 @@ export default function DevoteesPage() {
                               value={state.form.id_proof_number} 
                               onChange={(e) => actions.setForm({ ...state.form, id_proof_number: e.target.value })} 
                               placeholder="e.g. ID Number / Aadhar" 
-                              className="w-full h-11 bg-white border border-slate-200 rounded-lg px-4 outline-none font-semibold text-sm text-slate-900 transition-all focus:border-[#B8860B]" 
+                              className="w-full h-11 bg-white border border-slate-200 rounded-lg px-4 outline-none font-semibold text-sm text-slate-900 transition-all focus:border-primary" 
                            />
                         </div>
                     </div>
@@ -415,7 +419,7 @@ function StatsCard({ label, value, icon: Icon, color, trend }) {
     };
 
     return (
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 hover:border-[#B8860B]/20 transition-all group">
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 hover:border-primary/20 transition-all group">
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform ${colors[color]}`}>
                 <Icon size={18} />
             </div>
@@ -467,31 +471,4 @@ function InputGroup({ label, value, onChange, placeholder, icon: Icon, type="tex
     );
 }
 
-function Pagination({ currentPage, totalPages, onPageChange, count, pageSize }) {
-    return (
-       <div className="flex w-full items-center justify-between">
-           <div className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] leading-none">
-              Viewing {Math.min(count, (currentPage-1)*pageSize + 1)} - {Math.min(count, currentPage*pageSize)} of {count}
-           </div>
-           <div className="flex items-center gap-2">
-                <button 
-                    onClick={() => onPageChange(Math.max(1, currentPage - 1))} 
-                    disabled={currentPage <= 1} 
-                    className="h-9 w-9 flex items-center justify-center border border-slate-200 rounded-lg bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <div className="h-9 min-w-[36px] px-2 flex items-center justify-center bg-slate-900 rounded-lg text-white text-[11px] font-bold">
-                    {currentPage}
-                </div>
-                <button 
-                    onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))} 
-                    disabled={currentPage >= totalPages} 
-                    className="h-9 w-9 flex items-center justify-center border border-slate-200 rounded-lg bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-30 transition-all shadow-sm"
-                >
-                  <ChevronRight size={18} />
-                </button>
-           </div>
-       </div>
-    );
-}
+

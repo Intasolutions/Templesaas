@@ -204,3 +204,43 @@ class DevoteeExportPDFView(generics.GenericAPIView):
         buffer = generate_devotee_list_pdf(temple_name, devotees)
 
         return FileResponse(buffer, as_attachment=True, filename="devotees_list.pdf")
+
+class DevoteeStatsView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated, ModulePermission]
+
+    def get(self, request, *args, **kwargs):
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.db.models import Count
+
+        tenant = getattr(request, "tenant", None)
+        now = timezone.now()
+        first_day_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        first_day_last_month = (first_day_this_month - timedelta(days=1)).replace(day=1)
+
+        # Base queryset
+        qs = Devotee.objects.all()
+        if tenant:
+            qs = qs.filter(organization=tenant)
+
+        this_month_count = qs.filter(created_at__gte=first_day_this_month).count()
+        last_month_count = qs.filter(
+            created_at__gte=first_day_last_month, 
+            created_at__lt=first_day_this_month
+        ).count()
+
+        # Trend calculation
+        trend = 0
+        if last_month_count > 0:
+            trend = ((this_month_count - last_month_count) / last_month_count) * 100
+        elif this_month_count > 0:
+            trend = 100
+
+        # Identity verified count
+        verified_count = qs.exclude(id_proof_type="").count()
+
+        return HttpResponse(
+            status=200,
+            content_type="application/json",
+            content=f'{{"count": {qs.count()}, "this_month": {this_month_count}, "trend": {round(trend, 1)}, "verified": {verified_count}}}'
+        )

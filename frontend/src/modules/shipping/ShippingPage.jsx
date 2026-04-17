@@ -170,8 +170,8 @@ export default function ShippingPage() {
                     <div key={idx} className="card-professional p-6 group">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">{stat.label}</p>
-                                <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">{stat.label}</p>
+                                <h3 className="text-2xl font-bold text-slate-900 tracking-tighter">{stat.value}</h3>
                             </div>
                             <div className="p-3 rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                                 <stat.icon size={18} />
@@ -193,7 +193,7 @@ export default function ShippingPage() {
                             className="flex-1 bg-transparent border-none outline-none font-bold text-sm text-slate-900 placeholder-slate-300"
                         />
                     </div>
-                    <button className="h-14 px-8 rounded-xl bg-white border border-slate-100 flex items-center gap-3 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-colors w-full md:w-auto justify-center">
+                    <button className="h-14 px-8 rounded-xl bg-white border border-slate-100 flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:text-slate-900 transition-colors w-full md:w-auto justify-center">
                         <Filter size={16} /> Filters
                     </button>
                 </div>
@@ -204,10 +204,10 @@ export default function ShippingPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">Logistics Identity</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">Operational Node</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-center">Status</th>
-                                    <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-center">Registry ID</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">Logistics Identity</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">Operational Node</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 text-center">Status</th>
+                                    <th className="px-8 py-5 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 text-center">Registry ID</th>
                                     <th className="px-8 py-5 border-b border-slate-50"></th>
                                 </tr>
                             </thead>
@@ -221,7 +221,7 @@ export default function ShippingPage() {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-bold text-slate-900 uppercase tracking-tight">{shipment.recipient_name}</p>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-1">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 flex items-center gap-1">
                                                         <Phone size={8} /> {shipment.contact_number}
                                                     </p>
                                                 </div>
@@ -238,8 +238,8 @@ export default function ShippingPage() {
                                         </td>
                                         <td className="px-8 py-6 text-center">
                                             <div className="flex flex-col items-center">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{shipment.courier_partner}</span>
-                                                <span className="text-[10px] font-black text-slate-900 select-all tracking-tight">{shipment.tracking_id || "AWAITING_ID"}</span>
+                                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">{shipment.courier_partner}</span>
+                                                <span className="text-[10px] font-bold text-slate-900 select-all tracking-tight">{shipment.tracking_id || "AWAITING_ID"}</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
@@ -267,14 +267,14 @@ export default function ShippingPage() {
                                         </div>
                                         <div>
                                             <p className="font-bold text-slate-900 text-sm tracking-tight">{shipment.recipient_name}</p>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{shipment.contact_number}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{shipment.contact_number}</p>
                                         </div>
                                     </div>
                                     <StatusBadge status={shipment.status} />
                                 </div>
                                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                                     <div className="flex flex-col">
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{shipment.courier_partner || "NO_PARTNER"}</span>
+                                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{shipment.courier_partner || "NO_PARTNER"}</span>
                                         <span className="text-[10px] font-bold text-slate-900 mt-0.5">{shipment.tracking_id || "AWAITING_ID"}</span>
                                     </div>
                                     <ChevronRight size={16} className="text-slate-300" />
@@ -299,7 +299,7 @@ export default function ShippingPage() {
                         <div className="h-16 w-16 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-8 border border-slate-100">
                             <Truck size={24} className="text-slate-200" />
                         </div>
-                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">No fulfillment logs detected</h3>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-[0.3em]">No fulfillment logs detected</h3>
                     </div>
                 )}
             </div>
@@ -320,7 +320,7 @@ export default function ShippingPage() {
                             <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-white sticky top-0 z-20">
                                 <div>
                                     <h3 className="text-xl font-bold text-slate-900 tracking-tight uppercase">Initiate Fulfillment</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">New Logistics Registry Entry</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">New Logistics Registry Entry</p>
                                 </div>
                                 <button 
                                     onClick={() => setIsCreateOpen(false)}
@@ -333,7 +333,7 @@ export default function ShippingPage() {
                             <form onSubmit={handleCreateShipment} className="p-10 space-y-8 flex-1 overflow-y-auto custom-scrollbar">
                                 <div className="space-y-6">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Recipient Name</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Recipient Name</label>
                                         <input 
                                             required
                                             type="text"
@@ -345,7 +345,7 @@ export default function ShippingPage() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Contact Number</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Contact Number</label>
                                         <input 
                                             required
                                             type="text"
@@ -357,7 +357,7 @@ export default function ShippingPage() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Shipping Address</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Full Shipping Address</label>
                                         <textarea 
                                             required
                                             rows={4}
@@ -374,7 +374,7 @@ export default function ShippingPage() {
                                 <button 
                                     onClick={handleCreateShipment}
                                     disabled={isUpdating}
-                                    className="w-full h-12 rounded-lg bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="w-full h-12 rounded-lg bg-primary text-white font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {isUpdating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Truck size={14} /> Create Registry</>}
                                 </button>
@@ -398,7 +398,7 @@ export default function ShippingPage() {
                             <div className="p-10 border-b border-slate-50 flex justify-between items-center bg-white sticky top-0 z-20">
                                 <div>
                                     <h3 className="text-xl font-bold text-slate-900 tracking-tight uppercase">Operational Details</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Logistics Clearance & Shipment Protocol</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Logistics Clearance & Shipment Protocol</p>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedShipment(null)}
@@ -412,16 +412,16 @@ export default function ShippingPage() {
                                 <section className="space-y-6">
                                     <div className="flex items-center gap-2 mb-4">
                                         <div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Entity Audit</h4>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Entity Audit</h4>
                                     </div>
                                     <div className="p-8 rounded-xl bg-slate-900 text-white relative overflow-hidden border border-slate-800">
                                         <div className="relative z-10 flex items-center gap-6">
-                                            <div className="h-14 w-14 rounded-lg bg-white/10 flex items-center justify-center font-black text-xl border border-white/10">
+                                            <div className="h-14 w-14 rounded-lg bg-white/10 flex items-center justify-center font-bold text-xl border border-white/10">
                                                 {selectedShipment.recipient_name?.charAt(0).toUpperCase()}
                                             </div>
                                             <div>
                                                 <p className="text-lg font-bold text-white tracking-tight uppercase">{selectedShipment.recipient_name}</p>
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">{selectedShipment.contact_number}</p>
+                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{selectedShipment.contact_number}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -431,12 +431,12 @@ export default function ShippingPage() {
                                 <section className="space-y-6 pt-10 border-t border-slate-100">
                                     <div className="flex items-center gap-2 mb-6">
                                         <div className="w-1.5 h-1.5 bg-slate-900 rounded-full"></div>
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Operational Update</h4>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Operational Update</h4>
                                     </div>
                                     
                                     <div className="space-y-6">
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Logistics Status</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Logistics Status</label>
                                             <select 
                                                 value={updateForm.status}
                                                 onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}
@@ -451,7 +451,7 @@ export default function ShippingPage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Carrier Network</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Carrier Network</label>
                                             <input 
                                                 type="text"
                                                 value={updateForm.courier_partner}
@@ -462,7 +462,7 @@ export default function ShippingPage() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Registry Reference (Tracking ID)</label>
+                                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Registry Reference (Tracking ID)</label>
                                             <input 
                                                 type="text"
                                                 value={updateForm.tracking_id}
@@ -479,7 +479,7 @@ export default function ShippingPage() {
                                 <button 
                                     onClick={handleUpdateStatus}
                                     disabled={isUpdating}
-                                    className="flex-1 h-12 rounded-lg bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="flex-1 h-12 rounded-lg bg-slate-900 text-white font-bold text-[10px] uppercase tracking-widest shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {isUpdating ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Save size={14} /> Commit Changes</>}
                                 </button>
@@ -498,7 +498,7 @@ export default function ShippingPage() {
 function DetailItem({ label, value, icon: Icon, isStatus, isBold }) {
     return (
         <div className="space-y-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">{label}</p>
             <div className="flex items-start gap-4">
                 {Icon && (
                     <div className="p-2.5 bg-slate-50 rounded-lg text-slate-300 mt-1">
@@ -509,7 +509,7 @@ function DetailItem({ label, value, icon: Icon, isStatus, isBold }) {
                     {isStatus ? (
                         <div className="w-fit"><StatusBadge status={value} /></div>
                     ) : (
-                        <p className={cn("text-[13px] font-bold text-slate-900 uppercase tracking-tight leading-relaxed", isBold && "font-black tracking-widest")}>
+                        <p className={cn("text-[13px] font-bold text-slate-900 uppercase tracking-tight leading-relaxed", isBold && "font-bold tracking-widest")}>
                             {value}
                         </p>
                     )}

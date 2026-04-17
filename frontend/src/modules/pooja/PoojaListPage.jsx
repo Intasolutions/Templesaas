@@ -17,10 +17,11 @@ import {
     Layers,
     Feather,
     Info,
-    IndianRupee,
     ChevronRight,
+    ChevronLeft,
     ListFilter
 } from "lucide-react";
+import Pagination from "../../components/common/Pagination";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PoojaListPage() {
@@ -28,15 +29,28 @@ export default function PoojaListPage() {
     const [poojas, setPoojas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [pagination, setPagination] = useState({ count: 0, next: null, previous: null, current: 1 });
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ name: "", description: "", price: "", duration_minutes: 30, is_active: true });
+    const [formData, setFormData] = useState({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true });
     const [editingId, setEditingId] = useState(null);
 
-    const fetchPoojas = async () => {
+    const fetchPoojas = async (page = 1) => {
         try {
             setLoading(true);
-            const res = await api.get("/pooja/");
-            setPoojas(res.data.results || res.data || []);
+            const res = await api.get(`/pooja/?page=${page}&search=${search}`);
+            // DRF returns { results: [], count: n, next, previous } for paginated views
+            if (res.data.results) {
+                setPoojas(res.data.results);
+                setPagination({
+                    count: res.data.count,
+                    next: res.data.next,
+                    previous: res.data.previous,
+                    current: page
+                });
+            } else {
+                setPoojas(res.data);
+                setPagination({ count: res.data.length, next: null, previous: null, current: 1 });
+            }
         } catch (err) {
             console.error(err);
         } finally {
@@ -44,11 +58,12 @@ export default function PoojaListPage() {
         }
     };
 
-    useEffect(() => { 
-        fetchPoojas(); 
-    }, []);
-
-    const filtered = Array.isArray(poojas) ? poojas.filter(p => p.name.toLowerCase().includes(search.toLowerCase())) : [];
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchPoojas(1);
+        }, 500); // 500ms debounce for search
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -59,7 +74,7 @@ export default function PoojaListPage() {
                 await api.post("/pooja/", formData);
             }
             setShowForm(false);
-            setFormData({ name: "", description: "", price: "", duration_minutes: 30, is_active: true });
+            setFormData({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true });
             setEditingId(null);
             fetchPoojas();
         } catch (err) { console.error(err); }
@@ -78,7 +93,7 @@ export default function PoojaListPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                    <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                         <Feather size={24} />
                     </div>
                     <div>
@@ -97,14 +112,14 @@ export default function PoojaListPage() {
                             placeholder="Search poojas..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg w-64 md:w-72 text-xs font-medium text-slate-900 outline-none focus:border-[#B8860B] transition-all"
+                            className="h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg w-64 md:w-72 text-xs font-medium text-slate-900 outline-none focus:border-primary transition-all"
                         />
                     </div>
                     {checkPermission('pooja', 'edit') && (
                         <button 
                             onClick={() => { 
                                 setEditingId(null); 
-                                setFormData({ name: "", description: "", price: "", duration_minutes: 30, is_active: true }); 
+                                setFormData({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true }); 
                                 setShowForm(true); 
                             }}
                             className="h-10 px-5 bg-slate-900 text-white rounded-lg font-bold text-xs flex items-center gap-2 shadow-md hover:bg-slate-800 active:scale-95 transition-all"
@@ -117,7 +132,7 @@ export default function PoojaListPage() {
 
             {/* Stats Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <InsightCard label="Total Offerings" value={poojas.length} icon={Scroll} color="slate" />
+                <InsightCard label="Total Offerings" value={pagination.count} icon={Scroll} color="slate" />
                 <InsightCard label="Online Enabled" value={poojas.filter(p => p.is_active).length} icon={Activity} color="emerald" />
                 <InsightCard label="Avg. Response" value="Fast" icon={Zap} color="orange" />
             </div>
@@ -127,7 +142,7 @@ export default function PoojaListPage() {
                 <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                    <ListFilter size={14} /> Service Inventory
                 </h2>
-                <span className="text-[10px] font-bold text-slate-300 uppercase">{filtered.length} Items</span>
+                <span className="text-[10px] font-bold text-slate-300 uppercase">{pagination.count} Items Total</span>
             </div>
 
             {/* Service Grid */}
@@ -136,16 +151,16 @@ export default function PoojaListPage() {
                     <div className="col-span-full py-20 text-center text-xs font-bold text-slate-300 uppercase tracking-widest animate-pulse">
                         Loading services...
                     </div>
-                ) : filtered.length === 0 ? (
+                ) : poojas.length === 0 ? (
                     <div className="col-span-full py-20 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">
                         No poojas found matching your search
                     </div>
-                ) : filtered.map((pooja) => (
+                ) : poojas.map((pooja) => (
                     <motion.div 
                         key={pooja.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="group bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:border-[#B8860B]/20 transition-all relative"
+                        className="group bg-white rounded-2xl border border-slate-100 p-6 shadow-sm hover:border-primary/20 transition-all relative"
                     >
                         <div className="flex justify-between items-start mb-6">
                             <div className="h-9 w-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
@@ -177,14 +192,25 @@ export default function PoojaListPage() {
                         <div className="mt-6 pt-5 border-t border-slate-50 flex items-center justify-between">
                             <div className="flex items-baseline gap-1">
                                 <span className="text-[10px] font-bold text-slate-400">₹</span>
-                                <span className="text-lg font-bold text-slate-900">{pooja.price}</span>
+                                <span className="text-lg font-bold text-slate-900">{pooja.amount ?? '0.00'}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-slate-500 text-[10px] font-bold uppercase tracking-wider">
-                                <Clock size={12} className="text-[#B8860B]" /> {pooja.duration_minutes} MIN
+                                <Clock size={12} className="text-primary" /> {pooja.duration_minutes} MIN
                             </div>
                         </div>
                     </motion.div>
                 ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="pt-10 border-t border-slate-100/60">
+                <Pagination 
+                   currentPage={pagination.current} 
+                   totalPages={Math.ceil(pagination.count / 10) || 1} 
+                   onPageChange={fetchPoojas} 
+                   count={pagination.count} 
+                   pageSize={10} 
+                />
             </div>
 
             {/* Modal */}
@@ -220,7 +246,7 @@ export default function PoojaListPage() {
                                             <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Price (₹)</label>
                                             <div className="relative">
                                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</div>
-                                                <input required type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all" placeholder="0.00" />
+                                                <input required type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-8 pr-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all" placeholder="0.00" />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
@@ -266,8 +292,8 @@ export default function PoojaListPage() {
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {(poojas.find(p => p.id === editingId)?.time_slots || []).map(s => (
-                                                    <div key={s.id} className="h-8 px-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 text-[10px] font-black text-slate-900 shadow-sm group hover:border-red-200 transition-all">
-                                                        <Clock size={12} className="text-[#B8860B]" />
+                                                    <div key={s.id} className="h-8 px-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 text-[10px] font-bold text-slate-900 shadow-sm group hover:border-red-200 transition-all">
+                                                        <Clock size={12} className="text-primary" />
                                                         {s.start_time.slice(0, 5)}
                                                         <button 
                                                             type="button" 
@@ -314,7 +340,7 @@ function InsightCard({ label, value, icon: Icon, color }) {
     };
 
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-[#B8860B]/20 transition-all">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 group hover:border-primary/20 transition-all">
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${colors[color]}`}>
                 <Icon size={18} />
             </div>

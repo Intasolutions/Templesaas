@@ -60,7 +60,7 @@ const AnnadhanamPage = () => {
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight uppercase">
                             Annadhanam Ops
                         </h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                             Ritual feast production & resource ledger
                         </p>
                     </div>
@@ -68,7 +68,7 @@ const AnnadhanamPage = () => {
 
                 <button 
                     onClick={() => setShowForm(!showForm)}
-                    className="h-10 px-6 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] hover:bg-slate-800 transition-all flex items-center gap-2"
+                    className="h-10 px-6 rounded-xl bg-slate-900 text-white font-bold uppercase tracking-widest text-[9px] hover:bg-slate-800 transition-all flex items-center gap-2"
                 >
                     <Plus size={16} /> Record Production
                 </button>
@@ -76,12 +76,12 @@ const AnnadhanamPage = () => {
 
             {showForm && (
                 <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300 mx-4 md:mx-0">
-                    <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <Info size={12} /> Resource Allocation Protocol
                     </h3>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Batch Name</label>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Batch Name</label>
                             <input 
                                 required
                                 className="w-full bg-slate-50 border border-slate-100 rounded-lg h-9 px-4 text-xs font-bold"
@@ -91,7 +91,7 @@ const AnnadhanamPage = () => {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Raw Material</label>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Raw Material</label>
                             <select 
                                 required
                                 className="w-full bg-slate-50 border border-slate-100 rounded-lg h-9 px-4 text-xs font-bold appearance-none"
@@ -105,7 +105,7 @@ const AnnadhanamPage = () => {
                             </select>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quantity</label>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Quantity</label>
                             <input 
                                 required
                                 type="number"
@@ -119,7 +119,7 @@ const AnnadhanamPage = () => {
                         <div className="flex items-end">
                             <button 
                                 type="submit"
-                                className="w-full h-9 rounded-lg bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest hover:bg-slate-800"
+                                className="w-full h-9 rounded-lg bg-slate-900 text-white font-bold text-[9px] uppercase tracking-widest hover:bg-slate-800"
                             >
                                 Authorize
                             </button>
@@ -127,7 +127,7 @@ const AnnadhanamPage = () => {
                     </form>
                     <div className="mt-4 flex items-start gap-2 p-3 bg-orange-50/50 border border-orange-100 rounded-xl">
                         <AlertCircle className="text-orange-500 shrink-0" size={12} />
-                        <p className="text-[8px] font-black uppercase tracking-widest text-orange-600 leading-relaxed">
+                        <p className="text-[8px] font-bold uppercase tracking-widest text-orange-600 leading-relaxed">
                             WARNING: Authorizing this batch will immediately subtract units from the inventory ledger.
                         </p>
                     </div>
@@ -138,7 +138,7 @@ const AnnadhanamPage = () => {
                 <div className="lg:col-span-8">
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                         <div className="p-5 border-b border-slate-50 flex justify-between items-center">
-                            <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                 <History size={12} /> Consumption History
                             </h3>
                         </div>
@@ -146,21 +146,21 @@ const AnnadhanamPage = () => {
                             <table className="w-full text-left">
                                 <thead className="bg-slate-50/50">
                                     <tr>
-                                        <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Batch/Date</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Resource</th>
-                                        <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Consumption</th>
+                                        <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Batch/Date</th>
+                                        <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Resource</th>
+                                        <th className="px-6 py-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right">Consumption</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {loading ? (
-                                        <tr><td colSpan="3" className="px-6 py-20 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">Syncing with Ledger...</td></tr>
+                                        <tr><td colSpan="3" className="px-6 py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Syncing with Ledger...</td></tr>
                                     ) : consumptions.length === 0 ? (
-                                        <tr><td colSpan="3" className="px-6 py-20 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">No consumption records found</td></tr>
+                                        <tr><td colSpan="3" className="px-6 py-20 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">No consumption records found</td></tr>
                                     ) : consumptions.map(c => (
                                         <tr key={c.id} className="border-b border-slate-50">
                                             <td className="px-6 py-5">
                                                 <div className="text-xs font-bold text-slate-900 uppercase">{c.prasad_name}</div>
-                                                <div className="text-[9px] font-black text-slate-400 uppercase mt-1">{c.date}</div>
+                                                <div className="text-[9px] font-bold text-slate-400 uppercase mt-1">{c.date}</div>
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div className="flex items-center gap-2">
@@ -181,12 +181,12 @@ const AnnadhanamPage = () => {
 
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-slate-900 rounded-3xl p-6 text-white overflow-hidden shadow-2xl shadow-slate-900/40 border border-slate-800">
-                        <h4 className="text-[8px] font-black text-white/30 uppercase tracking-[0.3em] mb-6 border-b border-white/5 pb-4">Real-time Stock Audit</h4>
+                        <h4 className="text-[8px] font-bold text-white/30 uppercase tracking-[0.3em] mb-6 border-b border-white/5 pb-4">Real-time Stock Audit</h4>
                         <div className="space-y-4">
                             {items.slice(0, 5).map(item => (
                                 <div key={item.id} className="flex justify-between items-center">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase">{item.name}</span>
-                                    <span className={`text-[10px] font-black uppercase ${item.current_stock < 10 ? 'text-red-400' : 'text-slate-100'}`}>
+                                    <span className="text-[10px] font-bold text-slate-300 uppercase">{item.name}</span>
+                                    <span className={`text-[10px] font-bold uppercase ${item.current_stock < 10 ? 'text-red-400' : 'text-slate-100'}`}>
                                         {item.current_stock} {item.unit}
                                     </span>
                                 </div>

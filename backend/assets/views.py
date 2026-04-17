@@ -35,3 +35,16 @@ class MaintenanceLogViewSet(viewsets.ModelViewSet):
     queryset = MaintenanceLog.objects.all().order_by("-service_date")
     serializer_class = MaintenanceLogSerializer
     permission_classes = [permissions.IsAuthenticated, ModulePermission]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, 'tenant', None)
+        if tenant:
+            qs = self.queryset.filter(organization=tenant)
+            asset_id = self.request.query_params.get('asset')
+            if asset_id:
+                qs = qs.filter(asset_id=asset_id)
+            return qs
+        return self.queryset.none()
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.request.tenant)

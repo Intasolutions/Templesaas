@@ -89,7 +89,7 @@ export default function DashboardPage() {
           </div>
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-6 text-center md:text-left">
-              <div className="h-14 w-14 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-xl">
+              <div className="h-14 w-14 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl">
                 <Sparkles size={28} />
               </div>
               <div>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             </div>
             <button 
               onClick={() => window.location.href = '/billing'}
-              className="px-8 h-12 bg-white text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all active:scale-95 whitespace-nowrap shadow-xl"
+              className="px-8 h-12 bg-white text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary transition-all active:scale-95 whitespace-nowrap shadow-xl"
             >
               Upgrade Now
             </button>
@@ -112,13 +112,13 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 py-4">
         <div className="flex items-center gap-5">
-            <div className="h-14 w-14 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg">
+            <div className="h-14 w-14 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
                 <LayoutDashboard size={28} />
             </div>
             <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Temple Dashboard</h1>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-1 flex items-center gap-2">
-                    <ShieldCheck size={12} className="text-[#B8860B]" /> Administrative Portal • {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    <ShieldCheck size={12} className="text-primary" /> Administrative Portal • {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
             </div>
         </div>
@@ -146,7 +146,7 @@ export default function DashboardPage() {
           {/* Quick Tasks */}
           <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 px-2 flex items-center gap-2">
-                <Zap size={14} className="text-[#B8860B]" /> Quick Actions
+                <Zap size={14} className="text-primary" /> Quick Actions
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
                 <ActionLink title="Pooja Booking" icon={Plus} href="/bookings" desc="Register ritual for devotee" color="bg-orange-50 text-orange-600" />
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                 <Sparkles size={80} />
              </div>
              <div className="relative z-10 h-full flex flex-col justify-between overflow-x-auto custom-scrollbar">
-                <h4 className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
+                <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
                    <Moon size={14} /> Daily Panchangam
                 </h4>
                 <div className="flex gap-10 lg:gap-16">
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                 ) : (
                     stats.upcoming_festivals.map((evt, i) => (
                         <div key={i} className="flex gap-4 items-center group cursor-pointer hover:translate-x-1 transition-all">
-                            <div className="w-10 h-10 rounded-lg bg-slate-50 flex flex-col items-center justify-center border border-slate-100 group-hover:bg-[#B8860B] group-hover:text-white transition-all">
+                            <div className="w-10 h-10 rounded-lg bg-slate-50 flex flex-col items-center justify-center border border-slate-100 group-hover:bg-primary group-hover:text-white transition-all">
                                 <span className="text-sm font-bold leading-none">{new Date(evt.start_date).getDate()}</span>
                                 <span className="text-[8px] font-bold uppercase opacity-60">{new Date(evt.start_date).toLocaleString('default', { month: 'short' })}</span>
                             </div>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
 
 function StatItem({ label, value, color, icon: Icon }) {
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-[#B8860B]/20 transition-all shadow-sm group">
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-primary/20 transition-all shadow-sm group">
             <div className={`h-9 w-9 mb-4 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105 ${color}`}>
                 <Icon size={16} />
             </div>

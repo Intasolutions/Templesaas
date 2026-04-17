@@ -102,7 +102,7 @@ export default function FinanceReportsPage() {
     const totalExpense = data?.summary?.total_expense || 0;
     const netBalance = data?.summary?.net_balance || 0;
 
-    const COLORS = ['#0f172a', '#B8860B', '#334155', '#D4AF37', '#94a3b8'];
+    const COLORS = ['#0f172a', 'var(--primary)', '#334155', '#D4AF37', '#94a3b8'];
     const REVENUE_BY_CATEGORY = (data?.breakdown || []).map((b, i) => ({
         name: b.name,
         value: b.value,
@@ -117,7 +117,7 @@ export default function FinanceReportsPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                    <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                         <BarChart3 size={24} />
                     </div>
                     <div>
@@ -184,7 +184,7 @@ export default function FinanceReportsPage() {
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                             <div>
                                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
-                                    <Activity size={16} className="text-[#B8860B]" /> Revenue Trends
+                                    <Activity size={16} className="text-primary" /> Revenue Trends
                                 </h2>
                                 <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wider">Inflow vs Outflow comparison across periods</p>
                             </div>
@@ -212,7 +212,7 @@ export default function FinanceReportsPage() {
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} tickFormatter={(val) => `₹${val / 1000}k`} />
                                         <RechartsTooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: 'bold' }} />
-                                        <Bar dataKey="income" name="Income" fill="#B8860B" radius={[4, 4, 0, 0]} barSize={24} />
+                                        <Bar dataKey="income" name="Income" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={24} />
                                         <Bar dataKey="expense" name="Expense" fill="#cbd5e1" radius={[4, 4, 0, 0]} barSize={8} />
                                     </BarChart>
                                 ) : (
@@ -221,7 +221,7 @@ export default function FinanceReportsPage() {
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} dy={10} />
                                         <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 700 }} tickFormatter={(val) => `₹${val / 1000}k`} />
                                         <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '11px', fontWeight: 'bold' }} />
-                                        <Area type="monotone" dataKey="income" stroke="#B8860B" strokeWidth={3} fillOpacity={0.1} fill="#B8860B" />
+                                        <Area type="monotone" dataKey="income" stroke="var(--primary)" strokeWidth={3} fillOpacity={0.1} fill="var(--primary)" />
                                         <Area type="monotone" dataKey="expense" stroke="#94a3b8" strokeWidth={2} fillOpacity={0.05} fill="#94a3b8" />
                                     </AreaChart>
                                 )}
@@ -234,7 +234,7 @@ export default function FinanceReportsPage() {
                         <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
                             <div>
                                 <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2 uppercase tracking-wider">
-                                    <FileText size={16} className="text-[#B8860B]" /> Recent Transactions
+                                    <FileText size={16} className="text-primary" /> Recent Transactions
                                 </h2>
                                 <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-wider">Verified ledger entries from all counters</p>
                             </div>
@@ -268,7 +268,7 @@ export default function FinanceReportsPage() {
                                                 <div className="flex flex-col">
                                                     <span className="font-bold text-slate-900">{trx.desc}</span>
                                                     <span className="text-[10px] font-medium text-slate-400 mt-1 flex items-center gap-1.5 uppercase">
-                                                        <Activity size={10} className="text-[#B8860B]" /> {trx.category}
+                                                        <Activity size={10} className="text-primary" /> {trx.category}
                                                     </span>
                                                 </div>
                                             </td>
@@ -294,7 +294,7 @@ export default function FinanceReportsPage() {
                 <div className="lg:col-span-4 space-y-8">
                     <div className="bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-xl group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform"><PieChartIcon size={120} /></div>
-                        <h2 className="text-[#B8860B] font-bold tracking-widest uppercase text-[10px] mb-8 flex items-center gap-2">
+                        <h2 className="text-primary font-bold tracking-widest uppercase text-[10px] mb-8 flex items-center gap-2">
                             <Layers size={14} /> Revenue Distribution
                         </h2>
 
@@ -360,13 +360,13 @@ export default function FinanceReportsPage() {
 
 function MetricCard({ label, value, icon: Icon, color, trend, subtext }) {
     const cardColors = {
-        gold: "hover:border-[#B8860B]/30",
+        gold: "hover:border-primary/30",
         emerald: "hover:border-emerald-200",
         red: "hover:border-red-200"
     };
 
     const iconColors = {
-        gold: "bg-[#B8860B] text-white",
+        gold: "bg-primary text-white",
         emerald: "bg-emerald-50 text-emerald-600 border border-emerald-100",
         red: "bg-red-50 text-red-600 border border-red-100"
     };

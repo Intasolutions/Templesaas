@@ -142,8 +142,8 @@ export default function TVDisplayPage() {
                                 <Monitor size={28} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Signage Node</h1>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase leading-none">Signage Node</h1>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
                                     <ShieldCheck size={12} className="text-primary" /> Active Broadcast Command
                                 </p>
                             </div>
@@ -190,16 +190,16 @@ export default function TVDisplayPage() {
                                 <div className="animate-pulse">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
-                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.5em] leading-none">Synchronized Node</p>
+                                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.5em] leading-none">Synchronized Node</p>
                                     </div>
-                                    <p className="text-sm font-black text-white tracking-[0.2em] uppercase">Edge Display #042</p>
+                                    <p className="text-sm font-bold text-white tracking-[0.2em] uppercase">Edge Display #042</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="text-3xl font-black text-white tracking-tighter leading-none">
+                                <p className="text-3xl font-bold text-white tracking-tighter leading-none">
                                     {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                 </p>
-                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mt-2">
+                                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-2">
                                     {currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()}
                                 </p>
                             </div>
@@ -210,7 +210,7 @@ export default function TVDisplayPage() {
                             {loading ? (
                                 <div className="space-y-6">
                                     <div className="w-12 h-12 border-4 border-white/10 border-t-primary rounded-full animate-spin mx-auto" />
-                                    <p className="text-[10px] font-black uppercase text-white/20 tracking-[0.5em]">Hydrating Feed...</p>
+                                    <p className="text-[10px] font-bold uppercase text-white/20 tracking-[0.5em]">Hydrating Feed...</p>
                                 </div>
                             ) : (
                                 <AnimatePresence mode="wait">
@@ -226,11 +226,11 @@ export default function TVDisplayPage() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.2 }}
-                                            className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 text-[10px] font-black uppercase tracking-[0.5em] text-primary mb-8 rounded-lg"
+                                            className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase tracking-[0.5em] text-primary mb-8 rounded-lg"
                                         >
                                             {liveData[activeSlide]?.type}
                                         </motion.span>
-                                        <h2 className="text-6xl font-black text-white mb-10 tracking-tighter leading-[1.1] uppercase">
+                                        <h2 className="text-6xl font-bold text-white mb-10 tracking-tighter leading-[1.1] uppercase">
                                             {liveData[activeSlide]?.title}
                                         </h2>
                                         <div className="flex items-center justify-center gap-12">
@@ -265,7 +265,7 @@ export default function TVDisplayPage() {
                         {broadcastSettings.find(s => s.id === 'weather' && s.status) && (
                             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="absolute bottom-10 left-10 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl">
                                 <CloudRain size={16} className="text-blue-400" />
-                                <span className="text-[10px] font-black text-white tracking-widest">28°C KER</span>
+                                <span className="text-[10px] font-bold text-white tracking-widest">28°C KER</span>
                             </motion.div>
                         )}
 
@@ -293,12 +293,12 @@ export default function TVDisplayPage() {
                                 {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
                             </button>
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Playhead Control</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Playhead Control</p>
                                 <p className="text-xs font-bold text-slate-900 mt-1">{isPlaying ? 'Continuous Node Rotation' : 'Fixed Protocol Display'}</p>
                             </div>
                             </div>
                             <div className="text-right">
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Resolution Payload</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-400">Resolution Payload</p>
                             <p className="text-xs font-bold text-slate-900 mt-1 uppercase">Ultra-High Fidelity • 60 FPS</p>
                             </div>
                         </div>
@@ -312,7 +312,7 @@ export default function TVDisplayPage() {
                         <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:scale-125 transition-transform duration-700">
                            <Settings size={120} />
                         </div>
-                        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
+                        <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10 flex items-center gap-3">
                            <Settings size={18} strokeWidth={3} /> Override Console
                         </h3>
                         <div className="space-y-4">
@@ -333,7 +333,7 @@ export default function TVDisplayPage() {
                                                 return IconComp ? <IconComp size={18} /> : null;
                                             })()}
                                         </div>
-                                        <span className={`text-[11px] font-black uppercase tracking-widest transition-colors ${
+                                        <span className={`text-[11px] font-bold uppercase tracking-widest transition-colors ${
                                             opt.status ? 'text-white' : 'text-slate-500'
                                         }`}>{opt.label}</span>
                                     </div>
@@ -347,13 +347,13 @@ export default function TVDisplayPage() {
 
                     <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group">
                         <div className="absolute -right-10 -top-10 h-40 w-40 bg-primary/20 blur-[60px] group-hover:bg-primary/40 transition-all duration-700" />
-                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-3">
+                        <h4 className="text-[11px] font-bold text-primary uppercase tracking-[0.4em] mb-6 flex items-center gap-3">
                            <Sparkles size={18} /> Heritage Protocol
                         </h4>
                         <p className="text-sm font-medium text-white/50 leading-relaxed mb-10">
-                            Serving <span className="text-white font-black">{liveData.length}</span> active notice nodes. All telemetry is aggregated from the core ledger in real-time.
+                            Serving <span className="text-white font-bold">{liveData.length}</span> active notice nodes. All telemetry is aggregated from the core ledger in real-time.
                         </p>
-                        <button className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all group/btn">
+                        <button className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-white/40 hover:text-white transition-all group/btn">
                             View Deployment Logs <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -363,8 +363,8 @@ export default function TVDisplayPage() {
                           <Activity size={20} />
                        </div>
                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Latency</p>
-                          <p className="text-sm font-black text-slate-900 uppercase">12ms • Optimized</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Node Latency</p>
+                          <p className="text-sm font-bold text-slate-900 uppercase">12ms • Optimized</p>
                        </div>
                     </div>
                 </div>

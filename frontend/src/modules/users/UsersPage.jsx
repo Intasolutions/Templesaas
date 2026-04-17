@@ -237,7 +237,7 @@ export default function UsersPage() {
       {/* Prime Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                 <Users size={24} />
             </div>
             <div>
@@ -323,14 +323,14 @@ export default function UsersPage() {
               <div className="pt-8 border-t border-slate-100">
                  <div className="mb-6">
                     <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Shield size={16} className="text-[#B8860B]" /> Module Permissions
+                        <Shield size={16} className="text-primary" /> Module Permissions
                     </h3>
                     <p className="text-xs text-slate-500 mt-0.5">Control which parts of the application this user can access and modify</p>
                  </div>
                  
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {APP_MODULES.map(mod => (
-                        <div key={mod.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-[#B8860B]/20 transition-all">
+                        <div key={mod.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-primary/20 transition-all">
                            <p className="text-[11px] font-bold text-slate-800 mb-3">{mod.name}</p>
                            <div className="flex gap-1.5">
                               {['view', 'edit', 'delete'].map(perm => {
@@ -341,7 +341,7 @@ export default function UsersPage() {
                                          key={perm}
                                          onClick={() => handleTogglePermission(mod.id, perm)}
                                          className={`flex-1 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                                             active ? 'bg-[#B8860B] border-[#B8860B] text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                                             active ? 'bg-primary border-primary text-white' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
                                          }`}
                                      >
                                          {perm}
@@ -385,7 +385,7 @@ export default function UsersPage() {
                     placeholder="Search staff by name or user ID..." 
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-[#B8860B] transition-all"
+                    className="w-full h-10 pl-11 pr-4 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-900 outline-none focus:border-primary transition-all"
                   />
                </div>
                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -430,7 +430,7 @@ export default function UsersPage() {
                               </td>
                               <td className="px-8 py-5">
                                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
-                                    <ShieldCheck size={14} className="text-[#B8860B]" />
+                                    <ShieldCheck size={14} className="text-primary" />
                                     {Object.keys(user.module_permissions || {}).length} Access Point(s)
                                  </div>
                               </td>

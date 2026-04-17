@@ -40,6 +40,7 @@ export function useDevotees() {
 
     const [devotees, setDevotees] = useState([]);
     const [count, setCount] = useState(0);
+    const [stats, setStats] = useState({ this_month: 0, trend: 0, verified: 0 });
     const [nakshatras, setNakshatras] = useState([]);
 
     const [tab, setTab] = useState("devotees");
@@ -70,6 +71,15 @@ export function useDevotees() {
         }
     }, []);
 
+    const fetchStats = useCallback(async () => {
+        try {
+            const data = await DevoteeService.getStats();
+            setStats(data);
+        } catch (e) {
+            console.error("Failed to load stats");
+        }
+    }, []);
+
     const fetchDevotees = useCallback(async () => {
         if (tab !== "devotees") return;
         setLoading(true);
@@ -91,6 +101,7 @@ export function useDevotees() {
             const { data, count: total } = await DevoteeService.getDevotees(params);
             setDevotees(data);
             setCount(total);
+            fetchStats();
         } catch (e) {
             setError(t('failed_to_load_devotees', "Failed to load devotees"));
         } finally {
@@ -237,7 +248,7 @@ export function useDevotees() {
         state: {
             loading, error, search, searchField, dateFilter, ordering, page, pageSize, count,
             devotees, nakshatras, tab, promoOpen, addOpen, historyOpen, masterOpen, selected,
-            history, historyLoading, editingId, form, masterForm, downloadMenuOpen, totalPages, proofsCount
+            history, historyLoading, editingId, form, masterForm, downloadMenuOpen, totalPages, proofsCount, stats
         },
         actions: {
             setSearch, setSearchField, setDateFilter, setOrdering, setPage, setTab,

@@ -33,7 +33,7 @@ const TVDisplay = () => {
                 {servingNow.map((session, index) => (
                     <div key={index} className="bg-slate-800 border-2 border-blue-500 rounded-3xl p-8 text-center shadow-2xl">
                         <h2 className="text-3xl font-semibold mb-6">{session.session_name}</h2>
-                        <div className="text-8xl font-black text-yellow-400">
+                        <div className="text-8xl font-bold text-yellow-400">
                             #{session.now_serving || '---'}
                         </div>
                         <div className="mt-4 text-slate-400 text-xl">

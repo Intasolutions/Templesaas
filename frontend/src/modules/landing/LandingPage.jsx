@@ -33,11 +33,11 @@ const LandingPage = () => {
                                 <span className="uppercase tracking-widest">Institutional OS v3.0</span>
                             </div>
                             <h1 className="text-6xl md:text-[92px] font-black leading-[0.9] tracking-tighter text-slate-900 mb-10">
-                                Engineering <br />
-                                <span className="text-slate-400">Divine Order.</span>
+                                The Complete <br />
+                                <span className="text-slate-400">Temple OS.</span>
                             </h1>
                             <p className="text-xl md:text-2xl text-slate-500 font-medium leading-relaxed mb-12 max-w-lg">
-                                The unified infrastructure for temple administration, ritual automation, and global devotee engagement. 
+                                The all-in-one infrastructure for modern temple administration, ritual automation, and seamless devotee interaction. 
                             </p>
                             <div className="flex flex-col sm:flex-row gap-5">
                                 <button 
@@ -108,10 +108,10 @@ const LandingPage = () => {
                 <div className="absolute top-0 right-0 h-full w-1/3 bg-primary/5 blur-[120px]" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-16">
-                        <MetricCard count="100%" label="Bilingual Accuracy" isDark />
-                        <MetricCard count="KV-CORE" label="Regional Data Layer" isDark />
-                        <MetricCard count="256-BIT" label="Audit Encryption" isDark />
-                        <MetricCard count="99.99%" label="Sync Availability" isDark />
+                        <MetricCard count="100%" label="Operational Accuracy" isDark />
+                        <MetricCard count="REAL-TIME" label="Registry Sync" isDark />
+                        <MetricCard count="AES-256" label="Data Security" isDark />
+                        <MetricCard count="GLOBAL" label="Scale Readiness" isDark />
                     </div>
                 </div>
             </section>
@@ -144,10 +144,10 @@ const LandingPage = () => {
                             </ul>
                         </div>
                         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                             <FeatureCard small title="Inventory OS" icon={Package} desc="Real-time stock tracking with automated deduction upon ritual booking." />
-                             <FeatureCard small title="Financial Ledger" icon={Activity} desc="Institution-wide auditing for daily collections and endowments." />
-                             <FeatureCard small title="Personnel Presence" icon={Clock} desc="GPS & Biometric based time-tracking for temple operational staff." />
-                             <FeatureCard small title="Heritage Registry" icon={Database} desc="Permanent encrypted storage for devotee ancestry and records." />
+                             <FeatureCard small title="Ritual Registry" icon={Zap} desc="Automated Pooja booking with Nakshatra-aware scheduling and token issuance." />
+                             <FeatureCard small title="Fiscal Ledger" icon={Activity} desc="Secure Hundi audits and donation tracking with multi-witness verification." />
+                             <FeatureCard small title="Annadhanam Ops" icon={Package} desc="Scalable kitchen resource management and production registry for mass feeding." />
+                             <FeatureCard small title="Staff Hub" icon={Clock} desc="GPS-verified attendance and duty management for temple personnel." />
                         </div>
                     </div>
 
@@ -200,15 +200,54 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* ── Operational Modules: Deep Dive ────────────────── */}
+            <section className="py-40 bg-white border-b border-slate-100">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="text-center mb-24">
+                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">System Architecture</span>
+                        <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase mt-6">
+                            Institutional <br />Administrative Core.
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <ModuleDetail 
+                            title="Ritual Management" 
+                            desc="End-to-end Pooja and Vazhipadu automation with real-time token tracking and Nakshatra-aware booking logic."
+                        />
+                        <ModuleDetail 
+                            title="Fiscal Auditing" 
+                            desc="Secure Hundi collection recording with multi-witness verification protocols and automated revenue analysis."
+                        />
+                        <ModuleDetail 
+                            title="Annadhanam Ops" 
+                            desc="Resource allocation and production registry for mass feeding programs, integrated with inventory stock levels."
+                        />
+                        <ModuleDetail 
+                            title="Staff & Biometrics" 
+                            desc="GPS-verified attendance and shift management for temple personnel, ensuring operational transparency."
+                        />
+                        <ModuleDetail 
+                            title="Inventory Control" 
+                            desc="Automated deduction of ritual ingredients and temple assets tracking with low-stock predictive alerts."
+                        />
+                        <ModuleDetail 
+                            title="Public Signage" 
+                            desc="High-fidelity broadcast nodes for real-time queue status, ritual timings, and festival announcements."
+                        />
+                    </div>
+                </div>
+            </section>
+
             {/* ── Advanced Capabilities: Pillars ───────────────── */}
             <section className="py-40 bg-slate-50 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
                         <CapabilityCard 
-                            title="Precision Panchangam" 
-                            desc="Astronomically accurate Malayalam Masam, Tithi, and Nakshatra calculations integrated directly into bookings." 
+                            title="Astro-Logic Sync" 
+                            desc="Precision Panchangam integration for accurate Malayalam Masam, Tithi, and Nakshatra-based ritual scheduling." 
                             icon={Globe}
-                            highlights={['Local Lat/Long Sync', 'Nakshatra Logic', 'Dinam Prediction']}
+                            highlights={['Kerala Calendar Default', 'Solar/Lunar Alignment', 'Dinam Transitions']}
                         />
                         <CapabilityCard 
                             title="Global E-Prasad Hub" 
@@ -217,10 +256,10 @@ const LandingPage = () => {
                             highlights={['Live Shipping Labels', 'Transit Analytics', 'Customs Clearance']}
                         />
                         <CapabilityCard 
-                            title="Audit Handshake" 
-                            desc="Institutional security standards with 256-bit hash encryption for all financial and personnel registries." 
+                            title="Audit Assurance" 
+                            desc="Bank-grade security with immutable audit trails for every collection, donation, and administrative action." 
                             icon={Lock}
-                            highlights={['Immutable Logs', 'Admin Biometrics', 'Leak Detection']}
+                            highlights={['Witness Protocol', 'Hashing Security', 'Admin Overwatch']}
                         />
                     </div>
                 </div>
@@ -297,6 +336,19 @@ function CapabilityCard({ title, desc, icon: Icon, highlights }) {
              </div>
         </div>
     )
+}
+
+function ModuleDetail({ title, desc }) {
+    return (
+        <div className="p-10 rounded-[2.5rem] bg-slate-50/50 border border-transparent hover:border-slate-200 hover:bg-white transition-all group">
+            <h4 className="text-lg font-black text-slate-900 mb-4 uppercase tracking-tight flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-primary" /> {title}
+            </h4>
+            <p className="text-slate-500 text-sm font-medium leading-relaxed uppercase tracking-tight opacity-70">
+                {desc}
+            </p>
+        </div>
+    );
 }
 
 export default LandingPage;

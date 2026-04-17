@@ -159,7 +159,7 @@ const BookingsPage = () => {
             <button className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 transition-all" onClick={prevMonth}>
               <ChevronLeft size={18} />
             </button>
-            <button className="px-5 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 text-[10px] font-black uppercase tracking-widest transition-all" onClick={() => setCurrentDate(new Date())}>
+            <button className="px-5 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 text-[10px] font-bold uppercase tracking-widest transition-all" onClick={() => setCurrentDate(new Date())}>
               {t('today', 'Current')}
             </button>
             <button className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 transition-all" onClick={nextMonth}>
@@ -170,7 +170,7 @@ const BookingsPage = () => {
 
         <div className="grid grid-cols-7 border-b border-slate-50">
           {weekDays.map(wd => (
-            <div key={wd} className="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div key={wd} className="py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               {wd}
             </div>
           ))}
@@ -194,24 +194,24 @@ const BookingsPage = () => {
               >
                 {day && (
                   <>
-                    <div className={`text-[10px] font-black mb-4 transition-colors ${isToday ? 'text-slate-900' : 'text-slate-200 group-hover:text-slate-400'}`}>
+                    <div className={`text-[10px] font-bold mb-4 transition-colors ${isToday ? 'text-slate-900' : 'text-slate-200 group-hover:text-slate-400'}`}>
                       {day.toString().padStart(2, '0')}
                     </div>
                     {/* Event/Booking Dots */}
                     <div className="absolute top-3 right-3 flex items-center gap-1 pointer-events-none">
                       {dayEvents.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" title="Event" />}
-                      {dayBookings.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-[#B8860B] shadow-sm" title="Booking" />}
+                      {dayBookings.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-sm" title="Booking" />}
                     </div>
 
                     {/* Booking Labels */}
                     <div className="mt-7 space-y-1 pointer-events-none overflow-hidden h-[calc(100%-1.75rem)] px-1">
                       {dayBookings.slice(0, 4).map(b => (
-                        <div key={b.id} className="px-2 py-1 rounded-md border border-slate-100 bg-slate-50/90 text-slate-800 text-[8.5px] font-black uppercase tracking-tight truncate shadow-sm">
+                        <div key={b.id} className="px-2 py-1 rounded-md border border-slate-100 bg-slate-50/90 text-slate-800 text-[8.5px] font-bold uppercase tracking-tight truncate shadow-sm">
                           {b.slot_time ? `[${b.slot_time}] ` : ''}{b.pooja_name || b.prasadam_item_name || 'Ritual'}
                         </div>
                       ))}
                       {dayBookings.length > 4 && (
-                        <div className="text-[7.5px] font-black text-[#B8860B] uppercase tracking-widest pl-1">
+                        <div className="text-[7.5px] font-bold text-primary uppercase tracking-widest pl-1">
                           + {dayBookings.length - 4} MORE SERVICES
                         </div>
                       )}
@@ -237,12 +237,12 @@ const BookingsPage = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50 text-slate-400 border-b border-slate-50">
-              <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.2em]">Initial</th>
-              <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.2em]">{t('devotee', 'IDENTIFIER')}</th>
-              <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.2em]">{t('service', 'RITUAL NODE')}</th>
-              <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.2em]">{t('date', 'TIMESTAMP')}</th>
-              <th className="px-6 py-6 text-[10px] font-black uppercase tracking-[0.2em]">{t('status', 'AUDIT')}</th>
-              <th className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-right">{t('actions', 'PROTOCOL')}</th>
+              <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-wider">Initial</th>
+              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('devotee', 'IDENTIFIER')}</th>
+              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('service', 'RITUAL NODE')}</th>
+              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('date', 'TIMESTAMP')}</th>
+              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('status', 'AUDIT')}</th>
+              <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-wider text-right">{t('actions', 'PROTOCOL')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
@@ -262,13 +262,13 @@ const BookingsPage = () => {
                         {b.slot_time ? `${b.slot_time.slice(0, 5)} - ` : ''}
                         {b.pooja_name || b.prasadam_item_name || '—'}
                     </span>
-                    <div className="text-[9px] font-black text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
+                    <div className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
                  </td>
-                <td className="px-6 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <td className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                   {new Date(b.booking_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </td>
                 <td className="px-6 py-5">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${getBadgeStyle(b.status)}`}>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border ${getBadgeStyle(b.status)}`}>
                     {b.status}
                   </span>
                 </td>
@@ -296,21 +296,14 @@ const BookingsPage = () => {
         </table>
       </div>
       
-      <div className="p-8 bg-slate-50/30 flex items-center justify-between border-t border-slate-50">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
-            <Database size={12} /> Registry Node: {count} Objects
-        </span>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="h-11 w-11 flex items-center justify-center border border-slate-200 rounded-xl bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-20 transition-all shadow-sm">
-            <ChevronLeft size={18} />
-          </button>
-          <div className="h-11 px-5 flex items-center justify-center bg-white border border-slate-900 rounded-xl text-slate-900 text-xs font-bold shadow-sm">
-            {page} / {totalPages}
-          </div>
-          <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="h-11 w-11 flex items-center justify-center border border-slate-200 rounded-xl bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-20 transition-all shadow-sm">
-            <ChevronRight size={18} />
-          </button>
-        </div>
+      <div className="p-8 bg-slate-50/30 border-t border-slate-50 rounded-b-[2.5rem]">
+        <Pagination 
+           currentPage={page} 
+           totalPages={totalPages} 
+           onPageChange={setPage} 
+           count={count} 
+           pageSize={pageSize} 
+        />
       </div>
     </motion.div>
   );
@@ -325,7 +318,7 @@ const BookingsPage = () => {
              </div>
              <h1 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase">Master Schedule</h1>
           </div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
              <Zap size={12} className="text-amber-500" /> Operational Protocol • synchronized v2.4
           </p>
         </div>
@@ -334,13 +327,13 @@ const BookingsPage = () => {
           <div className="flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner">
             <button
               onClick={() => setView('calendar')}
-              className={`px-5 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`px-5 h-10 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${view === 'calendar' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
             >
               <Layout size={14} /> {t('calendar')}
             </button>
             <button
               onClick={() => setView('list')}
-              className={`px-5 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${view === 'list' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`px-5 h-10 rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${view === 'list' ? 'bg-white text-slate-900 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600'}`}
             >
               <List size={14} /> {t('list')}
             </button>
@@ -349,7 +342,7 @@ const BookingsPage = () => {
           {checkPermission('bookings', 'edit') && (
             <button
                 onClick={() => window.location.href = '/pooja/book'}
-                className="h-12 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
+                className="h-12 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
             >
                 <Plus size={18} /> New Authorization
             </button>
@@ -360,7 +353,7 @@ const BookingsPage = () => {
       {loading ? (
         <div className="py-40 flex flex-col items-center justify-center space-y-6">
           <div className="w-12 h-12 border-4 border-slate-100 border-t-primary rounded-full animate-spin shadow-inner"></div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Hydrating Schedule...</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hydrating Schedule...</p>
         </div>
       ) : (
         view === 'calendar' ? renderCalendar() : renderList()
@@ -383,13 +376,13 @@ const BookingsPage = () => {
             >
               <div className="p-10 border-b border-slate-50 flex justify-between items-start sticky top-0 bg-white/80 backdrop-blur-xl z-20">
                 <div>
-                   <span className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mb-2 block">{getMonthName(month)} {year}</span>
+                   <span className="text-[9px] font-bold text-primary uppercase tracking-widest mb-2 block">{getMonthName(month)} {year}</span>
                    <h3 className="text-3xl font-bold text-slate-900 tracking-tighter uppercase leading-none">
                      {selectedDayData.day}
                    </h3>
                    <div className="flex items-center gap-2 mt-4">
                       <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{selectedDayData.bookings.length} Registered Rituals</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedDayData.bookings.length} Registered Rituals</p>
                    </div>
                 </div>
                 <button
@@ -403,14 +396,14 @@ const BookingsPage = () => {
               <div className="p-10 space-y-12 pb-32">
                 {selectedDayData.events.length > 0 && (
                   <div className="space-y-6">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                       <Sparkles size={14} className="text-amber-500" /> Observatory
                     </h4>
                     <div className="space-y-4">
                       {selectedDayData.events.map(e => (
                         <div key={e.id} className="p-8 rounded-[2rem] bg-slate-900 text-white relative overflow-hidden group">
                            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform"><Sparkles size={40} /></div>
-                           <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white/40 mb-2 block">Festival Record</span>
+                           <span className="text-[8px] font-bold uppercase tracking-wider text-white/40 mb-2 block">Festival Record</span>
                            <h5 className="font-bold text-2xl tracking-tight leading-tight">{e.name}</h5>
                            <p className="text-xs text-white/50 mt-4 leading-relaxed">"{e.description || 'Traditional observance defined in temple registry.'}"</p>
                         </div>
@@ -420,14 +413,14 @@ const BookingsPage = () => {
                 )}
 
                 <div className="space-y-6">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <ShieldCheck size={14} className="text-slate-900" /> Authorized Rituals
                   </h4>
 
                   {selectedDayData.bookings.length === 0 ? (
                     <div className="p-16 border-2 border-slate-100 border-dashed rounded-[2.5rem] text-center">
                        <Layers size={32} className="mx-auto text-slate-100 mb-4" />
-                       <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No Protocol Entries</p>
+                       <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">No Protocol Entries</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -435,18 +428,18 @@ const BookingsPage = () => {
                         <div key={b.id} className="p-6 rounded-2xl border border-slate-100 bg-white hover:border-slate-300 transition-all flex items-center gap-5 group">
                            <div className="h-12 w-12 rounded-xl bg-slate-50 flex flex-col items-center justify-center border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-all">
                                <Clock size={16} />
-                               <span className="text-[8px] font-black mt-1 uppercase">Live</span>
+                               <span className="text-[8px] font-bold mt-1 uppercase">Live</span>
                            </div>
                            <div className="flex-1 overflow-hidden">
                               <h5 className="font-bold text-slate-900 text-sm tracking-tight truncate uppercase">
                                 {b.slot_time ? `[${b.slot_time.slice(0, 5)}] ` : ''}
                                 {b.pooja_name || b.prasadam_item_name || 'Ritual Service'}
                               </h5>
-                              <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest truncate">{b.devotee_name || 'Anonymous'}</p>
+                              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest truncate">{b.devotee_name || 'Anonymous'}</p>
                            </div>
                            <div className="text-right">
                               <div className="text-sm font-bold text-slate-900">₹{(b.amount || 0).toLocaleString()}</div>
-                              <span className={`text-[8px] font-black mt-2 uppercase tracking-widest border px-2 py-0.5 rounded ${getBadgeStyle(b.status)}`}>
+                              <span className={`text-[8px] font-bold mt-2 uppercase tracking-widest border px-2 py-0.5 rounded ${getBadgeStyle(b.status)}`}>
                                  {b.status}
                               </span>
                            </div>
@@ -459,7 +452,7 @@ const BookingsPage = () => {
               
               <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-white via-white to-transparent">
                  {checkPermission('bookings', 'edit') && (
-                    <button onClick={() => window.location.href='/pooja/book'} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/40">
+                    <button onClick={() => window.location.href='/pooja/book'} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/40">
                         Add Observation
                     </button>
                  )}

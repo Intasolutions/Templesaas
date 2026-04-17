@@ -110,9 +110,29 @@ class Booking(models.Model):
             raise ValidationError({"payment_mode": "Cash is not allowed for online bookings."})
 
     def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        # Auto-fill amount from pooja or prasadam price if not set
+        if not self.amount or self.amount == 0:
+            if self.pooja:
+                self.amount = self.pooja.amount
+            elif self.prasadam_item:
+                self.amount = self.prasadam_item.price
+
         if self.slot_id and not self.booking_time and hasattr(self.slot, "start_time"):
             self.booking_time = self.slot.start_time
+
+        # If marking as paid successful during create or update, ensure receipt and transaction
+        if self.payment_status == self.PAY_SUCCESS:
+            if not self.receipt_no:
+                self.receipt_no = self.generate_receipt_no()
+            if not self.qr_payload:
+                self.qr_payload = self.build_qr_payload()
+        
         super().save(*args, **kwargs)
+
+        # Log transaction to Finance module if paid
+        if self.payment_status == self.PAY_SUCCESS:
+            self.log_transaction()
 
     def generate_receipt_no(self) -> str:
         today = timezone.localdate()

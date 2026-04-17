@@ -94,7 +94,7 @@ export default function BillingPage() {
             {/* Header */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
                 <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+                    <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
                         <CreditCard size={24} />
                     </div>
                     <div>
@@ -114,7 +114,7 @@ export default function BillingPage() {
                 
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="h-16 w-16 rounded-xl bg-slate-50 flex items-center justify-center text-slate-900 border border-slate-200 shadow-inner">
-                        <Star size={32} className="text-[#B8860B] fill-[#B8860B]/20" />
+                        <Star size={32} className="text-primary fill-[var(--primary)]/20" />
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
@@ -143,12 +143,12 @@ export default function BillingPage() {
                 {plans.map((plan, idx) => (
                     <div 
                         key={idx} 
-                        className={`bg-white rounded-2xl p-8 border hover:border-[#B8860B]/30 transition-all duration-300 relative flex flex-col
-                            ${plan.popular ? 'border-[#B8860B]/20 shadow-xl shadow-yellow-900/5 bg-slate-50/20' : 'border-slate-100 shadow-sm'}
+                        className={`bg-white rounded-2xl p-8 border hover:border-primary/30 transition-all duration-300 relative flex flex-col
+                            ${plan.popular ? 'border-primary/20 shadow-xl shadow-yellow-900/5 bg-slate-50/20' : 'border-slate-100 shadow-sm'}
                         `}
                     >
                         {plan.popular && (
-                            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#B8860B] text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg">
+                            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg">
                                 Most Preferred
                             </div>
                         )}
@@ -156,7 +156,7 @@ export default function BillingPage() {
                         <div className="flex-1 space-y-8">
                             <div className="flex justify-between items-start">
                                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center text-white shadow-md
-                                    ${plan.color === 'gold' ? 'bg-[#B8860B]' : 'bg-slate-900'}
+                                    ${plan.color === 'gold' ? 'bg-primary' : 'bg-slate-900'}
                                 `}>
                                     <plan.icon size={22} />
                                 </div>
@@ -171,7 +171,7 @@ export default function BillingPage() {
 
                             <div className="pt-2">
                                 <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
-                                <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-widest mt-1">
+                                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">
                                     {plan.id === 'LITE' ? 'Perfect for small temples' : plan.id === 'PRO' ? 'Ideal for major Devaswoms' : 'Advanced Institutional Grade'}
                                 </p>
                             </div>
@@ -195,7 +195,7 @@ export default function BillingPage() {
                                         ? 'bg-slate-100 text-slate-400 cursor-default shadow-none' 
                                         : plan.popular 
                                             ? 'bg-slate-900 text-white hover:bg-slate-800' 
-                                            : 'bg-white text-slate-900 border border-slate-200 hover:border-[#B8860B] hover:text-[#B8860B]'
+                                            : 'bg-white text-slate-900 border border-slate-200 hover:border-primary hover:text-primary'
                                     }
                                 `}
                             >

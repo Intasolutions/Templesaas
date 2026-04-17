@@ -22,6 +22,7 @@ class TenantSerializer(serializers.ModelSerializer):
             'id', 'name', 'subdomain', 'logo', 'brand_color',
             'contact_email', 'contact_phone', 'address',
             'latitude', 'longitude', 'plan', 'plan_name', 'allowed_apps', 
+            'authorized_signatory_name', 'authorized_signatory_designation',
             'is_active', 'is_trial', 'trial_ends_at'
         ]
         read_only_fields = ['subdomain', 'plan', 'allowed_apps', 'is_active']

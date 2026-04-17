@@ -36,14 +36,14 @@ export default function Sidebar({ isOpen, onClose }) {
             onClick={e => locked && e.preventDefault()}
             className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl transition-all duration-300 group select-none
                 ${active 
-                    ? 'bg-[#B8860B] text-white shadow-xl shadow-yellow-900/25 scale-[1.02]' 
+                    ? 'bg-primary text-white shadow-xl shadow-primary/25 scale-[1.02]' 
                     : locked
                         ? 'text-slate-300 cursor-not-allowed grayscale'
                         : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 active:scale-95'}
             `}
         >
             <div className="relative">
-                <Icon size={20} className={`${active ? 'text-white' : locked ? 'text-slate-200' : 'text-slate-400 group-hover:text-[#B8860B]'} transition-colors duration-300`} />
+                <Icon size={20} className={`${active ? 'text-white' : locked ? 'text-slate-200' : 'text-slate-400 group-hover:text-primary'} transition-colors duration-300`} />
                 {locked && (
                     <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
                         <Zap size={8} className="text-slate-400 fill-slate-400" />
@@ -105,7 +105,7 @@ export default function Sidebar({ isOpen, onClose }) {
             {/* Logo Section */}
             <div className="p-8 pb-4">
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="h-10 w-10 bg-[#B8860B] rounded-xl flex items-center justify-center text-white shadow-xl shadow-yellow-900/20">
+                    <div className="h-10 w-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl shadow-primary/20">
                         <Building2 size={24} />
                     </div>
                     <div>
@@ -126,7 +126,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 )}
 
                 <div className="relative mb-6 group">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#B8860B] transition-colors" size={14} />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={14} />
                     <input 
                         type="text" 
                         placeholder={t('search_placeholder', 'Quick Find...')} 

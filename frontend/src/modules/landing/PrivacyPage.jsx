@@ -1,39 +1,57 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import MarketingLayout from './MarketingLayout';
+import LegalLayout from './LegalLayout';
 
 const PrivacyPage = () => {
     return (
-        <MarketingLayout>
-            <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
-                <div className="max-w-4xl mx-auto px-6">
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                             Data Sovereignty
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8 leading-[1.1]">Privacy Policy</h1>
-                        <p className="text-slate-500 font-bold mb-16 uppercase tracking-widest text-xs">Updated: April 2026</p>
-                        
-                        <div className="space-y-16 text-slate-600 leading-relaxed text-lg">
-                            <section>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight uppercase">1. Our Commitment to Sacred Data</h2>
-                                <p className="font-medium">At Devalayam OS, we recognize that temple data is not just information, but part of a sacred heritage. We are committed to maintaining the highest standards of data privacy and institutional sovereignty. Your devotee records and financial logs belong exclusively to your institution.</p>
-                            </section>
+        <LegalLayout title="Privacy Policy" effectiveDate="April 2026">
+            <section>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">1. Compliance Status</h2>
+                <p className="font-medium text-slate-500 mb-6">
+                    Devalayam OS is fully compliant with the Information Technology Act 2000 and the Digital Personal Data Protection Act 2023 (DPDP). This privacy policy outlines how we handle the institutional data of temple trusts and the personal data of devotees.
+                </p>
+            </section>
 
-                            <section>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight uppercase">2. Collection with Purpose</h2>
-                                <p className="font-medium">We only collect data necessary for the administrative operation of your institution (e.g., devotee names for Vazhipadu receipts, contact details for SMS alerts). We do not harvest, sell, or profile your devotees for third-party advertising.</p>
-                            </section>
-
-                            <section>
-                                <h2 className="text-2xl font-bold text-slate-900 mb-6 tracking-tight uppercase">3. Security Infrastructure</h2>
-                                <p className="font-medium">All data is stored on encrypted regional nodes (AES-256). Periodic backups are performed every 24 hours to ensure that religious calendars and ritual bookings are never lost in case of local hardware failure.</p>
-                            </section>
-                        </div>
-                    </motion.div>
+            <section>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">2. Data Collection Metrics</h2>
+                <p className="font-medium text-slate-500 mb-8">
+                    We collect only the minimum data required to facilitate institutional administration and ritual automation.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+                        <h4 className="text-sm font-black text-slate-900 mb-4 uppercase tracking-widest leading-none">Institutional Data</h4>
+                        <p className="text-xs font-medium text-slate-500 leading-relaxed uppercase tracking-tight opacity-70">
+                            Temple financial registers, transaction hashes, hundi counting records, and staff administrative logs.
+                        </p>
+                    </div>
+                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
+                        <h4 className="text-sm font-black text-slate-900 mb-4 uppercase tracking-widest leading-none">Devotee Data</h4>
+                        <p className="text-xs font-medium text-slate-500 leading-relaxed uppercase tracking-tight opacity-70">
+                            Names, birth nakshatras, contact numbers (for receipt generation and WhatsApp notifications), and ritual history.
+                        </p>
+                    </div>
                 </div>
             </section>
-        </MarketingLayout>
+
+            <section>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">3. Storage & Isolation</h2>
+                <p className="font-medium text-slate-500 mb-6">
+                    Every temple institution's data is siloed within its own private database node. We utilize industry-standard AES-256 encryption at rest and TLS 1.3 for all data in transit across the Devalayam network.
+                </p>
+            </section>
+
+            <section>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">4. Data Sharing & Third Parties</h2>
+                <p className="font-medium text-slate-500 mb-6">
+                    DEVALAYAM DOES NOT SELL DEVOTEE OR INSTITUTIONAL DATA. We only share data with authorized third-party service nodes (e.g., WhatsApp API, Secure Payment Gateways) solely for fulfilling service requests made by the Temple Trust.
+                </p>
+            </section>
+
+            <section>
+                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">5. User Rights (Fiduciary Duty)</h2>
+                <p className="font-medium text-slate-500 mb-6 font-mono text-sm leading-relaxed uppercase opacity-80">
+                    UNDER DPDP 2023, DEVALAYAM SYSTEMS ACTS AS A DATA PROCESSOR, WHILE THE TEMPLE TRUST ACTS AS THE DATA FIDUCIARY. DEVOTEES MAY REQUEST RECORD MODIFICATIONS OR DELETIONS THROUGH THEIR RESPECTIVE TEMPLE ADMINISTRATIVE OFFICE.
+                </p>
+            </section>
+        </LegalLayout>
     );
 };
 

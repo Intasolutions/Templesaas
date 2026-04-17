@@ -109,7 +109,7 @@ export default function TccPage() {
                     <div className="bg-white/80 backdrop-blur-2xl px-6 py-8 rounded-[2rem] border border-white shadow-xl shadow-slate-200/50 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
 
-                        <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-3 relative z-10 tracking-tight">
+                        <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-3 relative z-10 tracking-tight">
                             <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl"><SquareActivity size={20} /></div>
                             {t('active_queues', 'Active Queues')}
                         </h2>
@@ -135,7 +135,7 @@ export default function TccPage() {
                                             {selectedSessionId === session.id ? <Activity size={18} className="animate-pulse" /> : <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-slate-400" />}
                                             <span className="font-bold">{session.name}</span>
                                         </div>
-                                        <span className={`text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg font-black ${selectedSessionId === session.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                                        <span className={`text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-lg font-bold ${selectedSessionId === session.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
                                             {session.status}
                                         </span>
                                     </button>
@@ -175,12 +175,12 @@ export default function TccPage() {
 
                                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-6 mb-12 relative z-10 border-b border-slate-100 pb-8">
                                     <div>
-                                        <h2 className="text-4xl md:text-5xl font-display font-black text-slate-800 tracking-tight">
+                                        <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-800 tracking-tight">
                                             {selectedSession.name}
                                         </h2>
                                         <p className="text-slate-500 mt-2 font-medium">{t('control_token_flow', 'Control token flow for this queue counter.')}</p>
                                     </div>
-                                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-5 py-2 rounded-xl text-sm font-black uppercase tracking-widest self-start sm:self-auto shadow-sm">
+                                    <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 px-5 py-2 rounded-xl text-sm font-bold uppercase tracking-widest self-start sm:self-auto shadow-sm">
                                         {selectedSession.status}
                                     </span>
                                 </div>
@@ -188,14 +188,14 @@ export default function TccPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-12 relative z-10 flex-1">
                                     <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-[2rem] p-8 shadow-inner border border-indigo-100 text-center flex flex-col items-center justify-center relative overflow-hidden">
                                         <div className="absolute top-4 left-4 text-indigo-200/50"><Activity size={80} /></div>
-                                        <span className="text-indigo-900/40 font-black mb-3 uppercase tracking-widest text-xs relative z-10">{t('now_serving', 'Now Serving')}</span>
-                                        <span className="text-7xl md:text-8xl font-black text-indigo-600 tracking-tighter relative z-10 drop-shadow-sm">
+                                        <span className="text-indigo-900/40 font-bold mb-3 uppercase tracking-widest text-xs relative z-10">{t('now_serving', 'Now Serving')}</span>
+                                        <span className="text-7xl md:text-8xl font-bold text-indigo-600 tracking-tighter relative z-10 drop-shadow-sm">
                                             #{selectedSession.current_token_number || '--'}
                                         </span>
                                     </div>
                                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border 2 border-slate-100 text-center flex flex-col items-center justify-center relative overflow-hidden">
-                                        <span className="text-slate-400 font-black mb-3 uppercase tracking-widest text-xs">{t('last_issued', 'Last Issued')}</span>
-                                        <span className="text-7xl md:text-8xl font-black text-slate-800 tracking-tighter">
+                                        <span className="text-slate-400 font-bold mb-3 uppercase tracking-widest text-xs">{t('last_issued', 'Last Issued')}</span>
+                                        <span className="text-7xl md:text-8xl font-bold text-slate-800 tracking-tighter">
                                             #{selectedSession.last_issued_number || '--'}
                                         </span>
                                     </div>
@@ -204,14 +204,14 @@ export default function TccPage() {
                                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-auto relative z-10">
                                     <button
                                         onClick={() => handleGenerateToken(selectedSession)}
-                                        className="flex-1 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 rounded-2xl py-5 px-6 font-black text-lg flex items-center justify-center gap-3 transition-colors hover:bg-slate-50 active:scale-[0.98]"
+                                        className="flex-1 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 rounded-2xl py-5 px-6 font-bold text-lg flex items-center justify-center gap-3 transition-colors hover:bg-slate-50 active:scale-[0.98]"
                                     >
                                         <UserPlus size={24} className="text-slate-400" />
                                         {t('generate_token', 'Generate Token')}
                                     </button>
                                     <button
                                         onClick={() => handleCallNext(selectedSession)}
-                                        className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl py-5 px-6 font-black text-lg flex items-center justify-center gap-3 transition shadow-xl shadow-orange-500/30 active:scale-[0.98]"
+                                        className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl py-5 px-6 font-bold text-lg flex items-center justify-center gap-3 transition shadow-xl shadow-orange-500/30 active:scale-[0.98]"
                                     >
                                         <Play size={24} />
                                         {t('call_next_token', 'Call Next Token')}
@@ -226,7 +226,7 @@ export default function TccPage() {
                                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
                                     <MonitorUp size={48} className="text-slate-300" />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-600 mb-2">{t('no_queue_selected', 'No Queue Selected')}</h3>
+                                <h3 className="text-2xl font-bold text-slate-600 mb-2">{t('no_queue_selected', 'No Queue Selected')}</h3>
                                 <p className="text-slate-500 font-medium">{t('select_or_create_queue', 'Select or create a queue session to start managing tokens.')}</p>
                             </motion.div>
                         )}

@@ -69,8 +69,8 @@ const StaffPage = () => {
                             <Fingerprint size={32} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">Force Command</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mt-3 flex items-center gap-2">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase leading-none">Force Command</h1>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] mt-3 flex items-center gap-2">
                                 <Database size={12} className="text-primary" /> Personnel Registry • Staff Node #001
                             </p>
                         </div>
@@ -90,11 +90,11 @@ const StaffPage = () => {
                     </div>
                     <button 
                         onClick={() => setShowClockIn(true)}
-                        className="h-14 px-6 rounded-2xl border border-slate-100 bg-white text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 shadow-sm"
+                        className="h-14 px-6 rounded-2xl border border-slate-100 bg-white text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 shadow-sm"
                     >
                         <ShieldCheck size={18} /> Clock Entry
                     </button>
-                    <button className="h-14 px-8 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/40 flex items-center gap-3 active:scale-95">
+                    <button className="h-14 px-8 rounded-2xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/40 flex items-center gap-3 active:scale-95">
                         <Plus size={20} /> Enlist Personnel
                     </button>
                 </div>
@@ -112,10 +112,10 @@ const StaffPage = () => {
                 <div className="lg:col-span-8 space-y-6">
                     <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                         <div className="px-10 py-6 border-b border-slate-50 bg-slate-50/30 flex justify-between items-center">
-                            <h2 className="text-[10px] font-black text-slate-400 flex items-center gap-3 uppercase tracking-[0.3em]">
+                            <h2 className="text-[10px] font-bold text-slate-400 flex items-center gap-3 uppercase tracking-[0.3em]">
                                 <Layers size={16} className="text-slate-900" /> Personnel Data Ledger
                             </h2>
-                            <button className="text-[9px] font-black text-slate-300 hover:text-slate-900 uppercase tracking-widest flex items-center gap-2 transition-colors">
+                            <button className="text-[9px] font-bold text-slate-300 hover:text-slate-900 uppercase tracking-widest flex items-center gap-2 transition-colors">
                                 <Download size={12} /> Export Protocol
                             </button>
                         </div>
@@ -124,17 +124,17 @@ const StaffPage = () => {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-white text-slate-400">
-                                        <th className="px-12 py-6 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">Unit Identity</th>
-                                        <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">Sub-Domain</th>
-                                        <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">Operational State</th>
+                                        <th className="px-12 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Unit Identity</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Sub-Domain</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Operational State</th>
                                         <th className="px-12 py-6 border-b border-slate-50"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {loading ? (
-                                        <tr><td colSpan="4" className="px-12 py-32 text-center text-[11px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Establishing Logic Connection...</td></tr>
+                                        <tr><td colSpan="4" className="px-12 py-32 text-center text-[11px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Establishing Logic Connection...</td></tr>
                                     ) : filteredUsers.length === 0 ? (
-                                        <tr><td colSpan="4" className="px-12 py-24 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">Registry Empty: No Personnel Detected</td></tr>
+                                        <tr><td colSpan="4" className="px-12 py-24 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Registry Empty: No Personnel Detected</td></tr>
                                     ) : filteredUsers.map((profile) => (
                                         <tr key={profile.id} className="group hover:bg-slate-100/30 transition-all">
                                             <td className="px-12 py-7">
@@ -143,22 +143,22 @@ const StaffPage = () => {
                                                         {profile.user?.username?.[0]?.toUpperCase() || "U"}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-black text-slate-900 uppercase tracking-tighter group-hover:text-primary transition-colors">{profile.user?.username || "Unknown Unit"}</div>
-                                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                                        <div className="text-sm font-bold text-slate-900 uppercase tracking-tighter group-hover:text-primary transition-colors">{profile.user?.username || "Unknown Unit"}</div>
+                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
                                                             <Database size={10} className="text-primary/40" /> ID: #{profile.id}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td className="px-10 py-7">
-                                                <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-200/50">
+                                                <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200/50">
                                                     {profile.role || "Level 1 Cleared"}
                                                 </span>
                                             </td>
                                             <td className="px-10 py-7">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                                    <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Mission Active</span>
+                                                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Mission Active</span>
                                                 </div>
                                             </td>
                                             <td className="px-12 py-7 text-right">
@@ -180,7 +180,7 @@ const StaffPage = () => {
                 <div className="lg:col-span-4 space-y-8">
                     <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden border border-slate-800 shadow-2xl shadow-slate-900/40 group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-125 transition-transform"><Clock size={80} /></div>
-                        <h3 className="text-lg font-black tracking-tighter uppercase">Active Deployment Roster</h3>
+                        <h3 className="text-lg font-bold tracking-tighter uppercase">Active Deployment Roster</h3>
                         
                         <div className="space-y-12 mb-10">
                             {['morning', 'evening', 'full'].map(shiftKey => {
@@ -196,7 +196,7 @@ const StaffPage = () => {
 
                                 return (
                                     <div key={shiftKey} className="space-y-6">
-                                        <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <div className="text-[9px] font-bold text-white/30 uppercase tracking-[0.3em] flex items-center gap-2">
                                             <div className="h-1 w-1 bg-primary rounded-full" /> {shiftLabel}
                                         </div>
                                         <div className="space-y-4">
@@ -206,11 +206,11 @@ const StaffPage = () => {
                                                         <span className="text-xs font-bold text-white uppercase tracking-tight group-hover/item:text-primary transition-colors">
                                                             {item.username}
                                                         </span>
-                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest mt-1">
+                                                        <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest mt-1">
                                                             {item.role} Node
                                                         </span>
                                                     </div>
-                                                    <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[9px] font-black text-white/40 uppercase tracking-widest">
+                                                    <div className="px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-[9px] font-bold text-white/40 uppercase tracking-widest">
                                                        {item.area} Sect
                                                     </div>
                                                 </div>
@@ -221,7 +221,7 @@ const StaffPage = () => {
                             })}
                         </div>
 
-                        <button className="w-full mt-10 h-14 rounded-2xl bg-white/5 hover:bg-white text-white hover:text-slate-900 border border-white/10 font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-xl group">
+                        <button className="w-full mt-10 h-14 rounded-2xl bg-white/5 hover:bg-white text-white hover:text-slate-900 border border-white/10 font-bold text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 shadow-xl group">
                             Recalibrate Duty Map <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>
@@ -232,7 +232,7 @@ const StaffPage = () => {
                             <Shield size={18} />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-700">{t('audit_mode_active')}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-700">{t('audit_mode_active')}</p>
                             <p className="text-[10px] font-bold text-amber-900/50 uppercase tracking-tight mt-2 leading-relaxed">
                                 All attendance vectors are being recorded for geofencing compliance within the spatial node.
                             </p>
@@ -265,14 +265,14 @@ function MetricCard({ label, value, icon: Icon, color, badge, subtext }) {
                     <Icon size={20} />
                 </div>
                 <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">{label}</p>
-                    <p className="text-2xl font-black text-slate-900 mt-2 tracking-tighter leading-none">{value}</p>
-                    <p className="text-[8px] font-black text-slate-300 mt-3 uppercase tracking-widest flex items-center gap-2">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-400">{label}</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-2 tracking-tighter leading-none">{value}</p>
+                    <p className="text-[8px] font-bold text-slate-300 mt-3 uppercase tracking-widest flex items-center gap-2">
                         {subtext}
                     </p>
                 </div>
             </div>
-            <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest h-fit ${colors[color]}`}>
+            <div className={`px-2.5 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest h-fit ${colors[color]}`}>
                 {badge}
             </div>
         </div>

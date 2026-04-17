@@ -10,12 +10,15 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # ── Malayalam Font Registration ──────────────────
-FONT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts", "Meera.ttf")
+FONT_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts", "Manjari-Regular.ttf")
+FONT_BOLD_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "fonts", "Manjari-Bold.ttf")
 FONT_REGISTERED = False
 
 try:
     if os.path.exists(FONT_PATH):
         pdfmetrics.registerFont(TTFont('Malayalam', FONT_PATH))
+        if os.path.exists(FONT_BOLD_PATH):
+            pdfmetrics.registerFont(TTFont('Malayalam-Bold', FONT_BOLD_PATH))
         FONT_REGISTERED = True
 except Exception as e:
     print(f"Font registration failed: {e}")
@@ -37,7 +40,7 @@ def generate_donation_receipt_pdf(donation):
         parent=styles['Heading1'],
         alignment=1,
         fontSize=18,
-        fontName=font_name,
+        fontName='Malayalam-Bold' if FONT_REGISTERED else 'Helvetica-Bold',
         spaceAfter=5
     )
     
@@ -91,15 +94,20 @@ def generate_donation_receipt_pdf(donation):
     
     qr_img = Image(qr_buffer, width=70, height=70)
     
+    # 3. Footer with QR and Signature
+    signatory_name = donation.organization.authorized_signatory_name if donation.organization else ""
+    signatory_title = donation.organization.authorized_signatory_designation if donation.organization else ""
+    
     footer_data = [
-        [qr_img, "", "രസീത് നൽകിയത് / Authorized Signatory"]
+        [qr_img, "", f"{signatory_name}\n{signatory_title}\nരസീത് നൽകിയത് / Authorized Signatory"]
     ]
-    footer_table = Table(footer_data, colWidths=[100, 200, 150])
+    footer_table = Table(footer_data, colWidths=[100, 150, 200])
     footer_table.setStyle(TableStyle([
         ('FONTNAME', (2, 0), (2, 0), font_name),
         ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
         ('VALIGN', (0, 0), (-1, -1), 'BOTTOM'),
-        ('FONTSIZE', (2, 0), (2, 0), 8),
+        ('FONTSIZE', (2, 0), (2, 0), 9),
+        ('BOTTOMPADDING', (2, 0), (2, 0), 0),
     ]))
     
     elements.append(footer_table)

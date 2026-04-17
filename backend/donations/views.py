@@ -152,15 +152,23 @@ def confirm_donation_payment(request, pk):
     return Response(DonationSerializer(donation, context={"request": request}).data)
 
 
-@api_view(["GET"])
+# ----------------------------
+# 4) Donation Receipt PDF (Plain Django View for binary safety)
+# ----------------------------
 def donation_receipt_pdf(request, pk):
+    # If using authentication, check request.user.is_authenticated here
     try:
         donation = Donation.objects.get(pk=pk)
     except Donation.DoesNotExist:
-        return Response({"error": "Donation not found"}, status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse("Donation not found", status=404)
+
+    # Auto-fix: If payment is success but receipt_no is missing, generate it now
+    if donation.payment_status == Donation.PAY_SUCCESS and not donation.receipt_no:
+        donation.mark_paid_success()
+        donation.refresh_from_db()
 
     if not donation.receipt_no:
-        return Response({"error": "Receipt not generated yet. Confirm payment first."}, status=400)
+        return HttpResponse("Receipt not generated yet. This donation might be pending or failed.", status=400)
 
     buffer = generate_donation_receipt_pdf(donation)
     return FileResponse(buffer, as_attachment=True, filename=f"Receipt_{donation.receipt_no}.pdf")

@@ -62,13 +62,19 @@ class BookingDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, ModulePermission]
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated, ModulePermission])
+# ----------------------------
+# Receipt PDF (Plain Django View for binary safety)
+# ----------------------------
 def booking_receipt_pdf(request, pk):
     try:
         booking = Booking.objects.select_related("devotee", "pooja", "organization").get(pk=pk)
     except Booking.DoesNotExist:
-        return Response({"error": "Booking not found"}, status=404)
+        return HttpResponse("Booking not found", status=404)
+
+    # Auto-fix: generate receipt if it's missing but paid
+    if booking.payment_status == Booking.PAY_SUCCESS and not booking.receipt_no:
+        booking.mark_paid_success()
+        booking.refresh_from_db()
 
     buffer = generate_booking_receipt_pdf(booking)
     return FileResponse(buffer, as_attachment=True, filename=f"Receipt_{booking.receipt_no or booking.id}.pdf")

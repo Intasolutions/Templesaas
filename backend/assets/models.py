@@ -72,14 +72,19 @@ class MaintenanceLog(models.Model):
     """
     Audit trail for when an asset was serviced/cleaned.
     """
+    organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="maintenance_logs", null=True, blank=True)
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name="maintenance_logs")
-    service_date = models.DateField(default=datetime.date.today)
+    service_date = models.DateTimeField(auto_now_add=True)
     performer = models.CharField(max_length=150, help_text="Who performed the service")
     
     activity = models.TextField(help_text="e.g. Silver polishing using traditional oils")
     cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
     next_planned_date = models.DateField(null=True, blank=True)
+    
+    # Geolocation Audit
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
 

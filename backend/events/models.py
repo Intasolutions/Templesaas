@@ -28,9 +28,33 @@ class Event(models.Model):
             models.Index(fields=["is_active"]),
         ]
 
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        # If ticketing is enabled, ensure a corresponding Pooja exists
+        if self.enable_digital_passes:
+            from pooja.models import Pooja
+            pooja, created = Pooja.objects.get_or_create(
+                organization=self.organization,
+                festival_event=self,
+                defaults={
+                    'name': f"{self.name} - Entry Ticket",
+                    'amount': self.pass_price,
+                    'is_festival_special': True,
+                }
+            )
+            # Update price if changed
+            if not created and pooja.amount != self.pass_price:
+                pooja.amount = self.pass_price
+                pooja.save()
+
+    def get_linked_pooja(self):
+        from pooja.models import Pooja
+        return Pooja.objects.filter(festival_event=self).first()
+
     def get_current_occupancy(self):
         from bookings.models import Booking
-        from django.db.models import Sum
         # Count all confirmed bookings for poojas linked to this event
         return Booking.objects.filter(
             pooja__festival_event=self,

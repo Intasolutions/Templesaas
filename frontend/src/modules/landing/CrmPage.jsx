@@ -42,7 +42,7 @@ const CrmPage = () => {
                                     }}
                                 />
                                 <img 
-                                    src="/crm-hero.png" 
+                                    src="/crm_hero.png" 
                                     alt="Devotee Family Heritage" 
                                     className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
                                 />
@@ -69,6 +69,23 @@ const CrmPage = () => {
                          <FeatureBullet title="Ancestry Mapping" desc="Trace family lineage and traditional seva history across generations for institutional records." />
                          <FeatureBullet title="Unified Seva Dashboard" desc="Single-view history of all ritual bookings, donations, and institutional interactions." />
                          <FeatureBullet title="Automated Notifications" desc="Keep devotees informed via WhatsApp/SMS about upcoming poojas and key temple dates." />
+                         <FeatureBullet title="Encrypted Vault" desc="Devotee data is protected with 256-bit institutional grade encryption protocols." />
+                         <FeatureBullet title="Family Grouping" desc="Link multiple devotees to a single family node for simplified booking and communication." />
+                         <FeatureBullet title="Heritage Analytics" desc="Gain insights into devotee demographics and participation trends for festival planning." />
+                    </div>
+
+                    <div className="mt-40 bg-slate-900 rounded-[4rem] p-12 md:p-32 text-center text-white relative overflow-hidden group">
+                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                         <div className="relative z-10 max-w-3xl mx-auto">
+                              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-12">Digital <br />Devotee Passport.</h2>
+                              <p className="text-xl text-white/50 font-medium mb-16 leasing-relaxed uppercase tracking-widest">
+                                  Every devotee interaction, ritual booking, and contribution consolidated into a single, immutable institutional record.
+                              </p>
+                              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                                  <div className="px-8 py-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-black uppercase tracking-widest">Star Mapping Enabled</div>
+                                  <div className="px-8 py-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-black uppercase tracking-widest">Secure Ancestry Nodes</div>
+                              </div>
+                         </div>
                     </div>
                 </div>
             </section>

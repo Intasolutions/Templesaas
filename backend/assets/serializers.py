@@ -9,7 +9,10 @@ class AssetCategorySerializer(serializers.ModelSerializer):
 class MaintenanceLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceLog
-        fields = "__all__"
+        fields = [
+            "id", "organization", "asset", "service_date", "performer",
+            "activity", "cost", "next_planned_date", "latitude", "longitude", "created_at"
+        ]
 
 class AssetSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)

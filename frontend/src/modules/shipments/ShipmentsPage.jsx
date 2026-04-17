@@ -209,7 +209,7 @@ export default function ShipmentsPage() {
                         </div>
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 tracking-tight uppercase leading-none">Logistics Center</h1>
-                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">E-Prasad Distribution</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">E-Prasad Distribution</p>
                         </div>
                     </div>
                 </div>
@@ -260,18 +260,18 @@ export default function ShipmentsPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-50/50">
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Vessel Identity</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Recipient</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Logistics Token</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">State</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Vessel Identity</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Recipient</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Logistics Token</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">State</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {loading ? (
-                                    <tr><td colSpan="5" className="py-32 text-center text-[11px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Accessing Logistics Ledger...</td></tr>
+                                    <tr><td colSpan="5" className="py-32 text-center text-[11px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Accessing Logistics Ledger...</td></tr>
                                 ) : shipments.length === 0 ? (
-                                    <tr><td colSpan="5" className="py-24 text-center text-slate-300 font-black uppercase text-[10px] tracking-[0.4em]">Grid Empty: No Active payloads</td></tr>
+                                    <tr><td colSpan="5" className="py-24 text-center text-slate-300 font-bold uppercase text-[10px] tracking-[0.4em]">Grid Empty: No Active payloads</td></tr>
                                 ) : shipments.map((s) => (
                                     <tr key={s.id} className="hover:bg-slate-50/50 transition-all group">
                                         <td className="px-8 py-6">
@@ -280,8 +280,8 @@ export default function ShipmentsPage() {
                                                     <Package size={18} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-black text-slate-900 text-[11px] tracking-tight uppercase leading-none">#{s.id.toString().padStart(6, '0')}</div>
-                                                    <div className="text-[8px] font-black text-primary uppercase tracking-widest mt-1">
+                                                    <div className="font-bold text-slate-900 text-[11px] tracking-tight uppercase leading-none">#{s.id.toString().padStart(6, '0')}</div>
+                                                    <div className="text-[8px] font-bold text-primary uppercase tracking-widest mt-1">
                                                         {s.booking_details?.prasadam_item_name || s.booking_details?.pooja_name || "Seva Prasad Protocol"}
                                                     </div>
                                                 </div>
@@ -290,7 +290,7 @@ export default function ShipmentsPage() {
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-0.5">
                                                 <div className="font-bold text-slate-900 text-[11px] uppercase tracking-tight leading-none">{s.recipient_name}</div>
-                                                <div className="flex items-center gap-1 text-[8px] text-slate-400 font-black uppercase tracking-widest mt-1 opacity-60 leading-none">
+                                                <div className="flex items-center gap-1 text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1 opacity-60 leading-none">
                                                     <MapPin size={8} />
                                                     <span className="truncate max-w-[150px]">{s.shipping_address}</span>
                                                 </div>
@@ -299,17 +299,17 @@ export default function ShipmentsPage() {
                                         <td className="px-8 py-6">
                                             {s.tracking_id ? (
                                                 <div className="space-y-0.5">
-                                                    <div className="text-[10px] font-black text-slate-900 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 w-fit tracking-tighter uppercase">{s.tracking_id}</div>
-                                                    <div className="text-[7px] text-slate-300 font-black uppercase tracking-widest ml-0.5">{s.courier_partner}</div>
+                                                    <div className="text-[10px] font-bold text-slate-900 bg-slate-50 px-2 py-0.5 rounded border border-slate-100 w-fit tracking-tighter uppercase">{s.tracking_id}</div>
+                                                    <div className="text-[7px] text-slate-300 font-bold uppercase tracking-widest ml-0.5">{s.courier_partner}</div>
                                                 </div>
                                             ) : (
-                                                 <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+                                                 <span className="text-[9px] font-bold text-slate-200 uppercase tracking-widest flex items-center gap-1.5 leading-none">
                                                     <div className="h-1 w-1 rounded-full bg-slate-100" /> Standby
                                                  </span>
                                             )}
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${getStatusBadge(s.status)}`}>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest border transition-all ${getStatusBadge(s.status)}`}>
                                                 <div className={`h-1 w-1 rounded-full ${s.status === 'delivered' ? 'bg-emerald-500' : 'bg-current animate-pulse'}`} />
                                                 {s.status}
                                             </span>
@@ -335,7 +335,7 @@ export default function ShipmentsPage() {
                     </div>
 
                     <div className="p-8 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
-                        <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-3">
+                        <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest flex items-center gap-3">
                             <Database size={12} /> Registry Index Payload • {count} Vessels
                         </div>
                         <Pagination 
@@ -353,19 +353,19 @@ export default function ShipmentsPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="bg-slate-50/50 border-b border-slate-50/50">
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Item Node</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Description</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Shelf Life</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Valuation</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Integrity</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Action</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Item Node</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Description</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Shelf Life</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Valuation</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400">Integrity</th>
+                                    <th className="px-8 py-6 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {loading && prasads.length === 0 ? (
-                                    <tr><td colSpan="5" className="py-32 text-center text-[11px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Syncing Inventory Index...</td></tr>
+                                    <tr><td colSpan="5" className="py-32 text-center text-[11px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Syncing Inventory Index...</td></tr>
                                 ) : prasads.length === 0 ? (
-                                    <tr><td colSpan="5" className="py-24 text-center text-slate-300 font-black uppercase text-[10px] tracking-[0.4em]">Registry Empty: Add initial prasad nodes</td></tr>
+                                    <tr><td colSpan="5" className="py-24 text-center text-slate-300 font-bold uppercase text-[10px] tracking-[0.4em]">Registry Empty: Add initial prasad nodes</td></tr>
                                 ) : prasads.map((p) => (
                                     <tr key={p.id} className="hover:bg-slate-50/50 transition-all group">
                                         <td className="px-8 py-6">
@@ -373,7 +373,7 @@ export default function ShipmentsPage() {
                                                 <div className="h-10 w-10 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                                                     <Box size={18} />
                                                 </div>
-                                                <div className="font-black text-slate-900 text-[11px] tracking-tight uppercase leading-none">{p.name}</div>
+                                                <div className="font-bold text-slate-900 text-[11px] tracking-tight uppercase leading-none">{p.name}</div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
@@ -387,10 +387,10 @@ export default function ShipmentsPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <div className="text-xs font-black text-slate-900">₹{p.price}</div>
+                                            <div className="text-xs font-bold text-slate-900">₹{p.price}</div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${p.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[8px] font-bold uppercase tracking-widest border ${p.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                                                 {p.is_active ? 'Active Node' : 'Offline'}
                                             </span>
                                         </td>
@@ -414,7 +414,7 @@ export default function ShipmentsPage() {
                         <Zap size={18} />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Uplink</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Global Uplink</p>
                         <p className="text-xs font-bold text-slate-900 uppercase">Synchronized</p>
                     </div>
                 </div>
@@ -424,7 +424,7 @@ export default function ShipmentsPage() {
                         <ShieldCheck size={18} />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Node Latency</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Node Latency</p>
                         <p className="text-xs font-bold text-slate-900 uppercase">12ms</p>
                     </div>
                 </div>
@@ -434,7 +434,7 @@ export default function ShipmentsPage() {
                         <Clock size={18} />
                     </div>
                     <div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Audit Cycle</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Audit Cycle</p>
                         <p className="text-xs font-bold text-slate-900 uppercase">60s Polling</p>
                     </div>
                 </div>
@@ -448,10 +448,10 @@ export default function ShipmentsPage() {
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-[2.5rem] shadow-2xl relative z-10 w-full max-w-xl flex flex-col overflow-hidden border border-slate-100">
                             <div className="p-10 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
                                 <div>
-                                    <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+                                    <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
                                         <Zap size={14} className="animate-pulse" /> Finalize Logistics Protocol
                                     </p>
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase">Vessel Deployment</h2>
+                                    <h2 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase">Vessel Deployment</h2>
                                     <p className="text-[10px] font-medium text-slate-400 mt-2 uppercase tracking-widest whitespace-nowrap">Authorize shipment to {editingShipment?.recipient_name}</p>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-white text-slate-400 border border-transparent hover:border-slate-200 transition-all shadow-sm">
@@ -461,13 +461,13 @@ export default function ShipmentsPage() {
 
                             <form onSubmit={handleUpdate} className="p-10 space-y-8 bg-white">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Lifecycle State</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Lifecycle State</label>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-100">
                                         {['pending', 'prepared', 'dispatched', 'delivered'].map((s) => (
                                             <button 
                                                 key={s} type="button" 
                                                 onClick={() => setForm({...form, status: s})}
-                                                className={`h-10 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${form.status === s ? "bg-slate-900 text-white shadow-xl" : "text-slate-400 hover:bg-white/50"}`}
+                                                className={`h-10 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${form.status === s ? "bg-slate-900 text-white shadow-xl" : "text-slate-400 hover:bg-white/50"}`}
                                             >
                                                 {s}
                                             </button>
@@ -477,7 +477,7 @@ export default function ShipmentsPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Courier Partner</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Courier Partner</label>
                                         <div className="relative">
                                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"><Layers size={14} /></div>
                                             <input 
@@ -488,7 +488,7 @@ export default function ShipmentsPage() {
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tracking ID (Logistics Token)</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Tracking ID (Logistics Token)</label>
                                         <div className="relative">
                                             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"><Zap size={14} /></div>
                                             <input 
@@ -501,7 +501,7 @@ export default function ShipmentsPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Tracking URL</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 ml-1">Tracking URL</label>
                                     <div className="relative">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"><ExternalLink size={14} /></div>
                                         <input 
@@ -512,7 +512,7 @@ export default function ShipmentsPage() {
                                     </div>
                                 </div>
 
-                                <button type="submit" disabled={submitting} className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-4 group">
+                                <button type="submit" disabled={submitting} className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-bold text-xs uppercase tracking-[0.3em] shadow-2xl hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-4 group">
                                     {submitting ? <RefreshCw className="animate-spin" size={20} /> : (
                                         <>
                                             Execute Deployment <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
@@ -533,10 +533,10 @@ export default function ShipmentsPage() {
                         <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-[2.5rem] shadow-2xl relative z-10 w-full max-w-lg flex flex-col overflow-hidden border border-slate-100">
                             <div className="p-10 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
                                 <div>
-                                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
+                                    <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.3em] mb-2 flex items-center gap-2">
                                         <Box size={14} /> Inventory Registry
                                     </p>
-                                    <h2 className="text-2xl font-black text-slate-900 tracking-tighter uppercase">{editingPrasad ? 'Update Node' : 'Initialize Node'}</h2>
+                                    <h2 className="text-2xl font-bold text-slate-900 tracking-tighter uppercase">{editingPrasad ? 'Update Node' : 'Initialize Node'}</h2>
                                 </div>
                                 <button onClick={() => setIsPrasadModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-white text-slate-400 border border-transparent hover:border-slate-200 transition-all shadow-sm">
                                     <X size={20} />
@@ -545,7 +545,7 @@ export default function ShipmentsPage() {
 
                             <form onSubmit={handlePrasadSubmit} className="p-10 space-y-6 bg-white">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Prasadam Name</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Prasadam Name</label>
                                     <input 
                                         required value={prasadForm.name} onChange={(e) => setPrasadForm({...prasadForm, name: e.target.value})}
                                         className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs" 
@@ -554,7 +554,7 @@ export default function ShipmentsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Valuation (Price)</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Valuation (Price)</label>
                                         <input 
                                             type="number" required value={prasadForm.price} onChange={(e) => setPrasadForm({...prasadForm, price: e.target.value})}
                                             className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs" 
@@ -562,7 +562,7 @@ export default function ShipmentsPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Shelf Life (Days)</label>
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Shelf Life (Days)</label>
                                         <input 
                                             type="number" required value={prasadForm.expiry_days} onChange={(e) => setPrasadForm({...prasadForm, expiry_days: e.target.value})}
                                             className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs" 
@@ -571,7 +571,7 @@ export default function ShipmentsPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Protocol Description</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Protocol Description</label>
                                     <textarea 
                                         rows={3} value={prasadForm.description} onChange={(e) => setPrasadForm({...prasadForm, description: e.target.value})}
                                         className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs resize-none" 
@@ -581,13 +581,13 @@ export default function ShipmentsPage() {
                                 <div className="flex items-center gap-3">
                                     <button 
                                         type="button" onClick={() => setPrasadForm({...prasadForm, is_active: !prasadForm.is_active})}
-                                        className={`px-4 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all ${prasadForm.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
+                                        className={`px-4 py-2 rounded-lg text-[8px] font-bold uppercase tracking-widest border transition-all ${prasadForm.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}
                                     >
                                         {prasadForm.is_active ? 'Active' : 'Offline'}
                                     </button>
                                 </div>
 
-                                <button type="submit" disabled={submitting} className="w-full h-14 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-4">
+                                <button type="submit" disabled={submitting} className="w-full h-14 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-4">
                                     {submitting ? <RefreshCw className="animate-spin" size={16} /> : (editingPrasad ? 'Commit Changes' : 'Initialize Protocol')}
                                 </button>
                             </form>

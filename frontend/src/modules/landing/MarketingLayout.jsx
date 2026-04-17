@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronDown, Layers, Menu, X, ArrowRight,
     Shield, Globe, Sparkles, Database, Users, Building2,
-    Lock, BookOpen, BarChart3, Clock, Zap
+    Lock, BookOpen, BarChart3, Clock, Zap, Monitor, Package
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -21,24 +21,25 @@ export default function MarketingLayout({ children }) {
 
     const navItems = [
         {
-            label: 'Products', dropdown: [
-                { title: 'Vazhipadu CMS', path: '/products/vazhipadu', icon: Layers },
-                { title: 'Ritual Analytics', path: '/products/analytics', icon: BarChart3 },
-                { title: 'Panchangam API', path: '/products/panchangam', icon: Globe }
+            label: 'Modules', dropdown: [
+                { title: 'Ritual Automation', path: '/products/vazhipadu', icon: Zap },
+                { title: 'Fiscal Auditing', path: '/products/analytics', icon: BarChart3 },
+                { title: 'Devotee Registry', path: '/products/crm', icon: Users },
+                { title: 'Signage Node', path: '/products/signage', icon: Monitor }
             ]
         },
         {
             label: 'Solutions', dropdown: [
-                { title: 'Temple Management', path: '/solutions/management', icon: Building2 },
-                { title: 'Devotee CRM', path: '/solutions/crm', icon: Users },
-                { title: 'Trust Security', path: '/solutions/security', icon: Lock }
+                { title: 'Inventory Control', path: '/solutions/management', icon: Package },
+                { title: 'Staff Management', path: '/solutions/staff', icon: Clock },
+                { title: 'Secured Auditing', path: '/solutions/security', icon: Lock }
             ]
         },
         { label: 'Pricing', path: '/pricing' },
         {
             label: 'Resources', dropdown: [
                 { title: 'Documentation', path: '/docs', icon: BookOpen },
-                { title: 'Support Center', path: '/support', icon: Clock }
+                { title: 'Help Center', path: '/support', icon: Clock }
             ]
         }
     ];
@@ -125,27 +126,28 @@ export default function MarketingLayout({ children }) {
                             </p>
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 mb-6">Product</h4>
+                            <h4 className="text-sm font-bold text-slate-900 mb-6">Modules</h4>
                             <ul className="space-y-4 text-sm text-slate-500 font-medium">
-                                <li><button onClick={() => navigate('/products/vazhipadu')} className="hover:text-slate-900 transition-colors">Vazhipadu CMS</button></li>
-                                <li><button onClick={() => navigate('/products/analytics')} className="hover:text-slate-900 transition-colors">Analytics</button></li>
-                                <li><button onClick={() => navigate('/products/panchangam')} className="hover:text-slate-900 transition-colors">Panchangam</button></li>
+                                <li><button onClick={() => navigate('/products/vazhipadu')} className="hover:text-slate-900 transition-colors">Ritual CMS</button></li>
+                                <li><button onClick={() => navigate('/products/analytics')} className="hover:text-slate-900 transition-colors">Fiscal Auditing</button></li>
+                                <li><button onClick={() => navigate('/products/panchangam')} className="hover:text-slate-900 transition-colors">Panchangam Node</button></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 mb-6">Company</h4>
-                            <ul className="space-y-4 text-sm text-slate-500 font-medium">
-                                <li><button onClick={() => navigate('/')} className="hover:text-slate-900 transition-colors">About Us</button></li>
-                                <li><button onClick={() => navigate('/solutions/security')} className="hover:text-slate-900 transition-colors">Compliance</button></li>
-                                <li><button onClick={() => navigate('/solutions/management')} className="hover:text-slate-900 transition-colors">Registry</button></li>
+                            <h4 className="text-sm font-bold text-slate-900 mb-6 uppercase tracking-widest text-[10px]">Trust</h4>
+                            <ul className="space-y-4 text-[13px] text-slate-500 font-medium">
+                                <li><button onClick={() => navigate('/solutions/security')} className="hover:text-slate-900 transition-colors">Security Node</button></li>
+                                <li><button onClick={() => navigate('/saas-agreement')} className="hover:text-slate-900 transition-colors">SaaS Agreement</button></li>
+                                <li><button onClick={() => navigate('/partner')} className="hover:text-slate-900 transition-colors">Institutional Partners</button></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-slate-900 mb-6">Legal</h4>
-                            <ul className="space-y-4 text-sm text-slate-500 font-medium">
+                            <h4 className="text-sm font-bold text-slate-900 mb-6 uppercase tracking-widest text-[10px]">Legal</h4>
+                            <ul className="space-y-4 text-[13px] text-slate-500 font-medium">
                                 <li><button onClick={() => navigate('/terms')} className="hover:text-slate-900 transition-colors">Terms of Service</button></li>
                                 <li><button onClick={() => navigate('/privacy')} className="hover:text-slate-900 transition-colors">Privacy Policy</button></li>
-                                <li><button onClick={() => navigate('/partner')} className="hover:text-slate-900 transition-colors">Partner Policy</button></li>
+                                <li><button onClick={() => navigate('/refund-policy')} className="hover:text-slate-900 transition-colors">Refund Policy</button></li>
+                                <li><button onClick={() => navigate('/cookie-policy')} className="hover:text-slate-900 transition-colors">Cookie Policy</button></li>
                             </ul>
                         </div>
                     </div>
