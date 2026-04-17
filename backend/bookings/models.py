@@ -56,7 +56,8 @@ class Booking(models.Model):
     # relations
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="bookings", null=True, blank=True)
     devotee = models.ForeignKey(Devotee, on_delete=models.CASCADE, related_name="bookings")
-    pooja = models.ForeignKey(Pooja, on_delete=models.PROTECT, related_name="bookings")
+    pooja = models.ForeignKey(Pooja, on_delete=models.PROTECT, related_name="bookings", null=True, blank=True)
+    prasadam_item = models.ForeignKey("shipments.PrasadamItem", on_delete=models.PROTECT, related_name="bookings", null=True, blank=True)
     slot = models.ForeignKey(PoojaTimeSlot, on_delete=models.SET_NULL, null=True, blank=True)
 
     booking_date = models.DateField()
@@ -159,6 +160,43 @@ class Booking(models.Model):
             self.qr_payload = self.build_qr_payload()
 
         self.save()
+        self.log_transaction()
+
+    def log_transaction(self):
+        """
+        Sync with the central Finance module.
+        """
+        from finance.models import Transaction
+        
+        # Determine txn type based on status
+        if self.payment_status == self.PAY_SUCCESS:
+            txn_type = Transaction.TYPE_INCOME
+            category = Transaction.CAT_RITUAL
+            title = f"Ritual Fee: {self.pooja.name if self.pooja else (self.prasadam_item.name if self.prasadam_item else 'General Ritual')}"
+            amount = self.amount
+        elif self.payment_status == self.PAY_REFUNDED:
+            txn_type = Transaction.TYPE_EXPENSE
+            category = Transaction.CAT_OTHER
+            title = f"Refund: {self.pooja.name if self.pooja else (self.prasadam_item.name if self.prasadam_item else 'General Ritual')}"
+            amount = self.refund_amount or self.amount
+        else:
+            return # Only log success or refund
+
+        txn_ref = f"BK-{self.receipt_no or self.id}"
+        
+        # Check if already exists to avoid duplicates
+        txn = Transaction.objects.filter(reference=txn_ref, txn_type=txn_type).first()
+        if not txn:
+            Transaction.objects.create(
+                organization=self.organization,
+                txn_type=txn_type,
+                category=category,
+                title=title,
+                amount=amount,
+                date=timezone.now().date(),
+                reference=txn_ref,
+                notes=f"Auto-generated from Booking Protocol #{self.id}. Devotee: {self.devotee.full_name}"
+            )
 
     def __str__(self):
-        return f"{self.devotee.full_name if self.devotee else 'Unknown'} - {self.pooja.name} ({self.booking_date})"
+        return f"{self.devotee.full_name if self.devotee else 'Unknown'} - {self.pooja.name if self.pooja else 'Item'} ({self.booking_date})"

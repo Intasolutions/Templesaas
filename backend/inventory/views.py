@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from django.db.models import Sum, F
-from rest_framework import generics, filters
+from rest_framework import generics, filters, permissions
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from core.permissions import ModulePermission
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet, DateFromToRangeFilter, CharFilter
 
 from core.utils import TenantMixin
@@ -31,7 +32,7 @@ class ItemCategoryListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = ItemCategory
     queryset = ItemCategory.objects.all().order_by("name")
     serializer_class = ItemCategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
@@ -43,17 +44,17 @@ class ItemCategoryDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView)
     model = ItemCategory
     queryset = ItemCategory.objects.all()
     serializer_class = ItemCategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 # ---------------- Item CRUD ----------------
 class ItemListCreateView(TenantMixin, generics.ListCreateAPIView):
-    model = Item
     queryset = Item.objects.select_related("category").all().order_by("-id")
     serializer_class = ItemSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["category", "is_active"]
     search_fields = ["name", "unit", "category__name"]
     ordering_fields = ["id", "name", "current_stock", "reorder_level"]
     ordering = ["-id"]
@@ -63,7 +64,7 @@ class ItemDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Item
     queryset = Item.objects.select_related("category").all()
     serializer_class = ItemSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 # ---------------- Stock Transactions CRUD ----------------
@@ -71,7 +72,7 @@ class StockTxnListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = StockTransaction
     queryset = StockTransaction.objects.select_related("item", "item__category").all().order_by("-id")
     serializer_class = StockTransactionSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = StockTxnFilter
@@ -84,7 +85,7 @@ class StockTxnDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = StockTransaction
     queryset = StockTransaction.objects.select_related("item", "item__category").all()
     serializer_class = StockTransactionSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 # ---------------- Low stock API ----------------
@@ -92,7 +93,7 @@ class LowStockItemsView(TenantMixin, generics.ListAPIView):
     model = Item
     queryset = Item.objects.select_related("category").all()
     serializer_class = ItemSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -102,7 +103,7 @@ class LowStockItemsView(TenantMixin, generics.ListAPIView):
 # ---------------- Stock Summary Report API ----------------
 # GET /api/inventory/report/?start=YYYY-MM-DD&end=YYYY-MM-DD&item=<id>
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, ModulePermission])
 def stock_report(request):
     tenant = getattr(request, "tenant", None)
     
@@ -131,12 +132,24 @@ def stock_report(request):
     if item_id:
         qs = qs.filter(item_id=item_id)
 
-    stock_in = qs.filter(txn_type=StockTransaction.TYPE_IN).aggregate(total=Sum("quantity"))["total"] or 0
-    stock_out = qs.filter(txn_type=StockTransaction.TYPE_OUT).aggregate(total=Sum("quantity"))["total"] or 0
+    from django.db.models import F, Sum, DecimalField, ExpressionWrapper
+    
+    # Calculate monetary value (qty * price)
+    val_qs = qs.annotate(
+        total_val=ExpressionWrapper(F('quantity') * F('unit_price'), output_field=DecimalField())
+    )
+
+    stock_in_qty = qs.filter(txn_type=StockTransaction.TYPE_IN).aggregate(total=Sum("quantity"))["total"] or 0
+    stock_out_qty = qs.filter(txn_type=StockTransaction.TYPE_OUT).aggregate(total=Sum("quantity"))["total"] or 0
+    
+    stock_in_val = val_qs.filter(txn_type=StockTransaction.TYPE_IN).aggregate(total=Sum("total_val"))["total"] or 0
+    stock_out_val = val_qs.filter(txn_type=StockTransaction.TYPE_OUT).aggregate(total=Sum("total_val"))["total"] or 0
 
     return Response({
         "filters": {"start": start, "end": end, "item": item_id},
-        "stock_in_total": str(stock_in),
-        "stock_out_total": str(stock_out),
-        "net_change": str(stock_in - stock_out),
+        "stock_in_total": str(stock_in_qty),
+        "stock_out_total": str(stock_out_qty),
+        "stock_in_value": str(stock_in_val),
+        "stock_out_value": str(stock_out_val),
+        "net_price_change": str(stock_in_val - stock_out_val),
     })

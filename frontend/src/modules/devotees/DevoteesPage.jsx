@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../shared/api/client";
+import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,6 +34,7 @@ function resolveFileUrl(pathOrUrl) {
 
 export default function DevoteesPage() {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const { state, actions } = useDevotees();
 
   useEffect(() => {
@@ -57,15 +59,19 @@ export default function DevoteesPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="h-10 px-4 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 shadow-sm">
-            <DownloadIcon size={14} /> Export CSV
-          </button>
-          <button
-            onClick={actions.onAddClick}
-            className="h-10 px-5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-95"
-          >
-            <Plus size={18} /> Add New Devotee
-          </button>
+          {checkPermission('devotees', 'view') && (
+            <button className="h-10 px-4 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 shadow-sm">
+                <DownloadIcon size={14} /> Export CSV
+            </button>
+          )}
+          {checkPermission('devotees', 'edit') && (
+            <button
+                onClick={actions.onAddClick}
+                className="h-10 px-5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-95"
+            >
+                <Plus size={18} /> Add New Devotee
+            </button>
+          )}
         </div>
       </header>
 
@@ -126,12 +132,14 @@ export default function DevoteesPage() {
                     <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Nakshatra Name</th>
                     <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">System Code</th>
                     <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">
-                       <button 
-                         onClick={actions.onAddMasterClick}
-                         className="h-8 px-3 rounded-lg bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2 float-right shadow-sm"
-                       >
-                         <Plus size={14} /> Add New
-                       </button>
+                       {checkPermission('devotees', 'edit') && (
+                            <button 
+                                onClick={actions.onAddMasterClick}
+                                className="h-8 px-3 rounded-lg bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800 transition-all flex items-center gap-2 float-right shadow-sm"
+                            >
+                                <Plus size={14} /> Add New
+                            </button>
+                       )}
                     </th>
                   </tr>
                 </thead>
@@ -146,12 +154,16 @@ export default function DevoteesPage() {
                           </td>
                           <td className="px-8 py-5 text-right">
                              <div className="flex justify-end items-center gap-2">
-                                <button onClick={() => { actions.setEditingId(item.id); actions.setMasterForm({ name: item.name }); actions.setMasterOpen(true); }} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
-                                   <Edit size={14} />
-                                </button>
-                                <button onClick={() => actions.deleteMaster(item.id)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                                   <Trash2 size={14} />
-                                </button>
+                                {checkPermission('devotees', 'edit') && (
+                                    <button onClick={() => { actions.setEditingId(item.id); actions.setMasterForm({ name: item.name }); actions.setMasterOpen(true); }} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+                                        <Edit size={14} />
+                                    </button>
+                                )}
+                                {checkPermission('devotees', 'delete') && (
+                                    <button onClick={() => actions.deleteMaster(item.id)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                                        <Trash2 size={14} />
+                                    </button>
+                                )}
                              </div>
                           </td>
                        </tr>
@@ -224,15 +236,19 @@ export default function DevoteesPage() {
                        </td>
                        <td className="px-8 py-5 text-right">
                           <div className="flex justify-end items-center gap-1">
-                             <button onClick={() => actions.onEditClick(d)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
-                                <Edit size={14} />
-                             </button>
+                             {checkPermission('devotees', 'edit') && (
+                                <button onClick={() => actions.onEditClick(d)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+                                    <Edit size={14} />
+                                </button>
+                             )}
                              <button onClick={() => actions.openHistory(d)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-[#B8860B] hover:bg-yellow-50 transition-all">
                                 <FileText size={14} />
                              </button>
-                             <button onClick={() => actions.deleteDevotee(d.id)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                                <Trash2 size={14} />
-                             </button>
+                             {checkPermission('devotees', 'delete') && (
+                                <button onClick={() => actions.deleteDevotee(d.id)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                                    <Trash2 size={14} />
+                                </button>
+                             )}
                           </div>
                        </td>
                     </tr>

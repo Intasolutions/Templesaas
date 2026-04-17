@@ -1,16 +1,13 @@
 import csv
 from django.http import HttpResponse, FileResponse
 from rest_framework import generics, filters, status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes as api_permission_classes
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Donation, DonationCategory
-from .serializers import DonationSerializer, DonationCategorySerializer
-from .pdf_utils import generate_donation_receipt_pdf
-
 from core.utils import TenantMixin
+from core.permissions import ModulePermission
 from .models import Donation, DonationCategory
 from .serializers import DonationSerializer, DonationCategorySerializer
 from .pdf_utils import generate_donation_receipt_pdf
@@ -21,7 +18,7 @@ from .pdf_utils import generate_donation_receipt_pdf
 class DonationCategoryListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = DonationCategory
     serializer_class = DonationCategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
@@ -33,7 +30,7 @@ class DonationCategoryDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIV
     model = DonationCategory
     queryset = DonationCategory.objects.all()
     serializer_class = DonationCategorySerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 # ----------------------------
@@ -42,7 +39,7 @@ class DonationCategoryDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIV
 class DonationListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Donation
     serializer_class = DonationSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [
         DjangoFilterBackend,
@@ -100,13 +97,14 @@ class DonationDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Donation
     queryset = Donation.objects.select_related("devotee", "category").all()
     serializer_class = DonationSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 # ----------------------------
 # 3) Create payment order
 # ----------------------------
 @api_view(["POST"])
+@api_permission_classes([IsAuthenticated, ModulePermission])
 def create_donation_order(request, pk):
     try:
         donation = Donation.objects.get(pk=pk)

@@ -85,39 +85,18 @@ export default function TVDisplayPage() {
     const fetchLiveBroadcastData = async () => {
         try {
             setLoading(true);
-            const [bookingsRes, eventsRes] = await Promise.all([
-                api.get('/bookings/', { params: { date: new Date().toISOString().split('T')[0] } }),
-                api.get('/events/', { params: { is_active: true } })
-            ]);
-
-            const bookings = (bookingsRes.data.results || []).map(b => ({
-                id: `B-${b.id}`,
-                title: b.pooja_name || "Daily Ritual",
-                time: b.preferred_time || "Morning",
-                location: "Main Sanctum",
-                type: "LIVE POOJA"
-            }));
+            const eventsRes = await api.get('/events/', { params: { is_active: true } });
 
             const events = (eventsRes.data.results || []).map(e => ({
                 id: `E-${e.id}`,
                 title: e.name,
                 time: e.start_date,
-                location: "Grand Hall",
+                location: e.location || "Temple Complex",
                 type: "FESTIVAL"
             }));
 
-            const combined = [...bookings, ...events];
-            if (combined.length === 0) {
-                setLiveData([{
-                    id: 'default',
-                    title: "Temple Open for Darshan",
-                    time: "Regular Hours",
-                    location: "Sanctum",
-                    type: "ANNOUNCEMENT"
-                }]);
-            } else {
-                setLiveData(combined);
-            }
+            const combined = [...events];
+            setLiveData(combined);
         } catch (error) {
             console.error("TV Feed Error", error);
         } finally {

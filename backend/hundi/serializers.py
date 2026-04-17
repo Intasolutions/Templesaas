@@ -16,15 +16,22 @@ class HundiSessionSerializer(serializers.ModelSerializer):
     collections = HundiCollectionSerializer(many=True, read_only=True)
     
     # Non-model field for inputting denominations
-    denominations = serializers.DictField(child=serializers.IntegerField(), write_only=True, required=False)
+    denominations_input = serializers.DictField(child=serializers.IntegerField(), write_only=True, required=False)
     witness_names = serializers.ListField(child=serializers.CharField(), write_only=True, required=False)
+    
+    # Return formatted denominations for the frontend details view
+    denominations = serializers.SerializerMethodField()
 
     class Meta:
         model = HundiSession
         fields = "__all__"
 
+    def get_denominations(self, obj):
+        # Flatten many-to-one collections into a simple dict for frontend
+        return {str(c.denomination): c.count for c in obj.collections.all()}
+
     def create(self, validated_data):
-        denominations = validated_data.pop("denominations", {})
+        denominations = validated_data.pop("denominations_input", {})
         witness_names = validated_data.pop("witness_names", [])
         
         # Pull witnesses from standard field if witness_names is missing

@@ -160,6 +160,7 @@ class Donation(models.Model):
             Transaction.objects.create(
                 organization=self.organization,
                 txn_type=Transaction.TYPE_INCOME,
+                category=Transaction.CAT_DONATION,
                 title=f"Donation: {self.category.name if self.category else 'General'}",
                 amount=self.amount,
                 date=self.donated_at.date(),

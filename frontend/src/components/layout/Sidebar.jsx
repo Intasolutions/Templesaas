@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation();
-    const { logout, tenant, user } = useAuth();
+    const { logout, tenant, user, checkPermission } = useAuth();
     const { t } = useTranslation();
 
     const SidebarLink = ({ to, icon: Icon, label, active, locked }) => (
@@ -56,19 +56,11 @@ export default function Sidebar({ isOpen, onClose }) {
         </Link>
     );
 
-    const allowedApps = user?.allowed_apps || [];
-    
-    // Core apps that don't need plan checks
-    const isAllowed = (item) => {
-        if (!item.app) return true;
-        return allowedApps.includes(item.app);
-    };
-
     const sections = [
         {
             title: "General",
             items: [
-                { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard', 'Dashboard') },
+                { to: "/dashboard", icon: LayoutDashboard, label: t('dashboard', 'Dashboard'), app: 'dashboard' },
                 { to: "/integrations", icon: Link2, label: t('integrations', 'Integrations'), app: 'integrations' },
                 { to: "/tv-display", icon: Monitor, label: t('tv_display', 'TV Display'), app: 'tv' },
             ]
@@ -76,7 +68,7 @@ export default function Sidebar({ isOpen, onClose }) {
         {
             title: "People",
             items: [
-                { to: "/users", icon: CircleUser, label: t('users', 'Users') },
+                { to: "/users", icon: CircleUser, label: t('users', 'Users'), app: 'users' },
                 { to: "/devotees", icon: Users, label: t('devotees', 'Devotees'), app: 'devotees' },
             ]
         },
@@ -85,6 +77,7 @@ export default function Sidebar({ isOpen, onClose }) {
             items: [
                 { to: "/pooja", icon: Calendar, label: t('pooja_services', 'Pooja Services'), app: 'pooja' },
                 { to: "/bookings", icon: CalendarCheck, label: t('bookings', 'Bookings'), app: 'bookings' },
+                { to: "/donations", icon: Banknote, label: t('donations', 'Donations'), app: 'donations' },
                 { to: "/events", icon: IndianRupee, label: t('events', 'Events'), app: 'events' },
                 { to: "/hundi", icon: Banknote, label: t('hundi', 'Hundi'), app: 'hundi' },
                 { to: "/inventory", icon: Package, label: t('inventory', 'Inventory'), app: 'inventory' },
@@ -157,7 +150,7 @@ export default function Sidebar({ isOpen, onClose }) {
                                     icon={item.icon}
                                     label={item.label}
                                     active={location.pathname === item.to}
-                                    locked={!isAllowed(item)}
+                                    locked={item.app ? !checkPermission(item.app, 'view') : false}
                                 />
                             ))}
                         </div>

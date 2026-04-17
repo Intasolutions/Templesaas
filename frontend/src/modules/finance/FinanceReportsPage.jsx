@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../../shared/api/client';
+import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -44,6 +45,7 @@ import {
 
 export default function FinanceReportsPage() {
     const { t } = useTranslation();
+    const { checkPermission } = useAuth();
     const [dateRange, setDateRange] = useState('This Month');
     const [chartView, setChartView] = useState('bar');
     const [data, setData] = useState(null);
@@ -65,8 +67,27 @@ export default function FinanceReportsPage() {
             }
         };
 
-        fetchFinanceData();
-    }, [dateRange]);
+        if (checkPermission('finance', 'view')) {
+            fetchFinanceData();
+        } else {
+            setLoading(false);
+        }
+    }, [dateRange, checkPermission]);
+
+    if (!checkPermission('finance', 'view')) {
+        return (
+            <div className="h-[70vh] flex flex-col items-center justify-center space-y-6 text-center px-4">
+                <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2">
+                    <Lock size={40} />
+                </div>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight uppercase">Access Restricted</h1>
+                <p className="max-w-md text-sm font-medium text-slate-500 mt-2 leading-relaxed">
+                    You do not have the necessary privileges to view financial reports. 
+                    Please contact your temple administrator for access.
+                </p>
+            </div>
+        );
+    }
 
     if (loading) {
         return (

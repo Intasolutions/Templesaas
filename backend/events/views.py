@@ -1,32 +1,31 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import ModulePermission
 from .models import Event
 from .serializers import EventSerializer
 from django.http import FileResponse
 from .utils import generate_event_pass_pdf
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from bookings.models import Booking
-
 from core.utils import TenantMixin
-from .models import Event
-from .serializers import EventSerializer
 
 class EventListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Event
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 class EventDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Event
     queryset = Event.objects.all()
     serializer_class = EventSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated, ModulePermission])
 def event_pass_pdf(request, event_id, booking_id):
     """
     Standalone endpoint to get a pass for a specific booking for an event.
@@ -46,6 +45,7 @@ def event_pass_pdf(request, event_id, booking_id):
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated, ModulePermission])
 def event_sample_pass_pdf(request, event_id):
     """
     Generates a SAMPLE pass for the event to preview the design.

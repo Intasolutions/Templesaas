@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 export default function Pagination({ currentPage, totalPages, onPageChange, count, pageSize }) {
     const { t } = useTranslation();
     
-    if (totalPages <= 1 && currentPage === 1) return null;
+    if (count === 0) return null;
 
     return (
         <div className="p-6 border-t border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-b-[2rem]">

@@ -93,8 +93,23 @@ export const AuthProvider = ({ children }) => {
         if (data.brand_color) updateTheme(data.brand_color);
     };
 
+    const checkPermission = (moduleId, action = 'view') => {
+        if (!user) return false;
+        
+        // 1. Temple Admin or "all" permission always allowed
+        if (user.role === 'temple_admin' || user.module_permissions?.all) return true;
+        
+        // 2. Check Plan allowed apps
+        const allowedApps = user.allowed_apps || [];
+        if (!allowedApps.includes(moduleId)) return false;
+
+        // 3. Check User specific permission (view/edit/delete)
+        const userPerms = user.module_permissions?.[moduleId] || [];
+        return userPerms.includes(action);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, tenant, loading, login, logout, setTenantData, updateTheme, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, tenant, loading, login, logout, setTenantData, updateTheme, checkPermission, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

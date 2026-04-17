@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../../shared/api/client';
 import {
@@ -23,6 +24,7 @@ import {
 
 const EventsPage = () => {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,12 +149,14 @@ const EventsPage = () => {
               placeholder="Audit Registry..."
             />
           </div>
-          <button
-            onClick={() => { setEditingEvent(null); setForm({ name: "", description: "", start_date: "", end_date: "", location: "", enable_digital_passes: false, pass_price: "0", max_capacity: "0" }); setIsAddOpen(true); }}
-            className="h-11 px-6 bg-slate-900 text-white rounded-xl font-bold text-[9px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
-          >
-            <Plus size={16} /> Schedule Event
-          </button>
+          {checkPermission('events', 'edit') && (
+            <button
+                onClick={() => { setEditingEvent(null); setForm({ name: "", description: "", start_date: "", end_date: "", location: "", enable_digital_passes: false, pass_price: "0", max_capacity: "0" }); setIsAddOpen(true); }}
+                className="h-11 px-6 bg-slate-900 text-white rounded-xl font-bold text-[9px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
+            >
+                <Plus size={16} /> Schedule Event
+            </button>
+          )}
         </div>
       </header>
 
@@ -179,6 +183,8 @@ const EventsPage = () => {
               event={evt} 
               onEdit={() => openEdit(evt)} 
               onDelete={() => handleDelete(evt.id)} 
+              canEdit={checkPermission('events', 'edit')}
+              canDelete={checkPermission('events', 'delete')}
             />
           ))}
         </motion.div>
@@ -314,7 +320,7 @@ const EventsPage = () => {
   );
 };
 
-function EventCard({ event, onEdit, onDelete }) {
+function EventCard({ event, onEdit, onDelete, canEdit, canDelete }) {
   const now = new Date();
   const start = new Date(event.start_date);
   const end = new Date(event.end_date);
@@ -342,12 +348,16 @@ function EventCard({ event, onEdit, onDelete }) {
             <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{config.label}</span>
          </div>
          <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-3 group-hover:translate-x-0">
-            <button onClick={onEdit} className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center shadow-lg shadow-slate-900/20 active:scale-90 transition-all">
-               <Zap size={12} />
-            </button>
-            <button onClick={onDelete} className="h-8 w-8 bg-white border border-slate-100 text-slate-300 hover:text-red-500 hover:border-red-100 rounded-lg flex items-center justify-center active:scale-90 transition-all">
-               <X size={14} />
-            </button>
+            {canEdit && (
+                <button onClick={onEdit} className="h-8 w-8 bg-slate-900 text-white rounded-lg flex items-center justify-center shadow-lg shadow-slate-900/20 active:scale-90 transition-all">
+                    <Zap size={12} />
+                </button>
+            )}
+            {canDelete && (
+                <button onClick={onDelete} className="h-8 w-8 bg-white border border-slate-100 text-slate-300 hover:text-red-500 hover:border-red-100 rounded-lg flex items-center justify-center active:scale-90 transition-all">
+                    <X size={14} />
+                </button>
+            )}
          </div>
       </div>
 

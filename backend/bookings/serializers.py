@@ -3,18 +3,51 @@ from .models import Booking
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    # Devotee details (for UI + print)
-    devotee_name = serializers.CharField(source="devotee.full_name", read_only=True)
-    devotee_phone = serializers.CharField(source="devotee.phone", read_only=True)
-    devotee_gothra = serializers.CharField(source="devotee.gothra.name", read_only=True)
-    devotee_nakshatra = serializers.CharField(source="devotee.nakshatra.name", read_only=True)
+    # Devotee details (for UI + print) - Bulletproof
+    devotee_name = serializers.SerializerMethodField()
+    devotee_phone = serializers.SerializerMethodField()
+    devotee_gothra = serializers.SerializerMethodField()
+    devotee_nakshatra = serializers.SerializerMethodField()
 
-    # Pooja details
-    pooja_name = serializers.CharField(source="pooja.name", read_only=True)
+    def get_devotee_name(self, obj):
+        return obj.devotee.full_name if obj.devotee else "Anonymous"
 
-    # Slot details (if used)
-    slot_time = serializers.TimeField(source="slot.start_time", read_only=True)
-    priest_name = serializers.CharField(source="slot.priest.username", read_only=True)
+    def get_devotee_phone(self, obj):
+        return obj.devotee.phone if obj.devotee else ""
+
+    def get_devotee_gothra(self, obj):
+        if obj.devotee and obj.devotee.gothra:
+            return obj.devotee.gothra.name
+        return ""
+
+    def get_devotee_nakshatra(self, obj):
+        if obj.devotee and obj.devotee.nakshatra:
+            return obj.devotee.nakshatra.name
+        return ""
+
+    # Pooja details - Bulletproof
+    pooja_name = serializers.SerializerMethodField()
+    prasadam_item_name = serializers.SerializerMethodField()
+
+    def get_pooja_name(self, obj):
+        return obj.pooja.name if obj.pooja else None
+
+    def get_prasadam_item_name(self, obj):
+        return obj.prasadam_item.name if obj.prasadam_item else None
+
+    # Slot details (if used) - Bulletproof
+    slot_time = serializers.SerializerMethodField()
+    priest_name = serializers.SerializerMethodField()
+
+    def get_slot_time(self, obj):
+        if obj.slot and obj.slot.start_time:
+            return obj.slot.start_time.strftime("%H:%M")
+        return None
+
+    def get_priest_name(self, obj):
+        if obj.slot and obj.slot.priest:
+            return obj.slot.priest.username
+        return None
 
     class Meta:
         model = Booking
@@ -67,3 +100,22 @@ class BookingSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"slot": "This time slot is fully booked."})
 
         return attrs
+    def create(self, validated_data):
+        shipping_details = self.initial_data.get("shipping_details")
+        booking = super().create(validated_data)
+        
+        if shipping_details:
+            try:
+                from shipments.models import PrasadShipment
+                PrasadShipment.objects.create(
+                    organization=booking.organization,
+                    booking=booking,
+                    recipient_name=shipping_details.get("recipient_name"),
+                    shipping_address=shipping_details.get("shipping_address"),
+                    contact_number=shipping_details.get("contact_number")
+                )
+            except Exception as e:
+                # Log error but don't fail booking
+                print(f"Failed to create shipment: {e}")
+                
+        return booking

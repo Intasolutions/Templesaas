@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../shared/api/client";
+import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,6 +29,7 @@ import Pagination from "../../components/common/Pagination";
 
 const BookingsPage = () => {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const [view, setView] = useState("calendar");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState([]);
@@ -42,14 +44,17 @@ const BookingsPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [page, currentDate]);
+  }, [page, currentDate, view]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // For calendar view, we might need a wider range, but for now we follow page
+      const fetchParams = view === 'calendar' 
+        ? { page: 1, page_size: 1000 } 
+        : { page, page_size: pageSize };
+
       const [bookingsRes, eventsRes] = await Promise.all([
-        api.get("/bookings/", { params: { page, page_size: pageSize } }),
+        api.get("/bookings/", { params: fetchParams }),
         api.get("/events/", { params: { is_active: true } })
       ]);
       const bData = bookingsRes.data;
@@ -192,21 +197,22 @@ const BookingsPage = () => {
                     <div className={`text-[10px] font-black mb-4 transition-colors ${isToday ? 'text-slate-900' : 'text-slate-200 group-hover:text-slate-400'}`}>
                       {day.toString().padStart(2, '0')}
                     </div>
+                    {/* Event/Booking Dots */}
+                    <div className="absolute top-3 right-3 flex items-center gap-1 pointer-events-none">
+                      {dayEvents.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" title="Event" />}
+                      {dayBookings.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-[#B8860B] shadow-sm" title="Booking" />}
+                    </div>
 
-                    <div className="flex flex-col gap-1.5 overflow-hidden">
-                      {dayEvents.map(e => (
-                        <div key={e.id} className="px-2 py-1 rounded-lg bg-slate-900 text-white text-[8px] font-black uppercase tracking-[0.1em] truncate shadow-sm">
-                          {e.name}
+                    {/* Booking Labels */}
+                    <div className="mt-7 space-y-1 pointer-events-none overflow-hidden h-[calc(100%-1.75rem)] px-1">
+                      {dayBookings.slice(0, 4).map(b => (
+                        <div key={b.id} className="px-2 py-1 rounded-md border border-slate-100 bg-slate-50/90 text-slate-800 text-[8.5px] font-black uppercase tracking-tight truncate shadow-sm">
+                          {b.slot_time ? `[${b.slot_time}] ` : ''}{b.pooja_name || b.prasadam_item_name || 'Ritual'}
                         </div>
                       ))}
-                      {dayBookings.slice(0, 3).map(b => (
-                        <div key={b.id} className="px-2 py-1 rounded-lg border border-slate-100 bg-slate-50 text-slate-500 text-[8px] font-black uppercase tracking-[0.05em] truncate">
-                          {b.pooja_name || 'Ritual'}
-                        </div>
-                      ))}
-                      {dayBookings.length > 3 && (
-                        <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest pl-1">
-                          + {dayBookings.length - 3} More
+                      {dayBookings.length > 4 && (
+                        <div className="text-[7.5px] font-black text-[#B8860B] uppercase tracking-widest pl-1">
+                          + {dayBookings.length - 4} MORE SERVICES
                         </div>
                       )}
                     </div>
@@ -247,14 +253,17 @@ const BookingsPage = () => {
                       <Layers size={16} />
                    </div>
                 </td>
-                <td className="px-6 py-5">
-                  <div className="text-sm font-bold text-slate-900">{b.devotee_name || b.devotee?.full_name || '—'}</div>
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{b.devotee_phone || b.devotee?.phone || '—'}</div>
-                </td>
-                <td className="px-6 py-5">
-                   <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">{b.pooja_name || b.pooja?.name || '—'}</span>
-                   <div className="text-[9px] font-black text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
-                </td>
+                 <td className="px-6 py-5">
+                   <div className="text-sm font-bold text-slate-900">{b.devotee_name || b.devotee?.full_name || '—'}</div>
+                   <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{b.devotee_phone || b.devotee?.phone || '—'}</div>
+                 </td>
+                 <td className="px-6 py-5">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                        {b.slot_time ? `${b.slot_time.slice(0, 5)} - ` : ''}
+                        {b.pooja_name || b.prasadam_item_name || '—'}
+                    </span>
+                    <div className="text-[9px] font-black text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
+                 </td>
                 <td className="px-6 py-5 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                   {new Date(b.booking_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </td>
@@ -271,7 +280,7 @@ const BookingsPage = () => {
                     >
                        <Download size={14} />
                     </button>
-                    {b.status !== 'cancelled' && (
+                    {b.status !== 'cancelled' && checkPermission('bookings', 'edit') && (
                       <button 
                         onClick={() => cancelBooking(b.id)}
                         className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all"
@@ -337,12 +346,14 @@ const BookingsPage = () => {
             </button>
           </div>
 
-          <button
-            onClick={() => window.location.href = '/pooja/book'}
-            className="h-12 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
-          >
-            <Plus size={18} /> New Authorization
-          </button>
+          {checkPermission('bookings', 'edit') && (
+            <button
+                onClick={() => window.location.href = '/pooja/book'}
+                className="h-12 px-8 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all active:scale-95"
+            >
+                <Plus size={18} /> New Authorization
+            </button>
+          )}
         </div>
       </header>
 
@@ -427,7 +438,10 @@ const BookingsPage = () => {
                                <span className="text-[8px] font-black mt-1 uppercase">Live</span>
                            </div>
                            <div className="flex-1 overflow-hidden">
-                              <h5 className="font-bold text-slate-900 text-sm tracking-tight truncate uppercase">{b.pooja_name || 'Ritual Service'}</h5>
+                              <h5 className="font-bold text-slate-900 text-sm tracking-tight truncate uppercase">
+                                {b.slot_time ? `[${b.slot_time.slice(0, 5)}] ` : ''}
+                                {b.pooja_name || b.prasadam_item_name || 'Ritual Service'}
+                              </h5>
                               <p className="text-[10px] font-black text-slate-400 mt-1 uppercase tracking-widest truncate">{b.devotee_name || 'Anonymous'}</p>
                            </div>
                            <div className="text-right">
@@ -444,9 +458,11 @@ const BookingsPage = () => {
               </div>
               
               <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-white via-white to-transparent">
-                 <button onClick={() => window.location.href='/pooja/book'} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/40">
-                    Add Observation
-                 </button>
+                 {checkPermission('bookings', 'edit') && (
+                    <button onClick={() => window.location.href='/pooja/book'} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/40">
+                        Add Observation
+                    </button>
+                 )}
               </div>
             </motion.div>
           </div>

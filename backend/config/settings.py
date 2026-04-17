@@ -198,6 +198,7 @@ REST_FRAMEWORK = {
     # Default = require login
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
+        "core.permissions.ModulePermission",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
@@ -206,6 +207,8 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "PAGE_SIZE_QUERY_PARAM": "page_size",
+    "MAX_PAGE_SIZE": 1000,
 
     # ── Phase 4: Throttling ──────────────────────────────────────────────
     # Anon: 5 login attempts per minute (brute-force protection)

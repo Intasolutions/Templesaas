@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import api from "../../shared/api/client";
+import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -31,6 +32,7 @@ const fmtINR = (n) =>
 
 const HundiPage = () => {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const denoms = useMemo(() => [500, 200, 100, 50, 20, 10, 5, 2, 1], []);
   const [counts, setCounts] = useState({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 });
 
@@ -40,12 +42,21 @@ const HundiPage = () => {
 
   const [sessionName, setSessionName] = useState(`COLLECTION_${new Date().getDate()}${new Date().getMonth()+1}_${new Date().getTime().toString().slice(-4)}`);
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedSession, setSelectedSession] = useState(null);
 
   const [submitLoading, setSubmitLoading] = useState(false);
   const [errorMSG, setErrorMSG] = useState("");
   const [tab, setTab] = useState("audit"); // audit | history
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  
+  // Date Range Stats
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
   const total = useMemo(() => {
     return denoms.reduce((sum, d) => sum + d * (Number(counts[d]) || 0), 0);
@@ -57,12 +68,14 @@ const HundiPage = () => {
 
   useEffect(() => {
     if (tab === "history") fetchSessions();
-  }, [tab]);
+  }, [tab, startDate, endDate]);
 
   const fetchSessions = async () => {
     setSessionsLoading(true);
     try {
-      const res = await api.get("/hundi/sessions/");
+      const res = await api.get("/hundi/sessions/", {
+        params: { start_date: startDate, end_date: endDate }
+      });
       setSessions(res.data.results || res.data || []);
     } catch (e) {
       console.error(e);
@@ -91,7 +104,7 @@ const HundiPage = () => {
         name: sessionName,
         opening_date: sessionDate,
         status: "closed",
-        denominations: counts,
+        denominations_input: counts,
         total_amount: total,
         witness_names: witnesses,
       });
@@ -205,12 +218,14 @@ const HundiPage = () => {
               </div>
            )}
 
-           <button
-             onClick={submitSession} disabled={submitLoading}
-             className="w-full h-14 bg-white text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-slate-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
-           >
-             {submitLoading ? <RefreshCw className="animate-spin" size={16} /> : <>Save Collection <ArrowRight size={16} /></>}
-           </button>
+           {checkPermission('hundi', 'edit') && (
+            <button
+                onClick={submitSession} disabled={submitLoading}
+                className="w-full h-14 bg-white text-slate-900 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl hover:bg-slate-100 transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
+            >
+                {submitLoading ? <RefreshCw className="animate-spin" size={16} /> : <>Save Collection <ArrowRight size={16} /></>}
+            </button>
+           )}
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
@@ -219,9 +234,11 @@ const HundiPage = () => {
                 <Users size={16} className="text-[#B8860B]" />
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Authorized Witnesses</h4>
               </div>
-              <button onClick={() => setWitnessModalOpen(true)} className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all">
-                <Plus size={16} />
-              </button>
+              {checkPermission('hundi', 'edit') && (
+                <button onClick={() => setWitnessModalOpen(true)} className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all">
+                    <Plus size={16} />
+                </button>
+              )}
            </div>
            
            <div className="space-y-2">
@@ -231,9 +248,11 @@ const HundiPage = () => {
                 witnesses.map(w => (
                   <div key={w} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-xl border border-slate-100 group">
                      <span className="text-xs font-bold text-slate-700">{w}</span>
-                     <button onClick={() => setWitnesses(prev => prev.filter(x => x !== w))} className="text-slate-300 hover:text-red-500 transition-colors">
-                        <X size={14} />
-                     </button>
+                     {checkPermission('hundi', 'edit') && (
+                        <button onClick={() => setWitnesses(prev => prev.filter(x => x !== w))} className="text-slate-300 hover:text-red-500 transition-colors">
+                            <X size={14} />
+                        </button>
+                     )}
                   </div>
                 ))
               )}
@@ -243,21 +262,51 @@ const HundiPage = () => {
     </div>
   );
 
-  const renderHistory = () => (
-    <motion.div 
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]"
-    >
-      <div className="overflow-x-auto text-[13px]">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
-              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-wider">Reference Name</th>
-              <th className="px-6 py-5 text-[11px] font-bold uppercase tracking-wider">Total Remittance</th>
-              <th className="px-6 py-5 text-[11px] font-bold uppercase tracking-wider">Witnesses</th>
-              <th className="px-8 py-5 text-[11px] font-bold uppercase tracking-wider text-right">Date & Time</th>
-            </tr>
-          </thead>
+  const renderHistory = () => {
+    const stats = {
+      total: sessions.reduce((acc, s) => acc + Number(s.total_amount || 0), 0),
+      count: sessions.length,
+      avg: sessions.length > 0 ? (sessions.reduce((acc, s) => acc + Number(s.total_amount || 0), 0) / sessions.length) : 0
+    };
+
+    return (
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard label="Total Collections" val={fmtINR(stats.total)} icon={IndianRupee} color="text-emerald-600" />
+          <StatCard label="Sessions Logged" val={stats.count} icon={Layers} color="text-blue-600" />
+          <StatCard label="Avg. Remittance" val={fmtINR(stats.avg)} icon={Zap} color="text-amber-600" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]"
+        >
+          <div className="px-8 py-5 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/20">
+              <div className="flex items-center gap-2">
+                 <Calendar size={16} className="text-slate-400" />
+                 <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Filter Range:</span>
+                 <div className="flex items-center gap-2">
+                    <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-[#B8860B] outline-none transition-all shadow-sm" />
+                    <span className="text-slate-300">to</span>
+                    <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="h-8 px-3 rounded-lg border border-slate-200 text-[11px] font-bold text-slate-700 focus:border-[#B8860B] outline-none transition-all shadow-sm" />
+                 </div>
+              </div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                 <ListFilter size={12} /> Showing {sessions.length} sessions
+              </div>
+          </div>
+
+          <div className="overflow-x-auto text-[13px]">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100 uppercase tracking-[0.1em]">
+                  <th className="px-8 py-5 text-[10px] font-bold">Reference Name</th>
+                  <th className="px-6 py-5 text-[10px] font-bold">Total Amount</th>
+                  <th className="px-6 py-5 text-[10px] font-bold">Witnesses</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-right">Date</th>
+                  <th className="px-8 py-5 text-[10px] font-bold text-right">Details</th>
+                </tr>
+              </thead>
           <tbody className="divide-y divide-slate-50">
             {sessionsLoading ? (
                <tr><td colSpan="4" className="py-20 text-center animate-pulse text-[11px] font-bold text-slate-300 uppercase tracking-widest">Loading collection logs...</td></tr>
@@ -282,16 +331,26 @@ const HundiPage = () => {
                      {s.witnesses?.length > 2 && <span className="text-[10px] font-bold text-slate-300">+{s.witnesses.length - 2} more</span>}
                    </div>
                 </td>
-                <td className="px-8 py-5 text-right text-[11px] font-bold text-slate-400">
-                   {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} • {new Date(s.created_at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
+                <td className="px-6 py-5 text-right text-[11px] font-bold text-slate-400 whitespace-nowrap">
+                   {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                </td>
+                <td className="px-8 py-5 text-right">
+                   <button 
+                    onClick={() => setSelectedSession(s)}
+                    className="h-8 w-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all active:scale-90"
+                   >
+                     <ChevronRight size={14} />
+                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </motion.div>
-  );
+        </motion.div>
+      </div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
@@ -314,9 +373,19 @@ const HundiPage = () => {
         </div>
       </header>
 
-      <AnimatePresence mode="wait">
-        {tab === "audit" ? renderAudit() : renderHistory()}
-      </AnimatePresence>
+      {checkPermission('hundi', 'view') ? (
+        <AnimatePresence mode="wait">
+          {tab === "audit" ? renderAudit() : renderHistory()}
+        </AnimatePresence>
+      ) : (
+        <div className="py-20 text-center bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div className="h-16 w-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mx-auto mb-4">
+                <Lock size={32} />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Access Restricted</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">You do not have permission to view Hundi records.</p>
+        </div>
+      )}
 
       <AnimatePresence>
         {witnessModalOpen && (
@@ -360,6 +429,83 @@ const HundiPage = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedSession && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+              onClick={() => setSelectedSession(null)}
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-slate-100"
+            >
+              <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
+                 <div>
+                    <p className="text-[10px] font-bold text-[#B8860B] uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                       <ShieldCheck size={14} /> Audit Trace Verified
+                    </p>
+                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">{selectedSession.name || "Hundi Remittance"}</h2>
+                    <p className="text-[11px] font-medium text-slate-400 mt-1">Ref ID: {selectedSession.id} • {new Date(selectedSession.created_at).toLocaleString()}</p>
+                 </div>
+                 <button onClick={() => setSelectedSession(null)} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-white text-slate-400 border border-transparent hover:border-slate-200 transition-all shadow-sm hover:shadow-md">
+                   <X size={20} />
+                 </button>
+              </div>
+
+              <div className="p-10 space-y-8">
+                 <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Denomination Breakdown</p>
+                    <div className="divide-y divide-slate-50">
+                       {denoms.map(d => {
+                          const count = selectedSession.denominations?.[d] || 0;
+                          if (count === 0) return null;
+                          return (
+                             <div key={d} className="py-3 flex justify-between items-center group">
+                                <div className="flex items-center gap-4">
+                                   <div className="w-16 text-xs font-bold text-slate-400 uppercase group-hover:text-slate-900 transition-colors tracking-widest">₹ {d}</div>
+                                   <div className="text-slate-300 group-hover:text-[#B8860B] transition-colors">×</div>
+                                   <div className="text-sm font-bold text-slate-900">{count}</div>
+                                </div>
+                                <div className="font-bold text-slate-900 tracking-tight text-sm">{fmtINR(d * count)}</div>
+                             </div>
+                          )
+                       })}
+                    </div>
+                 </div>
+
+                 <div className="p-6 bg-slate-900 rounded-2xl text-white flex justify-between items-center shadow-lg shadow-slate-900/10">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Grand Total</span>
+                    <span className="text-2xl font-bold">{fmtINR(selectedSession.total_amount)}</span>
+                 </div>
+
+                 <div className="space-y-4">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                       <Users size={12} /> Signatory Witnesses
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                       {selectedSession.witnesses?.map((w, idx) => (
+                          <div key={idx} className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[11px] font-bold text-slate-600 uppercase tracking-tight flex items-center gap-2">
+                             <div className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-500/50" /> {w.name || w}
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+
+              <div className="px-8 py-6 bg-slate-50/50 border-t border-slate-100 text-center">
+                 <button onClick={() => setSelectedSession(null)} className="px-8 h-11 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
+                    Close Auditor
+                 </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -373,6 +519,21 @@ const TabButton = ({ active, onClick, label, icon: Icon }) => (
     >
         <Icon size={14} /> {label}
     </button>
+);
+
+const StatCard = ({ label, val, icon: Icon, color }) => (
+  <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+    <div className="flex justify-between items-start mb-4">
+      <div className="h-10 w-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
+        <Icon size={20} />
+      </div>
+      <div className="h-5 w-5 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+        <ChevronRight size={12} className="-rotate-45" />
+      </div>
+    </div>
+    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+    <p className={`text-2xl font-bold mt-1 ${color}`}>{val}</p>
+  </div>
 );
 
 export default HundiPage;

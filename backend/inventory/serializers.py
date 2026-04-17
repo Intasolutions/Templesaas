@@ -20,7 +20,6 @@ class ItemSerializer(serializers.ModelSerializer):
         model = Item
         fields = "__all__"
         read_only_fields = [
-            "current_stock",   # stock must change only via StockTransaction
             "created_at",
             "organization",
         ]
@@ -33,7 +32,7 @@ class StockTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StockTransaction
-        fields = "__all__"
+        fields = ["id", "item", "item_name", "item_unit", "item_category", "txn_type", "quantity", "unit_price", "note", "created_at"]
         read_only_fields = [
             "created_at",
             "organization",

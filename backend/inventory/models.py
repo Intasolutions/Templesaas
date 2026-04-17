@@ -96,7 +96,7 @@ class StockTransaction(models.Model):
     item = models.ForeignKey(Item, on_delete=models.PROTECT, related_name="transactions")
     txn_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     quantity = models.DecimalField(max_digits=12, decimal_places=2)
-
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0) # For cost tracking
     note = models.CharField(max_length=255, blank=True)
 
     # Optional references
@@ -216,6 +216,7 @@ class Purchase(models.Model):
                 Transaction.objects.create(
                     organization=self.organization,
                     txn_type=Transaction.TYPE_EXPENSE,
+                    category=Transaction.CAT_PURCHASE,
                     title=f"Purchase: {self.vendor.name}",
                     amount=self.total_amount,
                     date=self.invoice_date,

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Info, ArrowLeft, Calendar as CalendarIcon, Clock, CheckCircle2, 
-    ChevronRight, User, ArrowRight, Sparkles, ShieldCheck, Zap, Database
+    ChevronRight, User, ArrowRight, Sparkles, ShieldCheck, Zap, Database, Box
 } from 'lucide-react';
 
 const PoojaBookingPage = () => {
@@ -19,27 +19,35 @@ const PoojaBookingPage = () => {
         phone: '',
         nakshatra: '',
         date: '',
-        poojaType: poojaId || ''
+        poojaType: poojaId || '',
+        includeShipping: false,
+        shippingName: '',
+        shippingAddress: '',
+        shippingPhone: ''
     });
 
     const [poojas, setPoojas] = useState([]);
+    const [prasads, setPrasads] = useState([]);
     const [nakshatras, setNakshatras] = useState([]);
     const [slots, setSlots] = useState([]);
     const [panchangData, setPanchangData] = useState(null);
     const [loadingPanchang, setLoadingPanchang] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [authMode, setAuthMode] = useState(null); // 'ritual' or 'prasadam'
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             try {
-                const [poojaRes, nakRes] = await Promise.all([
+                const [poojaRes, nakRes, prasadRes] = await Promise.all([
                     api.get('/pooja/'),
-                    api.get('/devotees/nakshatra/')
+                    api.get('/devotees/nakshatra/'),
+                    api.get('/shipping/prasadam-items/')
                 ]);
                 setPoojas(poojaRes.data.results || poojaRes.data || []);
                 setNakshatras(nakRes.data.results || nakRes.data || []);
+                setPrasads(prasadRes.data.results || prasadRes.data || []);
             } catch (err) {
                 console.error('Failed to load data:', err);
                 setError(t('failed_load_form_data', 'Failed to load form data.'));
@@ -61,7 +69,7 @@ const PoojaBookingPage = () => {
     }, [formData.date]);
 
     useEffect(() => {
-        if (formData.poojaType) {
+        if (formData.poojaType && authMode === 'ritual') {
             const selectedPooja = poojas.find(p => p.id === parseInt(formData.poojaType));
             if (selectedPooja && selectedPooja.time_slots) {
                 setSlots(selectedPooja.time_slots);
@@ -74,7 +82,7 @@ const PoojaBookingPage = () => {
         } else {
             setSlots([]);
         }
-    }, [formData.poojaType, poojas]);
+    }, [formData.poojaType, poojas, authMode]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -103,15 +111,27 @@ const PoojaBookingPage = () => {
                 devoteeId = devoteeRes.data.id;
             }
 
-            const bookingRes = await api.post('/bookings/', {
+            const payload = {
                 devotee: devoteeId,
-                pooja: formData.poojaType,
-                booking_date: formData.date,
-                slot: formData.slotId || null,
+                booking_date: formData.date || new Date().toISOString().split('T')[0],
                 status: 'confirmed',
                 payment_status: 'pending',
-                source: 'offline'
-            });
+                source: authMode === 'prasadam' ? 'online' : 'offline',
+                shipping_details: formData.includeShipping ? {
+                    recipient_name: formData.shippingName || formData.devoteeName,
+                    shipping_address: formData.shippingAddress,
+                    contact_number: formData.shippingPhone || formData.phone
+                } : null
+            };
+
+            if (authMode === 'prasadam') {
+                payload.prasadam_item = formData.poojaType;
+            } else {
+                payload.pooja = formData.poojaType;
+                payload.slot = formData.slotId || null;
+            }
+
+            const bookingRes = await api.post('/bookings/', payload);
 
             setSuccess(`Booking initialized for ID: ${bookingRes.data.id}`);
             setTimeout(() => navigate('/bookings'), 2000);
@@ -122,20 +142,63 @@ const PoojaBookingPage = () => {
         }
     };
 
+    if (!authMode) {
+        return (
+            <div className="max-w-4xl mx-auto space-y-12 py-12 px-4 text-center">
+                <header className="space-y-4 mb-16">
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none">Security Authorization</h1>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Select Service Protocol to Proceed</p>
+                </header>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <SelectionCard 
+                        title="Ritual Booking" 
+                        desc="Authorized schedule for Poojas, Vazhipadu & Custom Rituals" 
+                        icon={<Sparkles size={32} />} 
+                        onClick={() => {
+                            setAuthMode('ritual');
+                            setFormData({...formData, poojaType: '', includeShipping: false});
+                        }} 
+                        color="slate"
+                    />
+                    <SelectionCard 
+                        title="Prasadam Booking" 
+                        desc="E-Prasad distribution protocol with integrated logistics" 
+                        icon={<Box size={32} />} 
+                        onClick={() => {
+                            setAuthMode('prasadam');
+                            setFormData({...formData, poojaType: '', includeShipping: true});
+                        }} 
+                        color="indigo"
+                    />
+                </div>
+                
+                <div className="flex justify-center pt-12">
+                   <button onClick={() => navigate('/bookings')} className="text-[10px] font-black text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3 transition-all group">
+                       <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Protocol Exit • Return to Registry
+                   </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-4xl mx-auto pb-20">
             {/* High-Fidelity Header */}
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 px-4 md:px-0">
                 <div>
-                   <button onClick={() => navigate('/pooja')} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all mb-4 group">
+                   <button onClick={() => setAuthMode(null)} className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 transition-all mb-4 group">
                        <div className="h-7 w-7 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-slate-900 group-hover:text-white transition-all">
                            <ArrowLeft size={12} />
                        </div>
                        Protocol Exit
                    </button>
-                   <h1 className="text-3xl font-bold text-slate-900 tracking-tight uppercase">Ritual Portal</h1>
+                   <h1 className="text-3xl font-bold text-slate-900 tracking-tight uppercase">
+                       {authMode === 'ritual' ? 'Ritual Portal' : 'Logistics Portal'}
+                   </h1>
                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-2 flex items-center gap-2">
-                       <Zap size={10} className="text-amber-500" /> Booking Authorization & Service Initialization
+                       <Zap size={10} className="text-amber-500" /> 
+                       {authMode === 'ritual' ? 'Booking Authorization & Service Initialization' : 'E-Prasad Shipment & Distribution Authorization'}
                    </p>
                 </div>
                 <div className="hidden md:flex flex-col items-end">
@@ -183,51 +246,112 @@ const PoojaBookingPage = () => {
                             </div>
                         </div>
 
-                        {/* Step 2: Ritual Scheduling */}
-                        <div className="p-10">
-                            <StepHeader number="02" title="Ritual Scheduling" sub="Service Definition & Timing" />
-                            <div className="space-y-6 mt-10">
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Service Node (Type)</label>
-                                    <select 
-                                        name="poojaType" required value={formData.poojaType} onChange={handleChange}
-                                        className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner appearance-none cursor-pointer text-xs"
+                         {/* Step 2: Ritual Scheduling / Prasad Selection */}
+                         <div className="p-10 border-b border-slate-50">
+                             <StepHeader 
+                                 number="02" 
+                                 title={authMode === 'ritual' ? "Ritual Scheduling" : "Product Selection"} 
+                                 sub={authMode === 'ritual' ? "Service Definition & Timing" : "Select Prasad Item for Dispatch"} 
+                             />
+                             <div className="space-y-6 mt-10">
+                                 <div className="space-y-1.5">
+                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                                         {authMode === 'ritual' ? 'Service Node (Type)' : 'Prasad Item'}
+                                     </label>
+                                     <select 
+                                         name="poojaType" required value={formData.poojaType} onChange={handleChange}
+                                         className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner appearance-none cursor-pointer text-xs"
+                                     >
+                                         <option value="">Select...</option>
+                                         {authMode === 'ritual' ? 
+                                             poojas.map(p => (
+                                                 <option key={p.id} value={p.id}>{p.name} — ₹{p.amount}</option>
+                                             )) :
+                                             prasads.map(p => (
+                                                 <option key={p.id} value={p.id}>{p.name} — ₹{p.price}</option>
+                                             ))
+                                         }
+                                     </select>
+                                 </div>
+                                 <div className="space-y-1.5">
+                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Universal Date</label>
+                                     <input 
+                                         type="date" name="date" required value={formData.date} onChange={handleChange}
+                                         className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
+                                     />
+                                 </div>
+ 
+                                 {authMode === 'ritual' && slots.length > 0 && (
+                                     <div className="pt-4">
+                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-4 block">Available Time Slots</label>
+                                         <div className="grid grid-cols-4 gap-3">
+                                             {slots.map(s => (
+                                                 <button
+                                                     key={s.id} type="button" onClick={() => setFormData({ ...formData, slotId: s.id })}
+                                                     className={`h-12 rounded-xl border font-bold text-xs transition-all flex items-center justify-center ${
+                                                         formData.slotId === s.id 
+                                                         ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20' 
+                                                         : 'bg-white text-slate-400 border-slate-100 hover:border-slate-900 hover:text-slate-900'
+                                                     }`}
+                                                 >
+                                                     {s.start_time.slice(0, 5)}
+                                                 </button>
+                                             ))}
+                                         </div>
+                                     </div>
+                                 )}
+                             </div>
+                         </div>
+                        
+                        {/* Step 3: Prasad Delivery (Optional) */}
+                        {authMode === 'prasadam' && (
+                            <div className="p-10">
+                                <div className="flex items-center justify-between mb-8">
+                                    <StepHeader number="03" title="Prasad Delivery" sub="E-Prasad Distribution Logistics" />
+                                    <button 
+                                        type="button" onClick={() => setFormData({...formData, includeShipping: !formData.includeShipping})}
+                                        className={`h-9 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest border transition-all ${
+                                            formData.includeShipping ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white text-slate-400 border-slate-100 hover:text-slate-900'
+                                        }`}
                                     >
-                                        <option value="">Select Ritual...</option>
-                                        {poojas.map(p => (
-                                            <option key={p.id} value={p.id}>{p.name} — ₹{p.amount}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Universal Date</label>
-                                    <input 
-                                        type="date" name="date" required value={formData.date} onChange={handleChange}
-                                        className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
-                                    />
+                                        {formData.includeShipping ? 'Protocol Active' : 'Enable Shipping?'}
+                                    </button>
                                 </div>
 
-                                {slots.length > 0 && (
-                                    <div className="pt-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-4 block">Available Time Slots</label>
-                                        <div className="grid grid-cols-4 gap-3">
-                                            {slots.map(s => (
-                                                <button
-                                                    key={s.id} type="button" onClick={() => setFormData({ ...formData, slotId: s.id })}
-                                                    className={`h-12 rounded-xl border font-bold text-xs transition-all flex items-center justify-center ${
-                                                        formData.slotId === s.id 
-                                                        ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/20' 
-                                                        : 'bg-white text-slate-400 border-slate-100 hover:border-slate-900 hover:text-slate-900'
-                                                    }`}
-                                                >
-                                                    {s.start_time.slice(0, 5)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                <AnimatePresence>
+                                    {formData.includeShipping && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-6 overflow-hidden">
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Recipient Name</label>
+                                                    <input 
+                                                        value={formData.shippingName} onChange={(e) => setFormData({...formData, shippingName: e.target.value})}
+                                                        className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs"
+                                                        placeholder="Recipient Name..."
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Delivery Uplink (Phone)</label>
+                                                    <input 
+                                                        value={formData.shippingPhone} onChange={(e) => setFormData({...formData, shippingPhone: e.target.value})}
+                                                        className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs"
+                                                        placeholder="Phone number..."
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Dispatch Destination (Full Address)</label>
+                                                <textarea 
+                                                    rows={3} value={formData.shippingAddress} onChange={(e) => setFormData({...formData, shippingAddress: e.target.value})}
+                                                    className="w-full p-5 bg-slate-50 border border-slate-100 rounded-2xl font-bold text-slate-900 outline-none focus:bg-white focus:border-indigo-600 transition-all shadow-inner text-xs resize-none"
+                                                    placeholder="Enter complete shipping address with pincode..."
+                                                />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                        </div>
+                        )}
 
                         {/* Authorization Footer */}
                         <div className="p-10 bg-slate-50/50 border-t border-slate-50">
@@ -312,6 +436,31 @@ const PoojaBookingPage = () => {
         </div>
     );
 };
+
+function SelectionCard({ title, desc, icon, onClick, color }) {
+    const colors = {
+        slate: 'bg-slate-900 text-white hover:bg-slate-800',
+        indigo: 'bg-indigo-600 text-white hover:bg-indigo-700'
+    };
+
+    return (
+        <button onClick={onClick} className={`p-10 rounded-[2.5rem] text-left transition-all hover:scale-[1.02] active:scale-[0.98] shadow-2xl relative overflow-hidden group ${colors[color]}`}>
+            <div className="absolute -bottom-6 -right-6 opacity-10 group-hover:scale-125 transition-transform duration-700">
+                {icon}
+            </div>
+            <div className="relative z-10">
+                <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center mb-8 border border-white/10">
+                    {icon}
+                </div>
+                <h3 className="text-2xl font-black uppercase tracking-tighter mb-4">{title}</h3>
+                <p className="text-[11px] font-medium opacity-60 leading-relaxed uppercase tracking-widest">{desc}</p>
+                <div className="mt-10 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest">
+                    Initialize Protocol <ArrowRight size={14} className="group-hover:translate-x-2 transition-transform" />
+                </div>
+            </div>
+        </button>
+    );
+}
 
 function StepHeader({ number, title, sub }) {
     return (

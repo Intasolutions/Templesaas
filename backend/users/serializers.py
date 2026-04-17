@@ -9,7 +9,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ["id", "username", "email", "role", "phone", "allowed_apps"]
+        fields = ["id", "username", "email", "role", "phone", "allowed_apps", "module_permissions"]
 
     def get_allowed_apps(self, obj):
         if obj.organization and obj.organization.plan:

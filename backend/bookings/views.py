@@ -1,8 +1,9 @@
 from rest_framework import generics, filters, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser, AllowAny
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from django.http import FileResponse
+from core.permissions import ModulePermission
 from core.utils import TenantMixin
 from .models import Booking
 from .serializers import BookingSerializer
@@ -10,8 +11,9 @@ from .pdf_utils import generate_booking_receipt_pdf
 
 class BookingListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Booking
+    queryset = Booking.objects.select_related("devotee", "pooja", "slot").all()
     serializer_class = BookingSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = [
@@ -57,10 +59,11 @@ class BookingDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
         "devotee", "pooja", "slot", "devotee__gothra", "devotee__nakshatra"
     ).all()
     serializer_class = BookingSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 @api_view(["GET"])
+@permission_classes([IsAuthenticated, ModulePermission])
 def booking_receipt_pdf(request, pk):
     try:
         booking = Booking.objects.select_related("devotee", "pooja", "organization").get(pk=pk)
@@ -72,6 +75,7 @@ def booking_receipt_pdf(request, pk):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated, ModulePermission])
 def create_order(request, pk):
     try:
         booking = Booking.objects.get(pk=pk)
@@ -98,6 +102,7 @@ def create_order(request, pk):
 
 
 @api_view(["POST"])
+@permission_classes([IsAuthenticated, ModulePermission])
 def confirm_payment(request, pk):
     try:
         booking = Booking.objects.get(pk=pk)

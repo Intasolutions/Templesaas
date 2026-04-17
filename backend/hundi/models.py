@@ -46,6 +46,7 @@ class HundiSession(models.Model):
                 Transaction.objects.create(
                     organization=self.organization,
                     txn_type=Transaction.TYPE_INCOME,
+                    category=Transaction.CAT_HUNDI,
                     title=f"Hundi Collection: {self.name}",
                     amount=self.total_amount,
                     date=self.opening_date,

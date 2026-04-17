@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../../shared/api/client";
+import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Heart, Download as DownloadIcon, Plus, Search, RefreshCw, X, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Database, Zap, Layers, ArrowRight, ShieldCheck
+  Heart, Download as DownloadIcon, Plus, Search, RefreshCw, X, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Database, Zap, Layers, ArrowRight, ShieldCheck, Lock
 } from "lucide-react";
 import Pagination from "../../components/common/Pagination";
 
@@ -37,6 +38,7 @@ async function downloadFile(url, filename) {
 
 export default function DonationsPage() {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -64,8 +66,10 @@ export default function DonationsPage() {
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
 
   useEffect(() => {
-    fetchDonations();
-  }, [page, search, ordering]);
+    if (checkPermission('donations', 'view')) {
+        fetchDonations();
+    }
+  }, [page, search, ordering, checkPermission]);
 
   useEffect(() => {
     if (addOpen && devotees.length === 0) {
@@ -135,6 +139,21 @@ export default function DonationsPage() {
     }
   };
 
+  if (!checkPermission('donations', 'view')) {
+    return (
+        <div className="h-[70vh] flex flex-col items-center justify-center space-y-6 text-center px-4">
+            <div className="h-20 w-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2">
+                <Lock size={40} />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight uppercase">Access Restricted</h1>
+            <p className="max-w-md text-sm font-medium text-slate-500 mt-2 leading-relaxed">
+                You do not have the necessary privileges to access the Endowment Hub. 
+                Please contact your temple administrator for access.
+            </p>
+        </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto space-y-12 pb-20">
       {/* Prime Header */}
@@ -164,29 +183,31 @@ export default function DonationsPage() {
                     className="w-full h-11 pl-14 pr-6 rounded-xl bg-white border border-slate-100 focus:ring-4 focus:ring-slate-50 outline-none text-[11px] font-bold transition-all shadow-inner"
                 />
             </div>
-            <div className="relative">
-                <button
-                    onClick={() => setDownloadMenuOpen(!downloadMenuOpen)}
-                    className="h-11 px-5 bg-white border border-slate-100 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-900 transition-all flex items-center gap-2 uppercase tracking-widest shadow-sm"
-                >
-                    <DownloadIcon size={14} /> Export
-                </button>
-                <AnimatePresence>
-                    {downloadMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                            className="absolute right-0 top-14 w-40 bg-white border border-slate-100 shadow-2xl rounded-xl overflow-hidden z-[100] p-1"
-                        >
-                            {['csv', 'excel', 'pdf'].map(fmt => (
-                                <button key={fmt} onClick={() => onDownload(fmt)} className="w-full text-left px-4 py-2.5 text-[9px] font-black text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg uppercase tracking-widest transition-colors">{fmt}</button>
-                            ))}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+            {checkPermission('donations', 'view') && (
+                <div className="relative">
+                    <button
+                        onClick={() => setDownloadMenuOpen(!downloadMenuOpen)}
+                        className="h-11 px-5 bg-white border border-slate-100 rounded-xl text-[9px] font-black text-slate-400 hover:text-slate-900 transition-all flex items-center gap-2 uppercase tracking-widest shadow-sm"
+                    >
+                        <DownloadIcon size={14} /> Export
+                    </button>
+                    <AnimatePresence>
+                        {downloadMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+                                className="absolute right-0 top-14 w-40 bg-white border border-slate-100 shadow-2xl rounded-xl overflow-hidden z-[100] p-1"
+                            >
+                                {['csv', 'excel', 'pdf'].map(fmt => (
+                                    <button key={fmt} onClick={() => onDownload(fmt)} className="w-full text-left px-4 py-2.5 text-[9px] font-black text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg uppercase tracking-widest transition-colors">{fmt}</button>
+                                ))}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            )}
             <button
                 onClick={() => setAddOpen(true)}
-                className="h-11 px-6 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center gap-2.5 active:scale-95"
+                className={`h-11 px-6 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center gap-2.5 active:scale-95 ${!checkPermission('donations', 'edit') ? 'hidden' : ''}`}
             >
                 <Plus size={18} /> New Remittance
             </button>

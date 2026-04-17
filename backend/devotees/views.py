@@ -1,7 +1,8 @@
 import csv
 from django.http import HttpResponse, FileResponse
-from rest_framework import generics, filters
-from rest_framework.permissions import AllowAny
+from rest_framework import generics, filters, permissions
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import ModulePermission
 from django_filters.rest_framework import (
     DjangoFilterBackend,
     FilterSet,
@@ -57,7 +58,7 @@ class DevoteeListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Devotee
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all().order_by("-id")
     serializer_class = DevoteeSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = DevoteeFilter
     search_fields = ["full_name", "phone", "email", "id_proof_number"]
@@ -72,13 +73,14 @@ class DevoteeDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Devotee
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all()
     serializer_class = DevoteeSerializer
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 class GothraListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Gothra
     queryset = Gothra.objects.all().order_by("name")
     serializer_class = GothraSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name"]
@@ -88,13 +90,14 @@ class GothraDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Gothra
     queryset = Gothra.objects.all()
     serializer_class = GothraSerializer
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 class NakshatraListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Nakshatra
     queryset = Nakshatra.objects.all().order_by("name")
     serializer_class = NakshatraSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
     ordering_fields = ["name"]
@@ -104,13 +107,14 @@ class NakshatraDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Nakshatra
     queryset = Nakshatra.objects.all()
     serializer_class = NakshatraSerializer
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 
 class DevoteeFullDetailView(TenantMixin, generics.RetrieveAPIView):
     model = Devotee
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all()
     serializer_class = DevoteeFullSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -119,7 +123,7 @@ class DevoteeFullDetailView(TenantMixin, generics.RetrieveAPIView):
 
 class DevoteeExportCSVView(generics.GenericAPIView):
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     def get(self, request, *args, **kwargs):
         response = HttpResponse(content_type="text/csv")
@@ -150,7 +154,7 @@ class DevoteeExportCSVView(generics.GenericAPIView):
 
 class DevoteeExportExcelView(generics.GenericAPIView):
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     def get(self, request, *args, **kwargs):
         wb = Workbook()
@@ -190,7 +194,7 @@ class DevoteeExportExcelView(generics.GenericAPIView):
 
 class DevoteeExportPDFView(generics.GenericAPIView):
     queryset = Devotee.objects.select_related("gothra", "nakshatra").all()
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     def get(self, request, *args, **kwargs):
         temple_name = getattr(request, "tenant", None)

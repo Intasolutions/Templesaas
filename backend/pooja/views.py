@@ -4,11 +4,13 @@ from django.db.models import F
 from django.http import FileResponse
 
 from rest_framework import generics, filters
+from rest_framework import generics, filters, permissions
 from rest_framework.decorators import api_view
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from core.utils import TenantMixin
+from core.permissions import ModulePermission
 from .models import Pooja, PoojaTimeSlot
 from .serializers import PoojaSerializer, PoojaTimeSlotSerializer
 from .pdf_utils import generate_pooja_daily_pdf
@@ -18,9 +20,9 @@ from bookings.models import Booking
 # 1) Pooja CRUD
 # ----------------------------
 class PoojaListCreateView(TenantMixin, generics.ListCreateAPIView):
-    model = Pooja
+    queryset = Pooja.objects.all()
     serializer_class = PoojaSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
@@ -47,6 +49,13 @@ class PoojaTimeSlotListCreateView(TenantMixin, generics.ListCreateAPIView):
     search_fields = ["pooja__name", "priest__username"]
     ordering_fields = ["start_time", "pooja"]
     ordering = ["start_time"]
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        pooja_id = self.request.query_params.get('pooja')
+        if pooja_id:
+            qs = qs.filter(pooja_id=pooja_id)
+        return qs
 
 
 class PoojaTimeSlotDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):

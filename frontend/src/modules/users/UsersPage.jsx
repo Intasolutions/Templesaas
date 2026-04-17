@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../context/AuthContext';
 import {
   Users,
   UserPlus,
@@ -31,16 +32,20 @@ import Pagination from '../../components/common/Pagination';
 
 const APP_MODULES = [
   { id: 'dashboard', name: 'Dashboard' },
-  { id: 'tv', name: 'TV Display' },
-  { id: 'users', name: 'User Management' },
   { id: 'devotees', name: 'Devotees' },
   { id: 'pooja', name: 'Pooja Services' },
   { id: 'bookings', name: 'Bookings' },
+  { id: 'donations', name: 'Donations' },
   { id: 'events', name: 'Events' },
   { id: 'hundi', name: 'Hundi' },
   { id: 'inventory', name: 'Inventory' },
-  { id: 'donations', name: 'Donations' },
   { id: 'finance', name: 'Financial Reports' },
+  { id: 'shipments', name: 'E-Prasad Shipping' },
+  { id: 'staff', name: 'Staff & Attendance' },
+  { id: 'assets', name: 'Asset Registry' },
+  { id: 'integrations', name: 'Integrations' },
+  { id: 'tv', name: 'TV Display' },
+  { id: 'users', name: 'User Management' },
 ];
 
 const ROLES = [
@@ -52,8 +57,53 @@ const ROLES = [
   { id: 'devotee', name: 'Devotee', color: 'bg-slate-50 border-slate-100 text-slate-400' },
 ];
 
+const ROLE_PERMISSIONS_MAP = {
+  temple_admin: APP_MODULES.reduce((acc, mod) => {
+    acc[mod.id] = ['view', 'edit', 'delete'];
+    return acc;
+  }, {}),
+  accountant: {
+    finance: ['view', 'edit', 'delete'],
+    donations: ['view', 'edit', 'delete'],
+    hundi: ['view', 'edit', 'delete'],
+    inventory: ['view', 'edit'],
+    devotees: ['view'],
+    bookings: ['view'],
+    pooja: ['view'],
+    dashboard: ['view'],
+    staff: ['view'],
+  },
+  priest: {
+    pooja: ['view', 'edit', 'delete'],
+    bookings: ['view', 'edit'],
+    events: ['view', 'edit'],
+    devotees: ['view'],
+    dashboard: ['view'],
+    staff: ['view'],
+  },
+  counter_staff: {
+    pooja: ['view', 'edit'],
+    bookings: ['view', 'edit'],
+    donations: ['view', 'edit'],
+    hundi: ['view', 'edit'],
+    devotees: ['view', 'edit'],
+    dashboard: ['view'],
+    inventory: ['view'],
+  },
+  volunteer: {
+    pooja: ['view'],
+    bookings: ['view'],
+    events: ['view'],
+    dashboard: ['view'],
+  },
+  devotee: {
+    dashboard: ['view'],
+  }
+};
+
 export default function UsersPage() {
   const { t } = useTranslation();
+  const { checkPermission } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -74,7 +124,7 @@ export default function UsersPage() {
     email: '',
     role: 'counter_staff',
     phone: '',
-    module_permissions: {}
+    module_permissions: ROLE_PERMISSIONS_MAP['counter_staff']
   });
 
   const fetchUsers = async () => {
@@ -111,7 +161,7 @@ export default function UsersPage() {
       email: '',
       role: 'counter_staff',
       phone: '',
-      module_permissions: {}
+      module_permissions: ROLE_PERMISSIONS_MAP['counter_staff']
     });
     setIsFormOpen(false);
     setErrorMsg('');
@@ -199,7 +249,7 @@ export default function UsersPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {!isFormOpen && (
+          {!isFormOpen && checkPermission('users', 'edit') && (
             <button
               onClick={() => setIsFormOpen(true)}
               className="h-10 px-5 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-all shadow-md flex items-center gap-2 active:scale-95"
@@ -247,13 +297,24 @@ export default function UsersPage() {
                     <div className="relative">
                       <select 
                         value={formData.role} 
-                        onChange={e => setFormData({ ...formData, role: e.target.value })} 
+                        onChange={e => {
+                          const newRole = e.target.value;
+                          const defaultPerms = ROLE_PERMISSIONS_MAP[newRole] || {};
+                          setFormData({ 
+                            ...formData, 
+                            role: newRole,
+                            module_permissions: defaultPerms
+                          });
+                        }}
                         className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-4 font-semibold text-sm text-slate-900 outline-none focus:border-slate-900 focus:bg-white transition-all appearance-none cursor-pointer"
                       >
                         {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                       </select>
                       <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none rotate-90" />
                     </div>
+                    <p className="text-[9px] font-medium text-amber-600 mt-1 uppercase tracking-widest flex items-center gap-1">
+                      <Zap size={10} /> Selecting a role applies standard permission presets
+                    </p>
                 </div>
                 <InputGroup label="Email Address" value={formData.email} onChange={val => setFormData({...formData, email: val})} placeholder="rahul@example.com" icon={Mail} />
                 <InputGroup label="Phone Number" value={formData.phone} onChange={val => setFormData({...formData, phone: val})} placeholder="+91 99999 00000" icon={Phone} />
@@ -375,12 +436,16 @@ export default function UsersPage() {
                               </td>
                               <td className="px-8 py-5 text-right">
                                  <div className="flex justify-end items-center gap-2">
-                                    <button onClick={() => handleEdit(user)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
-                                       <Edit size={14} />
-                                    </button>
-                                    <button className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                                       <Trash2 size={14} />
-                                    </button>
+                                    {checkPermission('users', 'edit') && (
+                                        <button onClick={() => handleEdit(user)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+                                            <Edit size={14} />
+                                        </button>
+                                    )}
+                                    {checkPermission('users', 'delete') && (
+                                        <button className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
                                  </div>
                               </td>
                            </tr>

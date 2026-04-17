@@ -1,4 +1,6 @@
 from rest_framework import generics, views, response, permissions
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import ModulePermission
 from rest_framework.throttling import AnonRateThrottle
 from .models import UserProfile, Attendance, DutyRoster
 from .serializers import UserProfileSerializer, AttendanceSerializer, UserManagementSerializer
@@ -129,14 +131,28 @@ class UserProfileListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
 class UserManagementListCreateView(generics.ListCreateAPIView):
-    queryset = UserProfile.objects.select_related("user").all()
     serializer_class = UserManagementSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, 'tenant', None)
+        if tenant:
+            return UserProfile.objects.select_related("user").filter(organization=tenant)
+        return UserProfile.objects.none()
+
+    def perform_create(self, serializer):
+        tenant = getattr(self.request, 'tenant', None)
+        serializer.save(organization=tenant)
 
 class UserManagementDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserProfile.objects.select_related("user").all()
     serializer_class = UserManagementSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, 'tenant', None)
+        if tenant:
+            return UserProfile.objects.select_related("user").filter(organization=tenant)
+        return UserProfile.objects.none()
 
     def perform_destroy(self, instance):
         # Delete the underlying auth.User, which cascades to UserProfile
@@ -148,7 +164,7 @@ from .serializers import UserProfileSerializer, AttendanceSerializer, UserManage
 class AttendanceListCreateView(generics.ListCreateAPIView):
     queryset = Attendance.objects.select_related("user").all().order_by("-date")
     serializer_class = AttendanceSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 class DutyRosterListCreateView(generics.ListCreateAPIView):
     queryset = DutyRoster.objects.select_related("user").all().order_by("date")
