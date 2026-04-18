@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TenantProfileView
+from .views import TenantProfileView, SubscriptionRequestViewSet, SubscriptionApprovalView
 from .billing_views import (
     PlanListView, CreateOrderView, VerifyPaymentView,
     CreateSubscriptionView, VerifySubscriptionView, RazorpayWebhookView
@@ -7,6 +7,10 @@ from .billing_views import (
 
 urlpatterns = [
     path('profile/', TenantProfileView.as_view(), name='tenant-profile'),
+
+    # ── Subscription Requests ─────────────────────────────────────────────
+    path('subscription-requests/', SubscriptionRequestViewSet.as_view(), name='subscription-request-list'),
+    path('subscription-requests/<int:pk>/approve/', SubscriptionApprovalView.as_view(), name='subscription-approve'),
 
     # ── Billing ───────────────────────────────────────────────────────────
     path('billing/plans/', PlanListView.as_view(), name='billing-plans'),

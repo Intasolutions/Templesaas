@@ -1,29 +1,26 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, Shield, Layers, Check, Globe, 
-  TrendingUp, Users, Zap, Clock, Lock, CheckCircle2,
-  Tv, Monitor, Database, Sparkles, Activity, ShieldCheck,
-  Package, MapPin, Truck
+import {
+    ArrowRight, Shield, Layers, Check, Globe,
+    TrendingUp, Users, Zap, Clock, Lock, CheckCircle2,
+    Tv, Monitor, Database, Sparkles, Activity, ShieldCheck,
+    Package, MapPin, Truck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
 
 const LandingPage = () => {
     const navigate = useNavigate();
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-            
+
             {/* ── Hero: Global Standard SaaS ───────────────────── */}
             <section className="relative pt-12 pb-16 md:pt-20 md:pb-24 bg-white overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(15,23,42,0.03),transparent)]" />
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             className="max-w-2xl"
@@ -40,22 +37,17 @@ const LandingPage = () => {
                                 The all-in-one infrastructure for modern temple administration, ritual automation, and seamless devotee interaction. 
                             </p>
                             <div className="flex flex-col sm:flex-row gap-5">
-                                <button 
-                                    onClick={() => setIsModalOpen(true)}
+                                <button
+                                    onClick={() => navigate('/pricing')}
                                     className="h-16 px-10 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/40 hover:bg-black transition-all flex items-center justify-center gap-3 group active:scale-95"
                                 >
-                                    Establish Node <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    Start Free Trial <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
-                                <button 
-                                    onClick={() => setIsModalOpen(true)}
-                                    className="h-16 px-10 rounded-2xl border-2 border-slate-200 text-slate-900 font-black text-xs uppercase tracking-[0.3em] hover:bg-slate-50 transition-all flex items-center justify-center active:scale-95"
-                                >
-                                    Book Walkthrough
-                                </button>
+
                             </div>
                         </motion.div>
 
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 30 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             className="relative"
@@ -71,14 +63,14 @@ const LandingPage = () => {
                                     <div className="flex-1 max-w-md h-5 bg-white border border-slate-200 rounded-md mx-auto" />
                                 </div>
                                 <div className="p-0">
-                                    <img 
-                                        src="/real_software_screenshot.png" 
-                                        alt="Devalayam Control Nexus" 
+                                    <img
+                                        src="/real_software_screenshot.png"
+                                        alt="Devalayam Control Nexus"
                                         className="w-full h-auto transition-transform duration-1000 group-hover:scale-[1.02]"
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="absolute -bottom-10 -right-10 bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100 max-w-[280px] hidden md:block z-10">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="h-12 w-12 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center">
@@ -90,11 +82,11 @@ const LandingPage = () => {
                                     </div>
                                 </div>
                                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: "100%" }}
                                         transition={{ duration: 2, delay: 1 }}
-                                        className="h-full bg-emerald-500" 
+                                        className="h-full bg-emerald-500"
                                     />
                                 </div>
                             </div>
@@ -130,16 +122,16 @@ const LandingPage = () => {
                             </p>
                             <ul className="space-y-6 pt-6">
                                 <li className="flex items-start gap-4">
-                                     <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
-                                     <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Real-time TCC Synchronization Across Counters</p>
+                                    <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
+                                    <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Real-time TCC Synchronization Across Counters</p>
                                 </li>
                                 <li className="flex items-start gap-4">
-                                     <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
-                                     <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Automated Hundi Auditing & Remittance Reports</p>
+                                    <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
+                                    <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Automated Hundi Auditing & Remittance Reports</p>
                                 </li>
                                 <li className="flex items-start gap-4">
-                                     <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
-                                     <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Low-stock Alerts for Ritual Ingredients</p>
+                                    <div className="mt-1 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><Check size={12} strokeWidth={4} /></div>
+                                    <p className="text-sm font-bold text-slate-700 uppercase tracking-tight">Low-stock Alerts for Ritual Ingredients</p>
                                 </li>
                             </ul>
                         </div>
@@ -152,23 +144,23 @@ const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: -30 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
                             className="order-2 lg:order-1"
                         >
                             <div className="rounded-[4rem] border-[16px] border-slate-900 shadow-2xl overflow-hidden bg-slate-950 aspect-video relative group">
-                                  <img 
-                                    src="/live_tv_signage_mockup.png" 
-                                    alt="Signage Node" 
+                                <img
+                                    src="/live_tv_signage_mockup.png"
+                                    alt="Signage Node"
                                     className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-1000"
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
-                                  <div className="absolute top-10 right-10 flex items-center gap-2">
-                                     <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]" />
-                                     <span className="text-[10px] font-black uppercase text-white tracking-[0.3em]">Live Feed</span>
-                                  </div>
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
+                                <div className="absolute top-10 right-10 flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]" />
+                                    <span className="text-[10px] font-black uppercase text-white tracking-[0.3em]">Live Feed</span>
+                                </div>
                             </div>
                         </motion.div>
                         <div className="space-y-8 order-1 lg:order-2">
@@ -180,16 +172,16 @@ const LandingPage = () => {
                                 Automate your temple's visual communication with high-fidelity SIGNAGE displays. Show live ritual schedules, weather-synced panchangam, and festival notices.
                             </p>
                             <div className="grid grid-cols-2 gap-6 pt-6">
-                                 <div>
+                                <div>
                                     <p className="text-2xl font-black text-slate-900 tracking-tighter">4K HDR</p>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Output Fidelity</p>
-                                 </div>
-                                 <div>
+                                </div>
+                                <div>
                                     <p className="text-2xl font-black text-slate-900 tracking-tighter">LIVE SYNC</p>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Response Node</p>
-                                 </div>
+                                </div>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => navigate('/tv-display')}
                                 className="h-14 px-8 rounded-xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-[0.3em] flex items-center gap-3 shadow-xl hover:bg-black transition-all active:scale-95"
                             >
@@ -249,9 +241,9 @@ const LandingPage = () => {
                             icon={Globe}
                             highlights={['Kerala Calendar Default', 'Solar/Lunar Alignment', 'Dinam Transitions']}
                         />
-                        <CapabilityCard 
-                            title="Global E-Prasad Hub" 
-                            desc="Integrated logistics engine with BlueDart and DHL connectivity for tracked Prasad distribution worldwide." 
+                        <CapabilityCard
+                            title="Global E-Prasad Hub"
+                            desc="Integrated logistics engine with BlueDart and DHL connectivity for tracked Prasad distribution worldwide."
                             icon={Truck}
                             highlights={['Live Shipping Labels', 'Transit Analytics', 'Customs Clearance']}
                         />
@@ -276,14 +268,14 @@ const LandingPage = () => {
                                 Join 500+ Institutions Managing Heritage with Digital Excellence.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                                <button 
-                                    onClick={() => setIsModalOpen(true)}
+                                <button
+                                    onClick={() => navigate('/pricing')}
                                     className="h-20 px-12 rounded-2xl bg-white text-slate-900 font-black text-xs uppercase tracking-[0.4em] shadow-2xl shadow-white/10 hover:bg-slate-50 transition-all active:scale-95"
                                 >
-                                    Initialize Protocol
+                                    Start Demo
                                 </button>
-                                <button onClick={() => setIsModalOpen(true)} className="h-20 px-12 rounded-2xl border-2 border-white/10 text-white font-black text-xs uppercase tracking-[0.4em] hover:bg-white/5 transition-all">
-                                    Request Clearance
+                                <button onClick={() => navigate('/pricing')} className="h-20 px-12 rounded-2xl border-2 border-white/10 text-white font-black text-xs uppercase tracking-[0.4em] hover:bg-white/5 transition-all">
+                                    View Plans
                                 </button>
                             </div>
                         </div>
@@ -321,19 +313,19 @@ function FeatureCard({ title, desc, icon: Icon, small }) {
 function CapabilityCard({ title, desc, icon: Icon, highlights }) {
     return (
         <div className="bg-white rounded-[3rem] p-12 border border-slate-100 hover:border-slate-400 transition-all duration-500 group">
-             <div className="h-16 w-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white mb-10 shadow-2xl shadow-slate-900/40">
+            <div className="h-16 w-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white mb-10 shadow-2xl shadow-slate-900/40">
                 <Icon size={32} />
-             </div>
-             <h4 className="text-2xl font-black text-slate-900 mb-6 tracking-tighter uppercase">{title}</h4>
-             <p className="text-slate-500 font-medium leading-relaxed mb-10 tracking-tight">{desc}</p>
-             <div className="space-y-4">
-                 {highlights.map(h => (
-                     <div key={h} className="flex items-center gap-3">
-                         <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</span>
-                     </div>
-                 ))}
-             </div>
+            </div>
+            <h4 className="text-2xl font-black text-slate-900 mb-6 tracking-tighter uppercase">{title}</h4>
+            <p className="text-slate-500 font-medium leading-relaxed mb-10 tracking-tight">{desc}</p>
+            <div className="space-y-4">
+                {highlights.map(h => (
+                    <div key={h} className="flex items-center gap-3">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{h}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

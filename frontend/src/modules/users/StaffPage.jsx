@@ -20,8 +20,9 @@ import {
     ArrowRight
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import ClockInModal from "./ClockInModal";
 import { motion, AnimatePresence } from "framer-motion";
+import SalaryModal from "./SalaryModal";
+import { IndianRupee, Activity } from "lucide-react";
 
 const StaffPage = () => {
     const { t } = useTranslation();
@@ -31,6 +32,9 @@ const StaffPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [showClockIn, setShowClockIn] = useState(false);
+    const [showSalaryModal, setShowSalaryModal] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState(null);
+    const [editingWage, setEditingWage] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -58,6 +62,16 @@ const StaffPage = () => {
         u.user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.role?.toLowerCase().includes(searchTerm.toLowerCase())
     ) : [];
+
+    const handleUpdateWage = async (userId, wage) => {
+        try {
+            await api.patch(`/users/management/${userId}/`, { daily_wage: wage });
+            fetchData();
+            setEditingWage(null);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pb-20">
@@ -126,6 +140,7 @@ const StaffPage = () => {
                                     <tr className="bg-white text-slate-400">
                                         <th className="px-12 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Unit Identity</th>
                                         <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Sub-Domain</th>
+                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Daily Wage</th>
                                         <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Operational State</th>
                                         <th className="px-12 py-6 border-b border-slate-50"></th>
                                     </tr>
@@ -156,6 +171,29 @@ const StaffPage = () => {
                                                 </span>
                                             </td>
                                             <td className="px-10 py-7">
+                                                {editingWage === profile.id ? (
+                                                    <div className="flex items-center gap-2">
+                                                        <input 
+                                                            type="number" 
+                                                            defaultValue={profile.daily_wage} 
+                                                            onBlur={(e) => handleUpdateWage(profile.id, e.target.value)}
+                                                            autoFocus
+                                                            className="w-20 h-8 bg-slate-50 border border-slate-200 rounded px-2 text-xs font-bold outline-none focus:border-primary"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div 
+                                                        className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors"
+                                                        onClick={() => setEditingWage(profile.id)}
+                                                    >
+                                                        <IndianRupee size={12} className="text-slate-400" />
+                                                        <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">
+                                                            {profile.daily_wage || "0.00"}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-10 py-7">
                                                 <div className="flex items-center gap-2.5">
                                                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                                                     <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Mission Active</span>
@@ -163,6 +201,20 @@ const StaffPage = () => {
                                             </td>
                                             <td className="px-12 py-7 text-right">
                                                 <div className="flex justify-end items-center gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setSelectedStaff({ 
+                                                                id: profile.id, 
+                                                                user_id: profile.user?.id,
+                                                                username: profile.user?.username, 
+                                                                daily_wage: profile.daily_wage 
+                                                            });
+                                                            setShowSalaryModal(true);
+                                                        }}
+                                                        className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2"
+                                                    >
+                                                        <IndianRupee size={14} /> Salary
+                                                    </button>
                                                     <button className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
                                                         <MoreVertical size={16} />
                                                     </button>
@@ -241,10 +293,11 @@ const StaffPage = () => {
                 </div>
             </div>
 
-            <ClockInModal 
-                isOpen={showClockIn} 
-                onClose={() => setShowClockIn(false)} 
-                onRefresh={fetchData} 
+            <SalaryModal 
+                isOpen={showSalaryModal}
+                onClose={() => setShowSalaryModal(false)}
+                staff={selectedStaff}
+                onRefresh={fetchData}
             />
         </div>
     );

@@ -7,7 +7,6 @@ from events.models import Event
 class Pooja(models.Model):
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="poojas", null=True, blank=True)
     name = models.CharField(max_length=150)
-    description = models.TextField(blank=True)
 
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     duration_minutes = models.PositiveIntegerField(default=0)

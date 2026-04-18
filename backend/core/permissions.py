@@ -29,15 +29,40 @@ class ModulePermission(permissions.BasePermission):
     WHITELISTED_PATHS = [
         'users/me',
         'users/profile',
-        'core/tenant',
-        'shipping',
-        'shipments',
+        'core/profile',
+        'core/billing',
+        'core/subscription-requests',
     ]
 
     def has_permission(self, request, view):
         user = request.user
         if not user or not user.is_authenticated:
             return False
+
+        # Identify Tenant
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            profile = getattr(user, 'profile', None)
+            if profile:
+                tenant = profile.organization
+
+        # ── SaaS Paywall Check ─────────────────────────────────────────────
+        # If tenant is approved but payment is pending, or expired, block most APIs
+        # Superusers skip this check.
+        if not user.is_superuser and tenant:
+            from core.models import Tenant
+            restricted_statuses = [
+                Tenant.STATUS_APPROVED, 
+                Tenant.STATUS_PENDING_APPROVAL, 
+                Tenant.STATUS_EXPIRED, 
+                Tenant.STATUS_SUSPENDED
+            ]
+            
+            if tenant.status in restricted_statuses:
+                path = request.path.strip('/')
+                is_whitelisted = any(wp in path for wp in self.WHITELISTED_PATHS)
+                if not is_whitelisted:
+                    return False
 
         # 1. Superusers and Temple Admins have full access
         profile = getattr(user, 'profile', None)

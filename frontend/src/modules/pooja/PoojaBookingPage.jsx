@@ -3,8 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../shared/api/client';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Info, ArrowLeft, Calendar as CalendarIcon, Clock, CheckCircle2, 
+import {
+    Info, ArrowLeft, Calendar as CalendarIcon, Clock, CheckCircle2,
     ChevronRight, User, ArrowRight, Sparkles, ShieldCheck, Zap, Database, Box
 } from 'lucide-react';
 
@@ -18,7 +18,7 @@ const PoojaBookingPage = () => {
         devoteeName: '',
         phone: '',
         nakshatra: '',
-        date: '',
+        date: new Date().toISOString().split('T')[0],
         poojaType: poojaId || '',
         includeShipping: false,
         shippingName: '',
@@ -153,29 +153,19 @@ const PoojaBookingPage = () => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em]">Select Service Protocol to Proceed</p>
                 </header>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <SelectionCard 
-                        title="Ritual Booking" 
-                        desc="Authorized schedule for Poojas, Vazhipadu & Custom Rituals" 
-                        icon={<Sparkles size={32} />} 
+                <div className="flex flex-wrap justify-center gap-8">
+                    <SelectionCard
+                        title="Ritual Booking"
+                        desc="Authorized schedule for Poojas, Vazhipadu & Custom Rituals"
+                        icon={<Sparkles size={32} />}
                         onClick={() => {
                             setAuthMode('ritual');
-                            setFormData({...formData, poojaType: '', includeShipping: false});
-                        }} 
+                            setFormData({ ...formData, poojaType: '', includeShipping: false });
+                        }}
                         color="slate"
                     />
-                    <SelectionCard 
-                        title="Prasadam Booking" 
-                        desc="E-Prasad distribution protocol with integrated logistics" 
-                        icon={<Box size={32} />} 
-                        onClick={() => {
-                            setAuthMode('prasadam');
-                            setFormData({...formData, poojaType: '', includeShipping: true});
-                        }} 
-                        color="indigo"
-                    />
                 </div>
-                
+
                 <div className="flex justify-center pt-12">
                    <button onClick={() => navigate('/bookings')} className="text-[10px] font-bold text-slate-400 hover:text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3 transition-all group">
                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Protocol Exit • Return to Registry
@@ -388,7 +378,7 @@ const PoojaBookingPage = () => {
 
                         {/* Authorization Footer */}
                         <div className="p-10 bg-slate-50/50 border-t border-slate-50">
-                            <button 
+                            <button
                                 type="submit" disabled={loading}
                                 className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-slate-800 transition-all shadow-2xl shadow-slate-900/40 active:scale-95 disabled:opacity-50"
                             >
@@ -427,7 +417,7 @@ const PoojaBookingPage = () => {
                             <h3 className="text-sm font-bold mb-10 flex items-center gap-2">
                                 <Database size={16} className="text-primary" /> Astronomical Audit
                             </h3>
-                            
+
                             <div className="space-y-8">
                                 <AuditItem label="Tithi" value={panchangData?.tithi || 'N/A'} />
                                 <AuditItem label="Nakshatra" value={panchangData?.nakshatra || 'N/A'} />
@@ -455,7 +445,7 @@ const PoojaBookingPage = () => {
                             <p className="text-[10px] font-medium text-slate-400 mt-2 uppercase leading-relaxed">Select a date to pull astronomical audit data from the registry.</p>
                         </div>
                     )}
-                    
+
                     <div className="p-8 bg-amber-50 rounded-[2rem] border border-amber-100">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-3 flex items-center gap-2">
                             <Zap size={14} /> Protocol Notice

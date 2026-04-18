@@ -54,10 +54,12 @@ class TenantMiddleware:
             path_parts = request.path.strip("/").split("/")
             if len(path_parts) > 1 and path_parts[0] == "api":
                 requested_app = path_parts[1]
-                # core, users, and reports are always allowed
-                if requested_app not in allowed_apps and requested_app not in ["core", "users", "reports", "tenants", "shipping", "shipments"]:
+                # core, users, reports, and devotees are always allowed for basic operation
+                exempt_apps = ["core", "users", "reports", "tenants", "shipping", "shipments", "devotees"]
+                if requested_app not in allowed_apps and requested_app not in exempt_apps:
+                     plan_name = tenant.plan.name if tenant.plan else "N/A"
                      return JsonResponse(
-                         {"error": f"Access Denied: Your {tenant.plan.name} plan does not include the '{requested_app}' module."},
+                         {"error": f"Access Denied: Your {plan_name} plan does not include the '{requested_app}' module."},
                          status=403
                      )
 

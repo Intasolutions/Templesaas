@@ -16,10 +16,11 @@ class TenantMixin:
             
         if tenant:
             from django.db.models import Q
+            model = getattr(self, 'model', None) or qs.model
             # Check if model has organization or tenant field
-            if hasattr(self.model, 'organization'):
+            if hasattr(model, 'organization'):
                 return qs.filter(Q(organization=tenant) | Q(organization__isnull=True))
-            elif hasattr(self.model, 'tenant'):
+            elif hasattr(model, 'tenant'):
                 return qs.filter(Q(tenant=tenant) | Q(tenant__isnull=True))
         
         # If no tenant identified, return empty

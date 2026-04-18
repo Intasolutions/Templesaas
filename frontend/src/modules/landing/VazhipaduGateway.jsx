@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Zap, Check, ArrowRight, Shield, Globe, Layers, MapPin, Search } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
 
 const VazhipaduGateway = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             
             <section className="pt-48 pb-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
@@ -29,10 +28,10 @@ const VazhipaduGateway = () => {
                                 The industry standard for ritual booking and counter administration. Engineered for high-load festival environments and everyday precision.
                             </p>
                             <button 
-                                onClick={() => setIsModalOpen(true)}
+                                onClick={() => navigate('/pricing')}
                                 className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95"
                             >
-                                Request Live Demo <ArrowRight size={18} />
+                                Explore Plans <ArrowRight size={18} />
                             </button>
                         </motion.div>
                         <motion.div 

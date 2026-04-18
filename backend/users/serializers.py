@@ -9,7 +9,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ["id", "username", "email", "role", "phone", "allowed_apps", "module_permissions"]
+        fields = ["id", "username", "email", "role", "phone", "daily_wage", "allowed_apps", "module_permissions"]
 
     def get_allowed_apps(self, obj):
         if obj.organization and obj.organization.plan:
@@ -29,7 +29,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = ["id", "username", "new_username", "password", "first_name", "last_name", "email", "role", "phone", "module_permissions"]
+        fields = ["id", "username", "new_username", "password", "first_name", "last_name", "email", "role", "phone", "daily_wage", "module_permissions"]
 
     def create(self, validated_data):
         user_data = validated_data.pop("user", {})
@@ -76,6 +76,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
         # Update profile
         instance.role = validated_data.get("role", instance.role)
         instance.phone = validated_data.get("phone", instance.phone)
+        instance.daily_wage = validated_data.get("daily_wage", instance.daily_wage)
         instance.module_permissions = validated_data.get("module_permissions", instance.module_permissions)
         instance.save()
         return instance

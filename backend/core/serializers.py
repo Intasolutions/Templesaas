@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Tenant, Plan
+from .models import Tenant, Plan, SubscriptionRequest
 
 class PlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Plan
-        fields = ['name', 'allowed_apps']
+        fields = ['id', 'name', 'allowed_apps', 'amount_inr']
 
 class TenantSerializer(serializers.ModelSerializer):
     plan_name = serializers.SerializerMethodField()
@@ -23,6 +23,19 @@ class TenantSerializer(serializers.ModelSerializer):
             'contact_email', 'contact_phone', 'address',
             'latitude', 'longitude', 'plan', 'plan_name', 'allowed_apps', 
             'authorized_signatory_name', 'authorized_signatory_designation',
-            'is_active', 'is_trial', 'trial_ends_at'
+            'is_active', 'is_trial', 'trial_ends_at', 'status'
         ]
-        read_only_fields = ['subdomain', 'plan', 'allowed_apps', 'is_active']
+        read_only_fields = ['subdomain', 'plan', 'allowed_apps', 'is_active', 'status']
+
+class SubscriptionRequestSerializer(serializers.ModelSerializer):
+    tenant_name = serializers.CharField(source="tenant.name", read_only=True)
+    plan_name = serializers.CharField(source="plan.name", read_only=True)
+
+    class Meta:
+        model = SubscriptionRequest
+        fields = [
+            'id', 'tenant', 'tenant_name', 'plan', 'plan_name', 
+            'status', 'billing_cycle', 'amount', 'notes', 
+            'admin_notes', 'requested_at', 'processed_at'
+        ]
+        read_only_fields = ['status', 'processed_at']

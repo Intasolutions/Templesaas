@@ -1,9 +1,9 @@
-import { 
-    LayoutDashboard, 
-    Users, 
-    Calendar, 
-    Settings, 
-    LogOut, 
+import {
+    LayoutDashboard,
+    Users,
+    Calendar,
+    Settings,
+    LogOut,
     ChevronRight,
     Search,
     IndianRupee,
@@ -19,7 +19,8 @@ import {
     CalendarCheck,
     Banknote,
     Truck,
-    Zap
+    Zap,
+    Shield
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -65,6 +66,12 @@ export default function Sidebar({ isOpen, onClose }) {
                 { to: "/tv-display", icon: Monitor, label: t('tv_display', 'TV Display'), app: 'tv' },
             ]
         },
+        user?.is_superuser && {
+            title: "SaaS Control",
+            items: [
+                { to: "/admin/subscriptions", icon: Shield, label: "Subscription Nexus" },
+            ]
+        },
         {
             title: "People",
             items: [
@@ -81,7 +88,6 @@ export default function Sidebar({ isOpen, onClose }) {
                 { to: "/events", icon: IndianRupee, label: t('events', 'Events'), app: 'events' },
                 { to: "/hundi", icon: Banknote, label: t('hundi', 'Hundi'), app: 'hundi' },
                 { to: "/inventory", icon: Package, label: t('inventory', 'Inventory'), app: 'inventory' },
-                { to: "/shipments", icon: Truck, label: t('e_prasad_shipping', 'E-Prasad Shipping'), app: 'shipments' },
             ]
         },
         {
@@ -94,11 +100,13 @@ export default function Sidebar({ isOpen, onClose }) {
                 { to: "/settings", icon: Settings, label: t('settings', 'Settings') },
             ]
         }
-    ];
+    ].filter(Boolean);
 
-    const trialDaysLeft = tenant?.trial_ends_at 
-    ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)))
-    : null;
+    const isRestricted = !user?.is_superuser && ['approved', 'pending_approval', 'expired', 'suspended'].includes(tenant?.status);
+
+    const trialDaysLeft = tenant?.trial_ends_at
+        ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)))
+        : null;
 
     const SidebarContent = (
         <div className="h-full flex flex-col bg-white">
@@ -150,7 +158,9 @@ export default function Sidebar({ isOpen, onClose }) {
                                     icon={item.icon}
                                     label={item.label}
                                     active={location.pathname === item.to}
-                                    locked={item.app ? !checkPermission(item.app, 'view') : false}
+                                    locked={isRestricted 
+                                        ? (item.to !== '/billing' && !item.to.startsWith('/settings')) 
+                                        : (item.app ? !checkPermission(item.app, 'view') : false)}
                                 />
                             ))}
                         </div>
@@ -181,16 +191,16 @@ export default function Sidebar({ isOpen, onClose }) {
             {/* Mobile Sidebar (Fixed/Overlay) */}
             <div className={`lg:hidden fixed inset-0 z-[100] transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                 {/* Overlay */}
-                <div 
+                <div
                     className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
                     onClick={onClose}
                 />
-                
+
                 {/* Sidebar Drawer */}
-                <aside 
+                <aside
                     className={`absolute left-0 top-0 bottom-0 w-72 bg-white shadow-2xl transition-transform duration-300 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
                 >
-                    <button 
+                    <button
                         onClick={onClose}
                         className="absolute top-4 -right-12 p-2 bg-white rounded-full text-slate-900 shadow-xl"
                     >

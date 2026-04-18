@@ -1,8 +1,30 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import AppLayout from "../layout/AppLayout.jsx";
 import { useAuth } from "../../context/AuthContext";
 
-// Public Pages
+// ... (existing imports)
+
+const PaywallGuard = ({ children }) => {
+  const { tenant, user } = useAuth();
+  const location = useLocation();
+
+  // Superusers (SaaS Owners) can always access everything
+  if (user?.is_superuser) return children;
+
+  // Logic: If status is 'approved' (Payment Pending), force them to Billing
+  // Unless they are already on Billing or Settings (Profile)
+  const restrictedStatuses = ['approved', 'pending_approval', 'expired', 'suspended'];
+  const isRestricted = restrictedStatuses.includes(tenant?.status);
+
+  if (isRestricted && location.pathname !== '/billing' && !location.pathname.startsWith('/settings')) {
+    return <Navigate to="/billing" replace />;
+  }
+
+  return children;
+};
+
+export default function AppRoutes() {
+  const { isAuthenticated, loading } = useAuth();
 import LandingPage from "../../modules/landing/LandingPage.jsx";
 import PricingPage from "../../modules/landing/PricingPage.jsx";
 import LoginPage from "../../modules/auth/LoginPage.jsx";
@@ -45,6 +67,7 @@ import AttendancePage from "../../modules/users/AttendancePage.jsx";
 import AssetPage from "../../modules/assets/AssetPage.jsx";
 import FinanceReportsPage from "../../modules/finance/FinanceReportsPage.jsx";
 import SettingsPage from "../../modules/settings/TempleProfilePage.jsx";
+import SubscriptionRequestsPage from "../../modules/admin/SubscriptionRequestsPage.jsx";
 
 export default function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
@@ -78,7 +101,11 @@ export default function AppRoutes() {
       <Route path="/register" element={!isAuthenticated ? <SignUpPage /> : <Navigate to="/dashboard" replace />} />
       
       {/* ── Protected App Routes ─────────────────────────── */}
-      <Route element={isAuthenticated ? <AppLayout /> : <Navigate to="/login" replace />}>
+      <Route element={isAuthenticated ? (
+        <PaywallGuard>
+          <AppLayout />
+        </PaywallGuard>
+      ) : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/integrations" element={<IntegrationsPage />} />
         <Route path="/tv-display" element={<TVDisplayPage />} />
@@ -97,6 +124,7 @@ export default function AppRoutes() {
         <Route path="/finance" element={<FinanceReportsPage />} />
         <Route path="/billing" element={<BillingPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/admin/subscriptions" element={<SubscriptionRequestsPage />} />
         
         {/* Default fallback to dashboard */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />

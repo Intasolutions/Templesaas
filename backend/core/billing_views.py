@@ -256,6 +256,82 @@ class RazorpayWebhookView(APIView):
 
 
 # ── View: Verify Payment & Upgrade Plan (Legacy One-Time) ──────────────────────────────────────
+from .models import SubscriptionRequest, Subscription
+from django.utils import timezone
+from datetime import timedelta
+
 class VerifyPaymentView(APIView):
-    # (Existing implementation kept for backward compatibility or one-time items)
-    ...
+    """
+    POST /api/billing/verify/
+    Verifies payment signature and activates the plan.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        payment_id = request.data.get("razorpay_payment_id")
+        order_id = request.data.get("razorpay_order_id")
+        signature = request.data.get("razorpay_signature")
+        plan_name = request.data.get("plan_name")
+
+        client = _get_razorpay_client()
+        
+        try:
+            # 1. Verify Signature
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            })
+            
+            # Identify tenant
+            tenant = getattr(request, "tenant", None)
+            if not tenant and request.user.is_authenticated:
+                profile = getattr(request.user, "profile", None)
+                if profile:
+                    tenant = profile.organization
+
+            if not tenant:
+                return Response({"error": "No tenant found for this user."}, status=400)
+
+            plan = Plan.objects.get(name=plan_name)
+
+            with transaction.atomic():
+                # 2. Update Tenant Lifecycle
+                tenant.plan = plan
+                tenant.status = Tenant.STATUS_ACTIVE
+                tenant.is_trial = False
+                tenant.save()
+
+                # 3. Mark the Subscription Request as PAID
+                sub_req = SubscriptionRequest.objects.filter(
+                    tenant=tenant, 
+                    plan=plan, 
+                    status=SubscriptionRequest.STATUS_APPROVED
+                ).last()
+                
+                days = 30
+                if sub_req:
+                    sub_req.status = SubscriptionRequest.STATUS_PAID
+                    sub_req.save()
+                    if sub_req.billing_cycle == 'yearly':
+                        days = 365
+
+                # 4. Create/Update the active subscription record
+                Subscription.objects.update_or_create(
+                    tenant=tenant,
+                    defaults={
+                        "razorpay_plan_id": plan.razorpay_plan_id or "ONE_TIME",
+                        "status": "active",
+                        "current_period_start": timezone.now(),
+                        "current_period_end": timezone.now() + timedelta(days=days)
+                    }
+                )
+
+            return Response({
+                "success": True, 
+                "message": f"Payment Verified. {tenant.name} is now on the {plan.name} protocol.",
+                "status": "active"
+            })
+
+        except Exception as e:
+            return Response({"error": f"Protocol Verification Failure: {str(e)}"}, status=400)

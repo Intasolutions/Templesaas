@@ -1,5 +1,6 @@
 from datetime import datetime, date, time
 import math
+
 try:
     from jyotishganit import calculate_birth_chart
 except ImportError:
@@ -13,7 +14,9 @@ def get_accurate_panchang(target_date, lat, lon):
         return {
             "tithi": "Initializing (Library missing)",
             "nakshatra": "Initializing",
-            "malayalam_month": "Karkidakam"
+            "malayalam_month": "Karkidakam",
+            "sunrise": "--:--",
+            "sunset": "--:--"
         }
 
     # Convert date to datetime at noon
@@ -30,14 +33,13 @@ def get_accurate_panchang(target_date, lat, lon):
         
         # Determine Malayalam Month based on current date
         # Fallback to a dictionary mapping
-        # Medam (Aries) starts around April 14
         m = target_date.month
         d = target_date.day
         
         # Approximate Malayalam মাস (highly accurate for dates > 15th)
         if (m == 4 and d >= 14) or (m == 5 and d < 15): month = "Medam"
         elif (m == 5 and d >= 15) or (m == 6 and d < 15): month = "Edavam"
-        elif (m == 6 and d >= 15) or (m == 7 < 17): month = "Mithunam"
+        elif (m == 6 and d >= 15) or (m == 7 and d < 17): month = "Mithunam"
         elif (m == 7 and d >= 17) or (m == 8 and d < 17): month = "Karkidakam"
         elif (m == 8 and d >= 17) or (m == 9 and d < 17): month = "Chingam"
         elif (m == 9 and d >= 17) or (m == 10 and d < 17): month = "Kanni"
@@ -49,8 +51,8 @@ def get_accurate_panchang(target_date, lat, lon):
         else: month = "Meenam"
 
         return {
-            "tithi": chart.panchanga.tithi,
-            "nakshatra": chart.panchanga.nakshatra,
+            "tithi": str(chart.panchanga.tithi),
+            "nakshatra": str(chart.panchanga.nakshatra),
             "malayalam_month": month,
             "sunrise": "06:15",
             "sunset": "18:30",
@@ -62,5 +64,7 @@ def get_accurate_panchang(target_date, lat, lon):
             "tithi": "Unknown",
             "nakshatra": "Unknown",
             "malayalam_month": "Karkidakam",
+            "sunrise": "--:--",
+            "sunset": "--:--",
             "error": str(e)
         }

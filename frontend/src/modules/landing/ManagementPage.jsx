@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Building2, Layers, Check, ArrowRight, Zap, Target } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
 
 const ManagementPage = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -24,8 +23,8 @@ const ManagementPage = () => {
                             <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
                                 Complete administrative control for temple boards and trusts. Integrated staff permissions and multi-temple node management.
                             </p>
-                            <button onClick={() => setIsModalOpen(true)} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
-                                Book Executive Demo <ArrowRight size={18} />
+                            <button onClick={() => navigate('/pricing')} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
+                                Explore Plans <ArrowRight size={18} />
                             </button>
                         </motion.div>
                         <motion.div 

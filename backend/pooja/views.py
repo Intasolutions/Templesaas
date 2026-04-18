@@ -20,6 +20,7 @@ from bookings.models import Booking
 # 1) Pooja CRUD
 # ----------------------------
 class PoojaListCreateView(TenantMixin, generics.ListCreateAPIView):
+    model = Pooja
     queryset = Pooja.objects.all()
     serializer_class = PoojaSerializer
     permission_classes = [IsAuthenticated, ModulePermission]

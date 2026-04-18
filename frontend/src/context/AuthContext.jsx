@@ -59,10 +59,13 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             const response = await api.post('/users/login/', credentials);
-            const { token, user, tenant } = response.data;
+            const { access, refresh, user, tenant } = response.data;
             
-            if (token) {
-                localStorage.setItem('token', token);
+            if (access) {
+                localStorage.setItem('token', access);
+            }
+            if (refresh) {
+                localStorage.setItem('refreshToken', refresh);
             }
             if (tenant && tenant.subdomain) {
                 localStorage.setItem('tenantCode', tenant.subdomain);
@@ -83,6 +86,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
         localStorage.removeItem('tenantCode');
         setUser(null);
         setTenant(null);
@@ -96,14 +100,18 @@ export const AuthProvider = ({ children }) => {
     const checkPermission = (moduleId, action = 'view') => {
         if (!user) return false;
         
-        // 1. Temple Admin or "all" permission always allowed
-        if (user.role === 'temple_admin' || user.module_permissions?.all) return true;
-        
-        // 2. Check Plan allowed apps
+        // 1. Core modules are always allowed for everyone
+        const coreModules = ['dashboard', 'billing', 'settings', 'users'];
+        if (coreModules.includes(moduleId)) return true;
+
+        // 2. Check Plan allowed apps (Global restriction)
         const allowedApps = user.allowed_apps || [];
         if (!allowedApps.includes(moduleId)) return false;
 
-        // 3. Check User specific permission (view/edit/delete)
+        // 3. Temple Admin or "all" permission bypasses internal checks
+        if (user.role === 'temple_admin' || user.module_permissions?.all) return true;
+
+        // 4. Check User specific permission (view/edit/delete)
         const userPerms = user.module_permissions?.[moduleId] || [];
         return userPerms.includes(action);
     };

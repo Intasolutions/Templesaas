@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../../shared/api/client";
 import { useAuth } from "../../context/AuthContext";
-import { 
-    Sparkles, 
-    Search, 
-    Plus, 
-    Clock, 
+import {
+    Sparkles,
+    Search,
+    Plus,
+    Clock,
     Zap,
     Scroll,
     Activity,
@@ -31,7 +31,7 @@ export default function PoojaListPage() {
     const [search, setSearch] = useState("");
     const [pagination, setPagination] = useState({ count: 0, next: null, previous: null, current: 1 });
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true });
+    const [formData, setFormData] = useState({ name: "", amount: "", duration_minutes: 30, is_active: true });
     const [editingId, setEditingId] = useState(null);
 
     const fetchPoojas = async (page = 1) => {
@@ -74,7 +74,7 @@ export default function PoojaListPage() {
                 await api.post("/pooja/", formData);
             }
             setShowForm(false);
-            setFormData({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true });
+            setFormData({ name: "", amount: "", duration_minutes: 30, is_active: true });
             setEditingId(null);
             fetchPoojas();
         } catch (err) { console.error(err); }
@@ -107,7 +107,7 @@ export default function PoojaListPage() {
                 <div className="flex items-center gap-3">
                     <div className="relative group">
                         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
-                        <input 
+                        <input
                             type="text"
                             placeholder="Search poojas..."
                             value={search}
@@ -119,7 +119,7 @@ export default function PoojaListPage() {
                         <button 
                             onClick={() => { 
                                 setEditingId(null); 
-                                setFormData({ name: "", description: "", amount: "", duration_minutes: 30, is_active: true }); 
+                                setFormData({ name: "", amount: "", duration_minutes: 30, is_active: true }); 
                                 setShowForm(true); 
                             }}
                             className="h-10 px-5 bg-slate-900 text-white rounded-lg font-bold text-xs flex items-center gap-2 shadow-md hover:bg-slate-800 active:scale-95 transition-all"
@@ -140,7 +140,7 @@ export default function PoojaListPage() {
             {/* List Header */}
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                 <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                   <ListFilter size={14} /> Service Inventory
+                    <ListFilter size={14} /> Service Inventory
                 </h2>
                 <span className="text-[10px] font-bold text-slate-300 uppercase">{pagination.count} Items Total</span>
             </div>
@@ -181,12 +181,9 @@ export default function PoojaListPage() {
                         </div>
 
                         <div className="space-y-3">
-                             <h3 className="text-base font-bold text-slate-900 tracking-tight truncate">
+                            <h3 className="text-base font-bold text-slate-900 tracking-tight truncate">
                                 {pooja.name}
                             </h3>
-                            <p className="text-[11px] font-medium text-slate-500 leading-relaxed line-clamp-2">
-                                {pooja.description || "No description provided for this service."}
-                            </p>
                         </div>
 
                         <div className="mt-6 pt-5 border-t border-slate-50 flex items-center justify-between">
@@ -221,16 +218,16 @@ export default function PoojaListPage() {
                         <motion.div initial={{ scale: 0.98, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.98, opacity: 0, y: 10 }} className="bg-white w-full max-w-xl rounded-2xl shadow-2xl relative z-10 overflow-hidden flex flex-col border border-slate-100">
                             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                                 <div className="flex items-center gap-3">
-                                   <div className="h-9 w-9 bg-slate-900 rounded-lg flex items-center justify-center text-white">
-                                      <Zap size={20} />
-                                   </div>
-                                   <div>
-                                      <h2 className="text-base font-bold text-slate-900">{editingId ? "Update Offering" : "New Pooja Service"}</h2>
-                                      <p className="text-[10px] font-medium text-slate-400 mt-0.5 uppercase tracking-wider">Configure service details and pricing</p>
-                                   </div>
+                                    <div className="h-9 w-9 bg-slate-900 rounded-lg flex items-center justify-center text-white">
+                                        <Zap size={20} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-base font-bold text-slate-900">{editingId ? "Update Offering" : "New Pooja Service"}</h2>
+                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5 uppercase tracking-wider">Configure service details and pricing</p>
+                                    </div>
                                 </div>
                                 <button onClick={() => setShowForm(false)} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 transition-all">
-                                  <X size={20} />
+                                    <X size={20} />
                                 </button>
                             </div>
 
@@ -258,22 +255,18 @@ export default function PoojaListPage() {
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Description</label>
-                                        <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full h-28 bg-slate-50 border border-slate-200 rounded-xl p-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all resize-none" placeholder="Enter service description..." />
-                                    </div>
 
                                     {editingId && (
                                         <div className="pt-6 border-t border-slate-100 space-y-4">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Ritual Time Slots</label>
                                                 <div className="flex items-center gap-2">
-                                                    <input 
-                                                        type="time" 
+                                                    <input
+                                                        type="time"
                                                         id="new_slot_time"
                                                         className="h-8 bg-slate-50 border border-slate-200 rounded-lg px-3 text-[10px] font-bold outline-none focus:border-slate-900"
                                                     />
-                                                    <button 
+                                                    <button
                                                         type="button"
                                                         onClick={async () => {
                                                             const t = document.getElementById('new_slot_time').value;
@@ -295,8 +288,8 @@ export default function PoojaListPage() {
                                                     <div key={s.id} className="h-8 px-3 bg-white border border-slate-200 rounded-xl flex items-center gap-3 text-[10px] font-bold text-slate-900 shadow-sm group hover:border-red-200 transition-all">
                                                         <Clock size={12} className="text-primary" />
                                                         {s.start_time.slice(0, 5)}
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={async () => {
                                                                 try {
                                                                     await api.delete(`/pooja/slots/${s.id}/`);

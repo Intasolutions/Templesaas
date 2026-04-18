@@ -3,10 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Check, ArrowRight, Zap, Shield, Globe, Award, Sparkles } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
-
 const PricingPage = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleSelectPlan = (plan) => {
@@ -16,7 +13,6 @@ const PricingPage = () => {
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             
             <section className="pt-48 pb-40 bg-white relative overflow-hidden">
                 {/* Subtle Blended Background for Pricing */}
@@ -52,7 +48,6 @@ const PricingPage = () => {
                                 "Annual Hundi Log",
                                 "Standard Email Support"
                             ]}
-                            icon={Zap}
                             onCta={() => handleSelectPlan('LITE')}
                         />
 
@@ -67,7 +62,6 @@ const PricingPage = () => {
                                 "SMS & WhatsApp Alerts",
                                 "E-Prasad Logistics Node"
                             ]}
-                            icon={Shield}
                             isFeatured
                             onCta={() => handleSelectPlan('PRO')}
                         />
@@ -83,7 +77,6 @@ const PricingPage = () => {
                                 "24/7 Dedicated Support",
                                 "Biometric Staff Tracking"
                             ]}
-                            icon={Award}
                             onCta={() => handleSelectPlan('PRO_MAX')}
                         />
                     </div>
@@ -93,56 +86,49 @@ const PricingPage = () => {
     );
 };
 
-function PricingCard({ title, price, desc, features, icon: Icon, isFeatured, onCta }) {
+function PricingCard({ title, price, desc, features, isFeatured, onCta }) {
     return (
-        <div className={`p-12 rounded-[32px] text-left transition-all duration-300 border ${
+        <div className={`p-10 lg:p-12 rounded-[40px] text-left transition-all duration-300 border ${
             isFeatured 
-            ? 'bg-slate-900 border-slate-900 shadow-2xl shadow-slate-900/10' 
-            : 'bg-white border-slate-100 hover:border-slate-300'
+            ? 'bg-slate-900 border-slate-900 shadow-2xl shadow-slate-900/10 scale-105 z-20' 
+            : 'bg-white border-slate-100 hover:border-slate-200 z-10'
         }`}>
-            <div className={`h-14 w-14 rounded-xl flex items-center justify-center mb-10 ${
-                isFeatured ? 'bg-white/10 text-white' : 'bg-slate-50 text-slate-900'
-            }`}>
-                <Icon size={24} />
-            </div>
+            <h3 className={`text-xl font-extrabold mb-4 tracking-tight ${isFeatured ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
             
-            <h3 className={`text-lg font-bold mb-2 ${isFeatured ? 'text-white' : 'text-slate-900'}`}>{title}</h3>
-            <div className={`flex items-baseline gap-1 mb-2 ${isFeatured ? 'text-white' : 'text-slate-900'}`}>
-                <span className="text-xl font-bold opacity-60">₹</span>
-                <span className="text-6xl font-extrabold tracking-tighter">{price}</span>
-                {price !== 'Custom' && <span className="text-sm font-bold opacity-60">/mo</span>}
+            <div className={`flex items-baseline gap-2 mb-4 ${isFeatured ? 'text-white' : 'text-slate-900'}`}>
+                <span className="text-3xl font-bold opacity-80">₹</span>
+                <span className="text-7xl font-extrabold tracking-tighter">{price}</span>
+                <span className="text-lg font-bold opacity-60">/mo</span>
             </div>
 
-            {price !== '0' && (
-                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider mb-6 ${
-                    isFeatured ? 'bg-orange-500/20 text-orange-400' : 'bg-orange-50 text-orange-600'
-                }`}>
-                    <Sparkles size={10} /> 7-Day Free Trial
-                </div>
-            )}
+            <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider mb-8 ${
+                isFeatured ? 'bg-orange-600/20 text-orange-500' : 'bg-orange-50 text-orange-600'
+            }`}>
+                <Sparkles size={12} className="fill-current" /> 3-Day Free Trial
+            </div>
 
-            <p className={`text-sm font-medium leading-relaxed mb-10 ${isFeatured ? 'text-slate-400' : 'text-slate-500'}`}>
+            <p className={`text-[15px] font-medium leading-relaxed mb-12 min-h-[48px] ${isFeatured ? 'text-slate-400' : 'text-slate-500'}`}>
                 {desc}
             </p>
 
-            <div className="space-y-4 mb-12">
+            <div className="space-y-5 mb-14">
                 {features.map(f => (
                     <div key={f} className="flex items-center gap-4">
-                        <Check size={18} className={`shrink-0 ${isFeatured ? 'text-slate-400' : 'text-slate-400'}`} />
-                        <span className={`text-[14px] font-semibold ${isFeatured ? 'text-slate-200' : 'text-slate-600'}`}>{f}</span>
+                        <Check size={20} className={`shrink-0 ${isFeatured ? 'text-slate-500' : 'text-slate-300'}`} />
+                        <span className={`text-[15px] font-bold tracking-tight ${isFeatured ? 'text-slate-200' : 'text-slate-700'}`}>{f}</span>
                     </div>
                 ))}
             </div>
 
             <button 
                 onClick={onCta}
-                className={`w-full h-14 rounded-xl font-bold text-sm transition-all ${
+                className={`w-full h-16 rounded-2xl font-black text-[15px] tracking-tight transition-all active:scale-[0.98] ${
                     isFeatured 
-                    ? 'bg-white text-slate-900 hover:bg-slate-100' 
-                    : 'bg-slate-900 text-white hover:bg-black shadow-lg shadow-slate-900/10'
+                    ? 'bg-white text-slate-900 hover:bg-slate-50 shadow-xl shadow-white/5' 
+                    : 'bg-slate-900 text-white hover:bg-black shadow-xl shadow-slate-900/10'
                 }`}
             >
-                {price === 'Custom' ? 'Contact Sales' : 'Get Started'}
+                Get Started
             </button>
         </div>
     )

@@ -7,7 +7,7 @@ from .serializers import UserProfileSerializer, AttendanceSerializer, UserManage
 from django.contrib.auth import authenticate, login as django_login, logout as django_logout
 from django.contrib.auth.models import User
 from core.models import Tenant
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from core.serializers import TenantSerializer
 
 
@@ -71,10 +71,11 @@ class SignupView(views.APIView):
                 is_active=True
             )
 
-            token, _ = Token.objects.get_or_create(user=user)
+            refresh = RefreshToken.for_user(user)
             
             return response.Response({
-                "token": token.key,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
                 "user": UserProfileSerializer(user.profile).data,
                 "tenant": TenantSerializer(tenant).data
             }, status=201)
@@ -107,14 +108,15 @@ class LoginView(views.APIView):
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if user:
-            token, _ = Token.objects.get_or_create(user=user)
+            refresh = RefreshToken.for_user(user)
             profile = getattr(user, 'profile', None)
             tenant = getattr(request, 'tenant', None)
             if not tenant and profile and profile.organization:
                 tenant = profile.organization
                 
             return response.Response({
-                "token": token.key,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
                 "user": UserProfileSerializer(profile).data if profile else { "username": user.username },
                 "tenant": TenantSerializer(tenant).data if tenant else None
             })
@@ -227,3 +229,61 @@ class ClockInView(views.APIView):
             return response.Response({"status": "Clock-out recorded", "verified": is_verified})
 
         return response.Response({"status": "Clock-in recorded", "verified": is_verified})
+from finance.models import Transaction
+from django.utils import timezone
+
+class SalaryProcessView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, ModulePermission]
+
+    def post(self, request):
+        user_id = request.data.get("user_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        
+        if not all([user_id, start_date, end_date]):
+            return response.Response({"error": "user_id, start_date, and end_date are required."}, status=400)
+
+        tenant = getattr(request, 'tenant', None)
+        try:
+            profile = UserProfile.objects.get(id=user_id, organization=tenant)
+            attendance = Attendance.objects.filter(
+                user=profile.user, 
+                date__range=[start_date, end_date],
+                organization=tenant
+            )
+            
+            total_salary = 0
+            present_days = 0
+            half_days = 0
+            
+            for record in attendance:
+                if record.status == Attendance.STATUS_PRESENT:
+                    total_salary += profile.daily_wage
+                    present_days += 1
+                elif record.status == Attendance.STATUS_HALF_DAY:
+                    total_salary += (profile.daily_wage / 2)
+                    half_days += 1
+            
+            if total_salary > 0:
+                # Create Transaction
+                Transaction.objects.create(
+                    organization=tenant,
+                    txn_type=Transaction.TYPE_EXPENSE,
+                    category=Transaction.CAT_SALARY,
+                    title=f"Salary Payment: {profile.user.username} ({start_date} to {end_date})",
+                    amount=total_salary,
+                    date=timezone.now().date(),
+                    notes=f"Processed for {present_days} full days and {half_days} half days."
+                )
+                
+            return response.Response({
+                "status": "Salary processed successfully",
+                "total_amount": float(total_salary),
+                "present_days": present_days,
+                "half_days": half_days
+            })
+            
+        except UserProfile.DoesNotExist:
+            return response.Response({"error": "User profile not found."}, status=404)
+        except Exception as e:
+            return response.Response({"error": str(e)}, status=500)

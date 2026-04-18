@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
-from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import Tenant, Plan
 from users.models import UserProfile
 import re
@@ -123,8 +123,8 @@ class TenantSignupView(APIView):
                 except Exception as provisioning_error:
                     print(f"Provisioning warning: {provisioning_error}")
 
-                # 5. Generate auth token
-                token, _ = Token.objects.get_or_create(user=user)
+                # 5. Generate auth tokens
+                refresh = RefreshToken.for_user(user)
 
         except Exception as e:
             return Response(
@@ -137,7 +137,8 @@ class TenantSignupView(APIView):
         from users.serializers import UserProfileSerializer
 
         return Response({
-            'token': token.key,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
             'user': UserProfileSerializer(profile).data,
             'tenant': TenantSerializer(tenant).data,
         }, status=status.HTTP_201_CREATED)

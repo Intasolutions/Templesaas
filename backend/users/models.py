@@ -29,6 +29,7 @@ class UserProfile(models.Model):
         default=ROLE_DEVOTEE,
     )
     phone = models.CharField(max_length=15, blank=True)
+    daily_wage = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     module_permissions = models.JSONField(default=dict, blank=True)
 
     def __str__(self):

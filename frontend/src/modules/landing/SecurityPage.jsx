@@ -1,32 +1,40 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Shield, Lock, Check, ArrowRight, Eye, Database, Zap } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
 import DemoBookingModal from './DemoBookingModal';
 
 const SecurityPage = () => {
+    const navigate = useNavigate();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <MarketingLayout>
             <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-            <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
+            
+            <section className="pt-48 pb-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
                                  Sovereign Data Protection
                             </div>
-                            <h1 className="text-6xl md:text-[84px] font-extrabold text-slate-900 tracking-tight mb-10 leading-[0.95]">
+                            <h1 className="text-6xl md:text-[84px] font-black text-slate-900 tracking-tighter mb-10 leading-[0.95] uppercase">
                                 Trust & <br />
                                 <span className="text-slate-400">Security.</span>
                             </h1>
                             <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
                                 Military-grade data isolation and end-to-end encryption for the most sensitive temple records. Heritage compliance by design.
                             </p>
-                            <button onClick={() => setIsModalOpen(true)} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
-                                Book Executive Demo <ArrowRight size={18} />
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-5">
+                                <button onClick={() => setIsModalOpen(true)} className="h-16 px-10 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/40 hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-95">
+                                    Book Executive Demo <ArrowRight size={18} />
+                                </button>
+                                <button onClick={() => navigate('/pricing')} className="h-16 px-10 rounded-2xl border-2 border-slate-100 text-slate-900 font-black text-xs uppercase tracking-[0.3em] hover:bg-slate-50 transition-all">
+                                    View Plans
+                                </button>
+                            </div>
                         </motion.div>
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }} 
@@ -53,7 +61,7 @@ const SecurityPage = () => {
                                      <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold"><Shield size={20} /></div>
                                      <div>
                                          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest leading-none mb-1">Protection Level</p>
-                                         <p className="text-xl font-extrabold text-white leading-none">AES-256 CORE</p>
+                                         <p className="text-xl font-black text-white leading-none uppercase tracking-tighter">AES-256 CORE</p>
                                      </div>
                                  </div>
                              </div>
@@ -98,7 +106,7 @@ const SecurityPage = () => {
                                 <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-8">
                                     Zero-Trust <br /> Architecture.
                                 </h2>
-                                <p className="text-lg text-white/50 font-medium leading-relaxed max-w-md">
+                                <p className="text-lg text-white/50 font-medium leading-relaxed max-w-md uppercase tracking-widest text-[11px]">
                                     Our core philosophy is simple: never trust, always verify. Every system access is audited, and every database entry is signed with institutional keys.
                                 </p>
                             </div>
