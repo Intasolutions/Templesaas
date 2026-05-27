@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import api from "../../shared/api/client";
 import { Utensils, Info, Plus, History, Package, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import ModernInput from "../../components/ui/ModernInput";
+import { useNotify } from "../../context/NotificationContext";
 
 const AnnadhanamPage = () => {
-    const { t } = useTranslation();
+    const notify = useNotify();
     const [consumptions, setConsumptions] = useState([]);
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,6 +18,7 @@ const AnnadhanamPage = () => {
         quantity_used: "",
         notes: ""
     });
+    const [errors, setErrors] = useState({});
 
     useEffect(() => {
         fetchData();
@@ -37,15 +40,31 @@ const AnnadhanamPage = () => {
         }
     };
 
+    const updateForm = (key, val) => {
+        let err = null;
+        if (key === 'quantity_used' && parseFloat(val) <= 0) err = "Quantity must be positive";
+        
+        setFormData(prev => ({ ...prev, [key]: val }));
+        setErrors(prev => ({ ...prev, [key]: err }));
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (parseFloat(formData.quantity_used) <= 0) {
+            setErrors({ quantity_used: "Quantity must be positive" });
+            return notify.warn("Please fix errors.");
+        }
+
         try {
             await api.post("/annadhanam/consumptions/", formData);
             setFormData({ prasad_name: "", item: "", quantity_used: "", notes: "" });
+            setErrors({});
             setShowForm(false);
             fetchData();
+            notify.success("Production record authorized");
         } catch (err) {
-            alert(err.response?.data?.error || "Error recording consumption. Check stock levels.");
+            notify.error(err.response?.data?.error || "Error recording consumption. Check stock levels.");
         }
     };
 
@@ -79,24 +98,21 @@ const AnnadhanamPage = () => {
                     <h3 className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                         <Info size={12} /> Resource Allocation Protocol
                     </h3>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <ModernInput 
+                            label="Batch Name" 
+                            required
+                            placeholder="e.g. Morning Bhog"
+                            value={formData.prasad_name}
+                            onChange={val => updateForm('prasad_name', val)}
+                        />
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Batch Name</label>
-                            <input 
-                                required
-                                className="w-full bg-slate-50 border border-slate-100 rounded-lg h-9 px-4 text-xs font-bold"
-                                placeholder="e.g. Morning Bhog"
-                                value={formData.prasad_name}
-                                onChange={e => setFormData({...formData, prasad_name: e.target.value})}
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Raw Material</label>
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Raw Material</label>
                             <select 
                                 required
-                                className="w-full bg-slate-50 border border-slate-100 rounded-lg h-9 px-4 text-xs font-bold appearance-none"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-xl h-11 px-4 text-xs font-bold appearance-none outline-none focus:border-slate-900"
                                 value={formData.item}
-                                onChange={e => setFormData({...formData, item: e.target.value})}
+                                onChange={e => updateForm('item', e.target.value)}
                             >
                                 <option value="">Select Resource</option>
                                 {items.map(item => (
@@ -104,22 +120,29 @@ const AnnadhanamPage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="space-y-1.5">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Quantity</label>
-                            <input 
-                                required
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <ModernInput 
+                                label="Prasad Identity" 
+                                value={formData.prasad_name} 
+                                onChange={e => updateForm('prasad_name', e.target.value)}
+                                placeholder="e.g. Payasam / Pongala"
+                                icon={Utensils}
+                            />
+                            <ModernInput 
+                                label="Quantity Magnitude" 
                                 type="number"
-                                step="0.01"
-                                className="w-full bg-slate-50 border border-slate-100 rounded-lg h-9 px-4 text-xs font-bold"
-                                placeholder="0.00"
-                                value={formData.quantity_used}
-                                onChange={e => setFormData({...formData, quantity_used: e.target.value})}
+                                value={formData.quantity_used} 
+                                error={errors.quantity_used}
+                                success={formData.quantity_used > 0}
+                                onChange={e => updateForm('quantity_used', e.target.value)}
+                                placeholder="0"
+                                icon={Package}
                             />
                         </div>
                         <div className="flex items-end">
                             <button 
                                 type="submit"
-                                className="w-full h-9 rounded-lg bg-slate-900 text-white font-bold text-[9px] uppercase tracking-widest hover:bg-slate-800"
+                                className="w-full h-11 rounded-xl bg-slate-900 text-white font-bold text-[9px] uppercase tracking-[0.2em] hover:bg-slate-800 shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
                             >
                                 Authorize
                             </button>

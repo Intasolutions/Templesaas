@@ -148,14 +148,14 @@ export default function UpgradePage() {
                     </div>
 
                     <button 
-                        disabled={tenant?.plan_name === 'LITE' || loading}
+                        disabled={(tenant?.plan_name === 'LITE' && tenant?.status !== 'expired') || loading}
                         onClick={() => handleUpgrade('LITE')}
                         className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                            tenant?.plan_name === 'LITE' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-black'
+                            tenant?.plan_name === 'LITE' && tenant?.status !== 'expired' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-black'
                         }`}
                     >
                         {loading && <Loader2 size={18} className="animate-spin" />}
-                        {tenant?.plan_name === 'LITE' ? 'Current Plan' : 'Switch to Lite'}
+                        {tenant?.plan_name === 'LITE' && tenant?.status !== 'expired' ? 'Current Plan' : tenant?.plan_name === 'LITE' ? 'Renew Lite' : 'Switch to Lite'}
                     </button>
                 </div>
 
@@ -187,14 +187,14 @@ export default function UpgradePage() {
                         </div>
 
                         <button 
-                            disabled={tenant?.plan_name === 'PRO' || loading}
+                            disabled={(tenant?.plan_name === 'PRO' && tenant?.status !== 'expired') || loading}
                             onClick={() => handleUpgrade('PRO')}
                             className={`w-full mt-8 py-4 rounded-2xl font-black tracking-wide shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                                tenant?.plan_name === 'PRO' ? 'bg-white/20 text-white cursor-not-allowed border border-white/10' : 'bg-white text-orange-600 hover:bg-orange-50'
+                                tenant?.plan_name === 'PRO' && tenant?.status !== 'expired' ? 'bg-white/20 text-white cursor-not-allowed border border-white/10' : 'bg-white text-orange-600 hover:bg-orange-50'
                             }`}
                         >
                             {loading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={20} />}
-                            {tenant?.plan_name === 'PRO' ? 'Current Active Plan' : 'Upgrade to PRO'}
+                            {tenant?.plan_name === 'PRO' && tenant?.status !== 'expired' ? 'Current Active Plan' : tenant?.plan_name === 'PRO' ? 'Renew PRO' : 'Upgrade to PRO'}
                         </button>
                     </div>
                 </div>
@@ -218,14 +218,14 @@ export default function UpgradePage() {
                     </div>
 
                     <button 
-                        disabled={tenant?.plan_name === 'PRO_MAX' || loading}
+                        disabled={(tenant?.plan_name === 'PRO_MAX' && tenant?.status !== 'expired') || loading}
                         onClick={() => handleUpgrade('PRO_MAX')}
                         className={`w-full mt-8 py-4 rounded-2xl font-bold tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                            tenant?.plan_name === 'PRO_MAX' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-black'
+                            tenant?.plan_name === 'PRO_MAX' && tenant?.status !== 'expired' ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-slate-900 text-white hover:bg-black'
                         }`}
                     >
                         {loading && <Loader2 size={18} className="animate-spin" />}
-                        {tenant?.plan_name === 'PRO_MAX' ? 'Current Plan' : 'Switch to Pro Max'}
+                        {tenant?.plan_name === 'PRO_MAX' && tenant?.status !== 'expired' ? 'Current Plan' : tenant?.plan_name === 'PRO_MAX' ? 'Renew Pro Max' : 'Switch to Pro Max'}
                     </button>
                 </div>
             </motion.div>

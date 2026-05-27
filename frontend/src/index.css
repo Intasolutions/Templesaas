@@ -2,7 +2,7 @@
 
 /* Custom Premium Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -11,7 +11,7 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
+  border-radius: 20px;
 }
 
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
@@ -19,25 +19,51 @@
 }
 
 :root {
-  --primary: #f97316;
+  /* Temple Inspired Palette - Richer & Spiritual */
+  --primary: #f97316; /* Saffron */
+  --primary-deep: #ea580c;
   --primary-rgb: 249, 115, 22;
-  --primary-muted: rgba(249, 115, 22, 0.1);
+  --primary-muted: rgba(249, 115, 22, 0.08);
+  
+  --gold: #d4af37; /* Authentic Temple Gold */
+  --gold-muted: rgba(212, 175, 55, 0.1);
+  
+  --warm-cream: #fdfbf7;
+  --deep-wood: #1c1917; /* Dark brownish charcoal */
+  
+  --accent: #8b5cf6; 
+  
+  /* Backgrounds */
+  --bg-main: #fdfbf7; /* Warm Cream instead of cold white */
+  --bg-card: #ffffff;
 }
 
 @theme {
   --color-primary: var(--primary);
+  --color-primary-deep: var(--primary-deep);
   --color-primary-foreground: #ffffff;
   --color-secondary: var(--primary-muted);
   --color-secondary-foreground: var(--primary);
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  
+  --color-gold: var(--gold);
+  --color-gold-muted: var(--gold-muted);
+  --color-cream: var(--warm-cream);
+  --color-wood: var(--deep-wood);
+  
+  --color-background: var(--bg-main);
+  --color-foreground: #1c1917;
   --color-muted: #f8fafc;
   --color-muted-foreground: #64748b;
-  --color-border: #e2e8f0;
+  --color-border: #f1f5f9;
 
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-display: "Playfair Display", serif;
+  --font-display: "Outfit", sans-serif;
   --font-accent: "Outfit", sans-serif;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-4xl: 3rem;
 }
 
 @layer base {
@@ -46,36 +72,78 @@
   }
 
   body {
-    background-color: #fafafa;
-    color: #1e293b;
+    background-color: var(--bg-main);
+    color: #1c1917;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     letter-spacing: -0.01em;
+    font-size: 15px;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-accent);
+    font-family: var(--font-display);
     letter-spacing: -0.03em;
+    font-weight: 800;
+    line-height: 1.1;
   }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
 }
 
 @layer utilities {
-  .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  .text-label {
+    font-size: 0.75rem; /* 12px */
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-muted-foreground);
   }
 
-  .card-professional {
+  .text-divine {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.037);
+  }
+
+  .glass-warm {
+    background: rgba(253, 251, 247, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(249, 115, 22, 0.1);
+  }
+
+  .card-temple {
     background: #ffffff;
     border: 1px solid #f1f5f9;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
-    transition: all 0.3s ease;
+    border-radius: 2.5rem;
+    box-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .card-professional:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  .card-temple:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 40px 80px -12px rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.2);
   }
-}
+
+  .bg-sacred {
+    background-color: var(--warm-cream);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.05) 0px, transparent 50%);
+  }
+
+  .divine-glow {
+    box-shadow: 0 0 50px -10px rgba(249, 115, 22, 0.3);
+  }
+}

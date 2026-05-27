@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Users, Heart, Shield, Check, ArrowRight, Database, Search } from 'lucide-react';
+import { Users, Heart, Shield, Check, ArrowRight, Database, Search, Sparkles, HeartHandshake } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
 
 const CrmPage = () => {
@@ -9,83 +9,93 @@ const CrmPage = () => {
 
     return (
         <MarketingLayout>
-            
-            <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
-                <div className="max-w-7xl mx-auto px-6">
+            {/* ── Hero ── */}
+            <section className="relative pt-32 pb-24 md:pt-48 md:pb-40 bg-cream overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(230,81,0,0.04),transparent)]" />
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                                 Relationship Management
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-primary/10 shadow-sm mb-10">
+                                 <HeartHandshake size={16} className="text-primary animate-pulse" />
+                                 <span className="text-[11px] font-bold uppercase tracking-widest text-wood/80">Devotee Module</span>
                             </div>
-                            <h1 className="text-6xl md:text-[84px] font-extrabold text-slate-900 tracking-tight mb-10 leading-[0.95]">
+                            <h1 className="text-5xl md:text-[84px] font-black leading-[0.95] tracking-tight text-wood mb-8 uppercase">
                                 Devotee <br />
-                                <span className="text-slate-400">Registry.</span>
+                                <span className="text-primary font-serif italic">Records.</span>
                             </h1>
-                            <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
-                                Unified family management for sacred institutions. Track ancestry, seva history, and key milestones with military-grade privacy.
+                            <p className="text-lg md:text-xl text-wood/70 font-medium leading-relaxed mb-12 max-w-lg">
+                                Keep a safe list of your temple's regular families. Save their names, phone numbers, stars, and pooja history in one place.
                             </p>
-                            <button onClick={() => navigate('/pricing')} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
-                                Explore Plans <ArrowRight size={18} />
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => navigate('/demo')} className="h-16 px-10 rounded-full bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-orange-700 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                                    See a Demo <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
                         </motion.div>
+                        
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }} 
                             animate={{ opacity: 1, scale: 1 }} 
+                            transition={{ duration: 1 }}
                             className="relative"
                         >
-                             <div className="relative w-full aspect-square max-w-[550px] mx-auto group">
-                                <div 
-                                    className="absolute inset-0 z-10"
-                                    style={{
-                                        background: 'radial-gradient(circle at 50% 50%, transparent 20%, rgba(255,255,255,1) 90%), linear-gradient(to top, white 5%, transparent 30%)'
-                                    }}
-                                />
+                            <div className="rounded-[2.5rem] border-8 border-white shadow-2xl overflow-hidden bg-wood/5 aspect-square relative">
                                 <img 
-                                    src="/crm_hero.png" 
-                                    alt="Devotee Family Heritage" 
-                                    className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
+                                    src="/assets/landing/hero.png" 
+                                    alt="Devotee Families" 
+                                    className="w-full h-full object-cover"
                                 />
-                             </div>
-                             
-                             {/* Family Analytics Overlay */}
-                             <div className="absolute -bottom-10 -left-10 bg-white p-8 rounded-[40px] shadow-2xl border border-slate-50 z-20">
-                                 <div className="flex items-center gap-4">
-                                     <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-900 font-bold">NN</div>
-                                     <div>
-                                         <p className="text-sm font-bold text-slate-900 leading-none">Narayanan Nair</p>
-                                         <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mt-1">Registry Active</p>
-                                     </div>
-                                 </div>
-                             </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-wood/60 to-transparent" />
+                                
+                                <div className="absolute bottom-8 left-8 bg-white p-6 rounded-2xl shadow-xl border border-primary/10 hidden md:block">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-full bg-cream flex items-center justify-center text-wood font-black text-lg border border-primary/10">RK</div>
+                                        <div>
+                                            <p className="text-sm font-black text-wood leading-none">Rajesh Kumar</p>
+                                            <p className="text-[10px] uppercase font-bold text-primary tracking-widest mt-2">Regular Devotee</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-40 bg-slate-50 border-y border-slate-100">
+            <section className="py-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-                         <FeatureBullet title="Ancestry Mapping" desc="Trace family lineage and traditional seva history across generations for institutional records." />
-                         <FeatureBullet title="Unified Seva Dashboard" desc="Single-view history of all ritual bookings, donations, and institutional interactions." />
-                         <FeatureBullet title="Automated Notifications" desc="Keep devotees informed via WhatsApp/SMS about upcoming poojas and key temple dates." />
-                         <FeatureBullet title="Encrypted Vault" desc="Devotee data is protected with 256-bit institutional grade encryption protocols." />
-                         <FeatureBullet title="Family Grouping" desc="Link multiple devotees to a single family node for simplified booking and communication." />
-                         <FeatureBullet title="Heritage Analytics" desc="Gain insights into devotee demographics and participation trends for festival planning." />
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl font-black text-wood mb-4">Features for Your Devotees</h2>
+                        <p className="text-wood/60">Help your temple committee build better relationships with your community.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-40">
+                         <FeatureBullet title="Pooja History" desc="See a clear list of every pooja a devotee has done at your temple." />
+                         <FeatureBullet title="Star & Gothram" desc="Save the correct star and gothram details for the whole family." />
+                         <FeatureBullet title="WhatsApp Alerts" desc="Automatically send festival messages and pooja reminders to their phones." />
+                         <FeatureBullet title="Family Links" desc="Connect family members together so you can book poojas for the whole house easily." />
+                         <FeatureBullet title="Secure & Private" desc="All devotee information is kept safe and is only visible to the temple committee." />
+                         <FeatureBullet title="Quick Search" desc="Find any devotee instantly by just typing their name or phone number." />
                     </div>
 
-                    <div className="mt-40 bg-slate-900 rounded-[4rem] p-12 md:p-32 text-center text-white relative overflow-hidden group">
-                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="bg-wood rounded-[3rem] p-16 md:p-32 text-center text-white relative overflow-hidden shadow-2xl"
+                    >
+                         <div className="absolute top-0 right-0 p-20 opacity-5"><Database size={150} /></div>
                          <div className="relative z-10 max-w-3xl mx-auto">
-                              <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-12">Digital <br />Devotee Passport.</h2>
-                              <p className="text-xl text-white/50 font-medium mb-16 leasing-relaxed uppercase tracking-widest">
-                                  Every devotee interaction, ritual booking, and contribution consolidated into a single, immutable institutional record.
+                              <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase mb-8">One Record For <br />Every Family.</h2>
+                              <p className="text-lg text-white/50 mb-12 max-w-xl mx-auto">
+                                  Every visit, booking, and offering is kept in one secure temple record for generations to see.
                               </p>
-                              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                                  <div className="px-8 py-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-black uppercase tracking-widest">Star Mapping Enabled</div>
-                                  <div className="px-8 py-4 bg-white/5 rounded-2xl border border-white/10 text-xs font-black uppercase tracking-widest">Secure Ancestry Nodes</div>
+                              <div className="flex flex-wrap gap-4 justify-center">
+                                  <div className="px-8 py-4 bg-white/5 rounded-full border border-white/10 text-[11px] font-bold uppercase tracking-widest">Star Mapping</div>
+                                  <div className="px-8 py-4 bg-white/5 rounded-full border border-white/10 text-[11px] font-bold uppercase tracking-widest">Family Links</div>
+                                  <div className="px-8 py-4 bg-white/5 rounded-full border border-white/10 text-[11px] font-bold uppercase tracking-widest">Safe Records</div>
                               </div>
                          </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
         </MarketingLayout>
@@ -93,10 +103,12 @@ const CrmPage = () => {
 };
 
 const FeatureBullet = ({ title, desc }) => (
-    <div className="space-y-4">
-        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100"><Check size={20} strokeWidth={3} /></div>
-        <h4 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h4>
-        <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
+    <div className="p-10 rounded-3xl border border-wood/5 bg-cream/50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+        <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-primary mb-8 shadow-sm border border-wood/5 group-hover:bg-primary group-hover:text-white transition-all">
+            <Check size={20} strokeWidth={3} />
+        </div>
+        <h4 className="text-xl font-black text-wood mb-4 uppercase tracking-tight">{title}</h4>
+        <p className="text-wood/70 text-sm leading-relaxed">{desc}</p>
     </div>
 );
 

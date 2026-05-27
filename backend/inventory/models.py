@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from core.models import Tenant
@@ -95,11 +96,14 @@ class StockTransaction(models.Model):
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="stock_transactions", null=True, blank=True)
     item = models.ForeignKey(Item, on_delete=models.PROTECT, related_name="transactions")
     txn_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
-    quantity = models.DecimalField(max_digits=12, decimal_places=2)
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0) # For cost tracking
+    quantity = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0.01)])
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)]) # For cost tracking
     note = models.CharField(max_length=255, blank=True)
 
     # Optional references
+    payment_mode = models.CharField(max_length=20, choices=[('cash', 'Cash'), ('upi', 'UPI'), ('bank', 'Bank'), ('card', 'Card')], default='cash')
+    bank_account = models.ForeignKey("finance.BankAccount", on_delete=models.SET_NULL, null=True, blank=True, related_name="inventory_transactions")
+    
     reference_type = models.CharField(max_length=50, blank=True)  # "purchase", "booking", "manual"
     reference_id = models.CharField(max_length=50, blank=True)
 
@@ -148,6 +152,24 @@ class StockTransaction(models.Model):
         super().save(*args, **kwargs)
         if is_new:
             self.apply_stock()
+            
+            # FINANCE SYNC: If this is an IN transaction with price, it's a purchase
+            if self.txn_type == self.TYPE_IN and self.unit_price > 0:
+                from finance.models import Transaction
+                txn_ref = f"INV-TXN-{self.id}"
+                if not Transaction.objects.filter(reference=txn_ref).exists():
+                    Transaction.objects.create(
+                        organization=self.organization,
+                        txn_type=Transaction.TYPE_EXPENSE,
+                        category=Transaction.CAT_PURCHASE,
+                        title=f"Stock In: {self.item.name}",
+                        amount=self.quantity * self.unit_price,
+                        date=timezone.now().date(),
+                        reference=txn_ref,
+                        payment_mode=self.payment_mode,
+                        bank_account=self.bank_account,
+                        notes=f"Auto-generated from Inventory Log #{self.id}. Note: {self.note}"
+                    )
 
     def __str__(self):
         return f"{self.item.name} {self.txn_type} {self.quantity}"
@@ -193,6 +215,9 @@ class Purchase(models.Model):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     bill_file = models.FileField(upload_to="purchase_bills/", null=True, blank=True)
 
+    payment_mode = models.CharField(max_length=20, choices=[('cash', 'Cash'), ('upi', 'UPI'), ('bank', 'Bank'), ('card', 'Card')], default='cash')
+    bank_account = models.ForeignKey("finance.BankAccount", on_delete=models.SET_NULL, null=True, blank=True, related_name="bulk_purchases")
+
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -221,6 +246,8 @@ class Purchase(models.Model):
                     amount=self.total_amount,
                     date=self.invoice_date,
                     reference=txn_ref,
+                    payment_mode=self.payment_mode,
+                    bank_account=self.bank_account,
                     notes=f"Auto-generated from Purchase ID {self.id}. Invoice: {self.invoice_number}"
                 )
 

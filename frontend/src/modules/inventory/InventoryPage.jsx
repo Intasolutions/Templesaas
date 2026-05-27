@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import api from "../../shared/api/client";
 import { useAuth } from "../../context/AuthContext";
+import { useNotify, useConfirm } from "../../context/NotificationContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Package, 
@@ -28,23 +29,26 @@ import {
   AlertCircle
 } from "lucide-react";
 import Pagination from "../../components/common/Pagination";
+import ModernInput from "../../components/ui/ModernInput";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
+import { ValidationUtils } from "../../shared/utils/ValidationUtils";
 
 export default function InventoryPage() {
   const { t } = useTranslation();
   const { checkPermission } = useAuth();
+  const notify = useNotify();
+  const confirm = useConfirm();
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
-  // Pagination State
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const pageSize = 10;
   const totalPages = Math.ceil(count / pageSize) || 1;
 
-  // Form / Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -61,7 +65,9 @@ export default function InventoryPage() {
   });
   const [catForm, setCatForm] = useState({ name: "" });
   const [isTxnModalOpen, setIsTxnModalOpen] = useState(false);
-  const [txnForm, setTxnForm] = useState({ item: "", type: "in", qty: "", price: "", note: "" });
+  const [txnForm, setTxnForm] = useState({ item: "", type: "in", qty: "", price: "", note: "", payment_mode: "cash", bank_account: null });
+  const [errors, setErrors] = useState({});
+  const [bankAccounts, setBankAccounts] = useState([]);
   const [activeTab, setActiveTab] = useState("items");
   const [transactions, setTransactions] = useState([]);
   const [report, setReport] = useState({ in_val: 0, out_val: 0 });
@@ -74,7 +80,15 @@ export default function InventoryPage() {
     }
     fetchCategories();
     fetchReport();
+    fetchBankAccounts();
   }, [page, searchTerm, categoryFilter, activeTab]);
+
+  async function fetchBankAccounts() {
+    try {
+      const res = await api.get('/finance/bank-accounts/');
+      setBankAccounts(res.data.results || res.data || []);
+    } catch (e) { console.error(e); }
+  }
 
   async function fetchReport() {
     try {
@@ -133,35 +147,19 @@ export default function InventoryPage() {
     }
   }
 
-  function handleOpenAdd() {
-    setEditingItem(null);
-    setForm({
-      name: "",
-      category: categories[0]?.id || "",
-      current_stock: "0",
-      reorder_level: "5",
-      unit: "pcs",
-      location: "Main Store",
-      description: "",
-    });
-    setErrorMsg("");
-    setIsModalOpen(true);
-  }
+  const updateForm = (key, val) => {
+    setForm(prev => ({ ...prev, [key]: val }));
+  };
 
-  function handleOpenEdit(item) {
-    setEditingItem(item);
-    setForm({
-      name: item.name,
-      category: item.category?.id || item.category || "",
-      current_stock: item.current_stock,
-      reorder_level: item.reorder_level,
-      unit: item.unit,
-      location: item.location || "Main Store",
-      description: item.description || "",
-    });
-    setErrorMsg("");
-    setIsModalOpen(true);
-  }
+  const updateTxnForm = (key, val) => {
+    let err = null;
+    if (key === 'qty') err = parseFloat(val) <= 0 ? "Quantity must be positive" : null;
+    if (key === 'price') err = ValidationUtils.validators.amount(val);
+    if (key === 'bank_account') err = ValidationUtils.validators.bankAccount(txnForm.payment_mode, val);
+
+    setTxnForm(prev => ({ ...prev, [key]: val }));
+    setErrors(prev => ({ ...prev, [key]: err }));
+  };
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
@@ -181,6 +179,7 @@ export default function InventoryPage() {
       }
       setIsModalOpen(false);
       fetchInventory();
+      notify.success(editingItem ? "Item updated" : "Item created");
     } catch (err) {
       const data = err.response?.data;
       setErrorMsg(typeof data === 'object' ? Object.values(data)[0] : "Request failed");
@@ -191,6 +190,15 @@ export default function InventoryPage() {
 
   async function handleSaveTransaction(e) {
     if (e) e.preventDefault();
+    const qtyErr = parseFloat(txnForm.qty) <= 0 ? "Quantity must be positive" : null;
+    const priceErr = txnForm.type === 'in' ? ValidationUtils.validators.amount(txnForm.price) : null;
+    const bankErr = ValidationUtils.validators.bankAccount(txnForm.payment_mode, txnForm.bank_account);
+
+    if (qtyErr || priceErr || bankErr) {
+        setErrors({ qty: qtyErr, price: priceErr, bank_account: bankErr });
+        return notify.warn("Please fix highlighted errors.");
+    }
+
     setSubmitting(true);
     try {
       await api.post("/inventory/transactions/", {
@@ -198,12 +206,16 @@ export default function InventoryPage() {
         txn_type: txnForm.type,
         quantity: Number(txnForm.qty),
         unit_price: Number(txnForm.price || 0),
-        note: txnForm.note
+        note: txnForm.note,
+        payment_mode: txnForm.payment_mode,
+        bank_account: txnForm.bank_account
       });
       setIsTxnModalOpen(false);
+      setErrors({});
       fetchInventory();
+      notify.success('Stock movement recorded successfully');
     } catch (err) {
-       alert(err.response?.data?.quantity || "Failed to record transaction.");
+       notify.error(err.response?.data?.quantity || "Failed to record transaction.");
     } finally {
       setSubmitting(false);
     }
@@ -216,19 +228,27 @@ export default function InventoryPage() {
       setIsCatModalOpen(false);
       setCatForm({ name: "" });
       fetchCategories();
+      notify.success('Category added successfully');
     } catch (err) {
-      alert("Failed to add category.");
+      notify.error("Failed to add category.");
     }
   }
 
   async function handleDelete(id) {
-    if (!window.confirm("Archive this item from inventory?")) return;
-    try {
-      await api.delete(`/inventory/items/${id}/`);
-      fetchInventory();
-    } catch (e) {
-      alert("Delete failed.");
-    }
+    confirm({
+      title: 'Archive Inventory Item',
+      message: 'Are you sure you want to archive this item?',
+      confirmText: 'Archive Item',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/inventory/items/${id}/`);
+          notify.success('Item archived successfully');
+          fetchInventory();
+        } catch (e) {
+          notify.error("Delete failed.");
+        }
+      }
+    });
   }
 
   const criticalItemsCount = useMemo(() => {
@@ -237,17 +257,14 @@ export default function InventoryPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-20 px-4">
-      {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 py-4">
         <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-yellow-900/10">
+            <div className="h-12 w-12 bg-slate-900 rounded-xl flex items-center justify-center text-white">
                 <Box size={24} />
             </div>
             <div>
-               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventory Management</h1>
-               <p className="text-xs font-medium text-slate-500 mt-0.5">
-                   Maintain records of temple stocks, supplies, and ritual materials
-               </p>
+               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Inventory Hub</h1>
+               <p className="text-xs font-medium text-slate-500 mt-0.5">Maintain temple stocks and supplies</p>
             </div>
         </div>
 
@@ -260,23 +277,21 @@ export default function InventoryPage() {
               placeholder="Search items..."
             />
           </div>
-          {checkPermission('inventory', 'view') && (
-            <button onClick={() => setIsCatModalOpen(true)} className="h-10 px-4 bg-white border border-slate-200 text-slate-600 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-slate-50 transition-all">
-                <Layers size={14} /> Categories
-            </button>
-          )}
           {checkPermission('inventory', 'edit') && (
             <div className="flex gap-2">
+              <button onClick={() => setIsCatModalOpen(true)} className="h-10 px-4 bg-white border border-slate-200 rounded-lg text-xs font-bold uppercase flex items-center gap-2 hover:bg-slate-50 transition-all">
+                <Layers size={14} /> Categories
+              </button>
               <button 
                 onClick={() => {
-                  setTxnForm({ item: "", type: "in", qty: "", price: "", note: "" });
+                  setTxnForm({ item: "", type: "in", qty: "", price: "", note: "", payment_mode: "cash", bank_account: null });
                   setIsTxnModalOpen(true);
                 }} 
-                className="h-10 px-4 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-lg font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                className="h-10 px-4 bg-emerald-600 text-white rounded-lg font-bold text-xs uppercase flex items-center gap-2 shadow-md hover:bg-emerald-700 transition-all"
               >
                   <Plus size={16} /> Stock In
               </button>
-              <button onClick={handleOpenAdd} className="h-10 px-5 bg-slate-900 text-white rounded-lg font-bold text-xs uppercase tracking-widest flex items-center gap-2 shadow-md hover:bg-slate-800 active:scale-95 transition-all">
+              <button onClick={() => { setEditingItem(null); setForm({ name: "", category: "", current_stock: "0", reorder_level: "5", unit: "pcs", location: "Main Store", description: "" }); setIsModalOpen(true); }} className="h-10 px-5 bg-slate-900 text-white rounded-lg font-bold text-xs uppercase flex items-center gap-2 shadow-md hover:bg-slate-800 transition-all">
                 <Archive size={16} /> Create Item
               </button>
             </div>
@@ -284,327 +299,197 @@ export default function InventoryPage() {
         </div>
       </header>
 
-      {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
          <StatCard label="Total Items" value={count} icon={<Database size={18} />} color="slate" />
-         <StatCard label="Low Stocks" value={criticalItemsCount} icon={<AlertTriangle size={18} />} color="emerald" trend={criticalItemsCount > 0 ? "Check Required" : "Stable"} />
-         <StatCard label="Total Purchases" value={`₹ ${Number(report.in_val).toLocaleString()}`} icon={<Box size={18} />} color="blue" trend="Life-time" />
-         <StatCard label="Total Consumption" value={`₹ ${Number(report.out_val).toLocaleString()}`} icon={<RefreshCw size={18} />} color="blue" trend="Materials Used" />
+         <StatCard label="Low Stocks" value={criticalItemsCount} icon={<AlertTriangle size={18} />} color="emerald" trend={criticalItemsCount > 0 ? "Action Required" : "Stable"} />
+         <StatCard label="Purchase Val" value={`₹${Number(report.in_val).toLocaleString()}`} icon={<Box size={18} />} color="slate" />
+         <StatCard label="Usage Val" value={`₹${Number(report.out_val).toLocaleString()}`} icon={<RefreshCw size={18} />} color="slate" />
       </div>
 
-      {/* Tab Switcher */}
       <div className="flex border-b border-slate-100">
-         <button onClick={() => { setActiveTab("items"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'items' ? 'border-primary text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            Master Inventory
-         </button>
-         <button onClick={() => { setActiveTab("history"); setPage(1); }} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest transition-all border-b-2 ${activeTab === 'history' ? 'border-primary text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            Stock Log & Prices
-         </button>
+         <button onClick={() => setActiveTab("items")} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === 'items' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400'}`}>Inventory</button>
+         <button onClick={() => setActiveTab("history")} className={`px-8 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === 'history' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400'}`}>Transactions</button>
       </div>
 
-      {/* Filter Ribbon */}
-      {activeTab === 'items' && (
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 custom-scrollbar">
-           <button onClick={() => setCategoryFilter("all")} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm ${categoryFilter === "all" ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>All Items</button>
-           {categories.map(cat => (
-              <button key={cat.id} onClick={() => setCategoryFilter(cat.id)} className={`px-5 h-9 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-sm whitespace-nowrap ${categoryFilter === cat.id ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-600'}`}>{cat.name}</button>
-           ))}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          {activeTab === 'items' ? (
+            <ResponsiveTable
+              columns={[
+                {
+                  header: "Item",
+                  key: "name",
+                  mobileLabel: "Item Details",
+                  render: (item) => (
+                    <div>
+                      <div className="font-bold text-slate-900">{item.name}</div>
+                      <div className="text-[9px] font-bold text-slate-300 uppercase mt-1">#INV-{item.id}</div>
+                    </div>
+                  )
+                },
+                {
+                  header: "Category",
+                  key: "category",
+                  render: (item) => <span className="px-2 py-0.5 bg-slate-100 text-[9px] font-bold text-slate-500 rounded-md uppercase">{item.category_name || "Misc"}</span>
+                },
+                {
+                  header: "Stock",
+                  key: "stock",
+                  align: "center",
+                  render: (item) => (
+                    <span className={`text-sm font-bold ${Number(item.current_stock) <= Number(item.reorder_level) ? 'text-rose-500' : 'text-slate-900'}`}>
+                      {item.current_stock} <span className="text-[10px] text-slate-400">{item.unit}</span>
+                    </span>
+                  )
+                },
+                {
+                  header: "Location",
+                  key: "location",
+                  render: (item) => <span className="text-xs font-bold text-slate-500">{item.location}</span>
+                },
+                {
+                  header: "Actions",
+                  key: "actions",
+                  align: "right",
+                  render: (item) => (
+                    <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                      <button onClick={(e) => { e.stopPropagation(); setEditingItem(item); setForm({ ...item, category: item.category?.id || item.category }); setIsModalOpen(true); }} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all"><Edit size={14} /></button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} className="p-2 hover:bg-rose-50 rounded-lg text-slate-400 hover:text-rose-500 transition-all"><Trash2 size={14} /></button>
+                    </div>
+                  )
+                }
+              ]}
+              data={items}
+              loading={loading}
+              emptyMessage="No items found."
+            />
+          ) : (
+            <ResponsiveTable
+              columns={[
+                {
+                  header: "Date",
+                  key: "date",
+                  render: (txn) => <span className="text-xs font-bold text-slate-900">{new Date(txn.created_at).toLocaleDateString()}</span>
+                },
+                {
+                  header: "Item",
+                  key: "item",
+                  mobileLabel: "Item & Stock",
+                  render: (txn) => <span className="font-bold text-slate-900">{txn.item_name}</span>
+                },
+                {
+                  header: "Quantity",
+                  key: "quantity",
+                  align: "center",
+                  render: (txn) => (
+                    <span className={`font-bold ${txn.txn_type === 'in' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {txn.txn_type === 'in' ? '+' : '-'}{txn.quantity}
+                    </span>
+                  )
+                },
+                {
+                  header: "Value",
+                  key: "value",
+                  align: "right",
+                  render: (txn) => <span className="font-bold text-slate-900">₹{(txn.quantity * txn.unit_price).toLocaleString()}</span>
+                }
+              ]}
+              data={transactions}
+              loading={loading}
+              emptyMessage="No transactions found."
+            />
+          )}
         </div>
-      )}
+        <div className="p-8 border-t border-slate-50">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} count={count} pageSize={pageSize} />
+        </div>
+      </div>
 
-      {/* Data Table */}
-      {loading ? (
-        <div className="py-24 text-center text-xs font-bold text-slate-300 uppercase tracking-widest animate-pulse">
-            Loading inventory records...
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden min-h-[400px]">
-          <div className="overflow-x-auto text-[13px]">
-            {activeTab === 'items' ? (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Item Name</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Category</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Remaining Stock</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Storage Location</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {items.length === 0 ? (
-                    <tr><td colSpan="5" className="py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No items found</td></tr>
-                  ) : items.map(item => {
-                    const isLow = Number(item.current_stock) <= Number(item.reorder_level);
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
-                        <td className="px-8 py-5">
-                           <div className="flex flex-col">
-                              <span className="font-bold text-slate-900 truncate max-w-[200px]">{item.name}</span>
-                              <span className="text-[10px] font-medium text-slate-400 mt-0.5">Ref: #INV-{item.id}</span>
-                           </div>
-                        </td>
-                        <td className="px-8 py-5">
-                           <span className="px-2.5 py-0.5 bg-slate-100 text-[10px] font-bold text-slate-500 rounded-full border border-slate-100 uppercase tracking-tight">
-                              {item.category_name || "Uncategorized"}
-                           </span>
-                        </td>
-                        <td className="px-8 py-5 text-center">
-                           <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-baseline gap-1.5">
-                                 <span className={`text-lg font-bold tracking-tight ${isLow ? 'text-red-500' : 'text-slate-900'}`}>{item.current_stock}</span>
-                                 <span className="text-[10px] font-bold text-slate-400 uppercase">{item.unit}</span>
-                              </div>
-                              {isLow && (
-                                 <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-50 text-red-500 rounded-full border border-red-100 animate-pulse">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Low Stock</span>
-                                  </div>
-                              )}
-                           </div>
-                        </td>
-                        <td className="px-8 py-5">
-                           <div className="flex items-center gap-2">
-                              <div className="h-8 w-8 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-                                 <MapPin size={14} />
-                              </div>
-                              <span className="text-xs font-semibold text-slate-600">{item.location || "Main Store"}</span>
-                           </div>
-                        </td>
-                        <td className="px-8 py-5 text-right">
-                           <div className="flex justify-end gap-1">
-                              {checkPermission('inventory', 'edit') && (
-                                  <button onClick={() => handleOpenEdit(item)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
-                                      <Edit size={14} />
-                                  </button>
-                              )}
-                              {checkPermission('inventory', 'delete') && (
-                                  <button onClick={() => handleDelete(item.id)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                                      <Trash2 size={14} />
-                                  </button>
-                              )}
-                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            ) : (
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100">
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Date & Ref</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Item</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Qty & Type</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-center">Unit Price</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Total Value</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {transactions.length === 0 ? (
-                    <tr><td colSpan="5" className="py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No transaction history found</td></tr>
-                  ) : transactions.map(txn => (
-                    <tr key={txn.id} className="hover:bg-slate-50/50 transition-all group">
-                      <td className="px-8 py-5">
-                         <div className="flex flex-col">
-                            <span className="font-bold text-slate-900 leading-none">{new Date(txn.created_at).toLocaleDateString()}</span>
-                            <span className="text-[10px] font-medium text-slate-400 mt-1 uppercase">ID: TXN-{txn.id}</span>
-                         </div>
-                      </td>
-                      <td className="px-8 py-5">
-                         <div className="flex flex-col">
-                            <span className="font-bold text-slate-900 leading-none">{txn.item_name}</span>
-                            <span className="text-[10px] font-medium text-slate-400 mt-1 uppercase">{txn.item_category}</span>
-                         </div>
-                      </td>
-                      <td className="px-8 py-5 text-center">
-                         <div className="flex flex-col items-center gap-1">
-                            <span className={`text-base font-bold ${txn.txn_type === 'in' ? 'text-emerald-600' : 'text-red-600'}`}>
-                               {txn.txn_type === 'in' ? '+' : '-'}{txn.quantity}
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{txn.txn_type === 'in' ? 'Stock In' : 'Usage'}</span>
-                         </div>
-                      </td>
-                      <td className="px-8 py-5 text-center">
-                         <span className="text-xs font-semibold text-slate-600">
-                            {txn.unit_price > 0 ? `₹ ${txn.unit_price}` : '-'}
-                         </span>
-                      </td>
-                      <td className="px-8 py-5 text-right">
-                         <span className="text-sm font-bold text-slate-900">
-                            {txn.unit_price > 0 ? `₹ ${(txn.quantity * txn.unit_price).toLocaleString()}` : '-'}
-                         </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-          
-          <div className="p-8 border-t border-slate-50 bg-slate-50/20">
-             <Pagination 
-                currentPage={page} 
-                totalPages={totalPages} 
-                onPageChange={setPage} 
-                count={count} 
-                pageSize={pageSize} 
-             />
-          </div>
-        </div>
-      )}
-
-      {/* Form Modal */}
+      {/* Main Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => !submitting && setIsModalOpen(false)} />
-            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="bg-white rounded-2xl shadow-2xl relative z-10 w-full max-w-2xl flex flex-col overflow-hidden border border-slate-100">
-               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                  <div className="flex items-center gap-3">
-                     <div className="h-9 w-9 bg-slate-900 rounded-lg flex items-center justify-center text-white">
-                        <Box size={20} />
-                     </div>
-                     <div>
-                        <h2 className="text-base font-bold text-slate-900">{editingItem ? 'Edit Inventory Item' : 'New Inventory Record'}</h2>
-                        <p className="text-[10px] font-medium text-slate-400 mt-0.5 uppercase tracking-wider">Fill in the item details and stock levels</p>
-                     </div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-slate-100">
+               <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                  <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tighter">{editingItem ? 'Update Item' : 'New Inventory Item'}</h2>
+                  <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-all"><X size={20} /></button>
+               </div>
+               <form onSubmit={handleSubmit} className="p-10 space-y-8">
+                  <div className="grid grid-cols-2 gap-6">
+                    <ModernInput label="Name" value={form.name} onChange={e => updateForm('name', e.target.value)} icon={Package} />
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Category</label>
+                        <select value={form.category} onChange={e => updateForm('category', e.target.value)} className="w-full h-13 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner appearance-none cursor-pointer text-xs">
+                           <option value="">Select Category</option>
+                           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                    </div>
                   </div>
-                  <button onClick={() => setIsModalOpen(false)} className="h-8 w-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-all">
-                     <X size={20} />
+                  <div className="grid grid-cols-3 gap-6">
+                    <ModernInput type="number" label="Stock" value={form.current_stock} onChange={e => updateForm('current_stock', e.target.value)} icon={Database} />
+                    <ModernInput type="number" label="Alert" value={form.reorder_level} onChange={e => updateForm('reorder_level', e.target.value)} icon={AlertTriangle} />
+                    <ModernInput label="Unit" value={form.unit} onChange={e => updateForm('unit', e.target.value)} icon={Info} />
+                  </div>
+                  <ModernInput label="Location" value={form.location} onChange={e => updateForm('location', e.target.value)} icon={MapPin} />
+                  <button type="submit" className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-slate-800 transition-all">
+                    {editingItem ? "Finalize Updates" : "Initialize Item"}
                   </button>
-               </div>
-
-               <div className="p-8 overflow-y-auto max-h-[70vh] custom-scrollbar bg-white">
-                  <form id="inv-form" onSubmit={handleSubmit} className="space-y-8">
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputGroup label="Item Name" value={form.name} onChange={val => setForm({...form, name: val})} placeholder="e.g. Ghee / Coconut" icon={Package} />
-                        <div className="space-y-2.5">
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Category</label>
-                            <div className="relative">
-                                <Layers size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                                <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl pl-12 pr-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all appearance-none cursor-pointer">
-                                    <option value="">Select Category</option>
-                                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                </select>
-                                <ChevronRight size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none rotate-90" />
-                            </div>
-                        </div>
-                     </div>
-
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <InputGroup type="number" label="Current Stock" value={form.current_stock} onChange={val => setForm({...form, current_stock: val})} placeholder="0" icon={Database} />
-                        <InputGroup type="number" label="Low Stock Alert Level" value={form.reorder_level} onChange={val => setForm({...form, reorder_level: val})} placeholder="5" icon={AlertTriangle} />
-                        <InputGroup label="Unit of Measure" value={form.unit} onChange={val => setForm({...form, unit: val})} placeholder="kg / pcs / ltr" icon={Info} />
-                     </div>
-
-                     <InputGroup label="Storage Location" value={form.location} onChange={val => setForm({...form, location: val})} placeholder="e.g. Main Kitchen / Store Room" icon={MapPin} />
-
-                     <div className="space-y-2.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Notes / Description</label>
-                        <textarea rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all resize-none text-sm" placeholder="Additional details or handling instructions..." />
-                     </div>
-
-                     {errorMsg && (
-                        <div className="p-4 bg-red-50 text-red-500 rounded-xl flex items-center gap-3 border border-red-100 text-xs font-bold">
-                           <AlertCircle size={18} /> {errorMsg}
-                        </div>
-                     )}
-                  </form>
-               </div>
-
-               <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end items-center gap-4">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="text-xs font-bold text-slate-400 hover:text-slate-900 transition-colors">Cancel</button>
-                  <button form="inv-form" disabled={submitting} className="px-8 py-2.5 bg-slate-900 text-white rounded-lg font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg hover:bg-slate-800 transition-all active:scale-95">
-                     {submitting ? <RefreshCw className="animate-spin" size={16} /> : (editingItem ? 'Update Item' : 'Add Item')}
-                  </button>
-               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Category Modal */}
-      <AnimatePresence>
-        {isCatModalOpen && (
-          <div className="fixed inset-0 z-[210] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsCatModalOpen(false)} />
-            <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="bg-white rounded-xl shadow-2xl relative z-10 w-full max-w-sm flex flex-col overflow-hidden border border-slate-100">
-               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                  <h2 className="text-sm font-bold text-slate-900 uppercase tracking-tight">Manage Categories</h2>
-                  <button onClick={() => setIsCatModalOpen(false)} className="text-slate-400 hover:text-slate-900 transition-all"><X size={20} /></button>
-               </div>
-               <form onSubmit={handleSaveCategory} className="p-8 space-y-6">
-                  <InputGroup label="New Category Name" value={catForm.name} onChange={val => setCatForm({ name: val })} placeholder="e.g. Pooja Items" icon={Layers} />
-                  <button type="submit" className="w-full h-11 bg-slate-900 text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-md hover:bg-slate-800 transition-all">Add Category</button>
                </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Stock Transaction Modal */}
+      {/* Transaction Modal */}
       <AnimatePresence>
         {isTxnModalOpen && (
           <div className="fixed inset-0 z-[220] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => !submitting && setIsTxnModalOpen(false)} />
-             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="bg-white rounded-3xl shadow-2xl relative z-10 w-full max-w-lg flex flex-col overflow-hidden border border-slate-100">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
-                   <div>
-                      <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                         <ShieldCheck size={14} /> Audit Trail Verified
-                      </p>
-                      <h2 className="text-xl font-bold text-slate-900 tracking-tight">Record Stock Movement</h2>
-                      <p className="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-wider">Log purchases or material usage</p>
-                   </div>
-                   <button onClick={() => setIsTxnModalOpen(false)} className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-white text-slate-400 border border-transparent hover:border-slate-200 transition-all shadow-sm">
-                      <X size={20} />
-                   </button>
-                </div>
-
-                <form onSubmit={handleSaveTransaction} className="p-10 space-y-8 bg-white">
-                   <div className="grid grid-cols-2 gap-4 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
-                      <button type="button" onClick={() => setTxnForm({...txnForm, type: 'in'})} className={`h-11 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${txnForm.type === 'in' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>Stock In (Purchase)</button>
-                      <button type="button" onClick={() => setTxnForm({...txnForm, type: 'out'})} className={`h-11 rounded-xl text-[11px] font-bold uppercase tracking-widest transition-all ${txnForm.type === 'out' ? 'bg-red-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}>Stock Out (Usage)</button>
-                   </div>
-
-                   <div className="space-y-6">
-                      <div className="space-y-2.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Inventory Item</label>
-                        <select required value={txnForm.item} onChange={e => setTxnForm({...txnForm, item: e.target.value})} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-semibold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all appearance-none cursor-pointer">
-                           <option value="">Select Item...</option>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setIsTxnModalOpen(false)} />
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-slate-100">
+               <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/30">
+                  <h2 className="text-xl font-bold text-slate-900 uppercase tracking-tighter">Stock Movement</h2>
+                  <button onClick={() => setIsTxnModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-full transition-all"><X size={20} /></button>
+               </div>
+               <form onSubmit={handleSaveTransaction} className="p-10 space-y-8">
+                  <div className="grid grid-cols-2 gap-4 p-1.5 bg-slate-100 rounded-2xl border border-slate-200">
+                      <button type="button" onClick={() => setTxnForm({...txnForm, type: 'in'})} className={`h-11 rounded-xl text-[10px] font-bold uppercase transition-all ${txnForm.type === 'in' ? 'bg-emerald-600 text-white shadow-lg' : 'text-slate-400'}`}>Stock In</button>
+                      <button type="button" onClick={() => setTxnForm({...txnForm, type: 'out'})} className={`h-11 rounded-xl text-[10px] font-bold uppercase transition-all ${txnForm.type === 'out' ? 'bg-rose-600 text-white shadow-lg' : 'text-slate-400'}`}>Stock Out</button>
+                  </div>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Item</label>
+                        <select required value={txnForm.item} onChange={e => updateTxnForm('item', e.target.value)} className="w-full h-13 bg-slate-50 border border-slate-100 rounded-2xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner appearance-none cursor-pointer text-xs">
+                           <option value="">Select...</option>
                            {items.map(it => <option key={it.id} value={it.id}>{it.name} ({it.unit})</option>)}
                         </select>
-                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <ModernInput label="Quantity" type="number" value={txnForm.qty} error={errors.qty} onChange={e => updateTxnForm('qty', e.target.value)} icon={Database} />
+                        {txnForm.type === 'in' && <ModernInput label="Unit Price" type="number" value={txnForm.price} error={errors.price} onChange={e => updateTxnForm('price', e.target.value)} icon={Archive} />}
+                    </div>
+                    <ModernInput label="Note" value={txnForm.note} onChange={e => updateTxnForm('note', e.target.value)} />
+                  </div>
+                  <button type="submit" className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl hover:bg-slate-800 transition-all">Record Transaction</button>
+               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
-                      <div className="grid grid-cols-2 gap-6">
-                         <InputGroup type="number" label="Quantity" value={txnForm.qty} onChange={val => setTxnForm({...txnForm, qty: val})} placeholder="0.00" icon={Database} />
-                         {txnForm.type === 'in' && (
-                            <InputGroup type="number" label="Unit Price (Cost)" value={txnForm.price} onChange={val => setTxnForm({...txnForm, price: val})} placeholder="₹ 0.00" icon={Archive} />
-                         )}
-                      </div>
-
-                      {txnForm.type === 'in' && txnForm.qty && txnForm.price && (
-                        <div className="p-6 bg-slate-900 rounded-2xl text-white flex justify-between items-center shadow-xl shadow-slate-900/10 transition-all animate-in slide-in-from-bottom-2">
-                           <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Estimated Spend</span>
-                           <div className="text-right">
-                              <div className="text-2xl font-bold tracking-tight">₹ {Number(txnForm.qty * txnForm.price).toLocaleString()}</div>
-                              <div className="text-[10px] font-medium text-white/30 uppercase tracking-widest mt-0.5">Auto-calculated bill</div>
-                           </div>
-                        </div>
-                      )}
-
-                      <div className="space-y-2.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">Reference / Note</label>
-                        <input value={txnForm.note} onChange={e => setTxnForm({...txnForm, note: e.target.value})} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 font-semibold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all text-sm" placeholder="e.g. Monthly refill / Store usage" />
-                      </div>
-                   </div>
-
-                   <button type="submit" disabled={submitting} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[13px] uppercase tracking-[0.2em] shadow-2xl hover:bg-slate-800 transition-all active:scale-95 flex items-center justify-center gap-3">
-                      {submitting ? <RefreshCw className="animate-spin" size={20} /> : (txnForm.type === 'in' ? 'Record Purchase' : 'Record Usage')}
-                   </button>
-                </form>
-             </motion.div>
+      {/* Category Modal Mini */}
+      <AnimatePresence>
+        {isCatModalOpen && (
+          <div className="fixed inset-0 z-[210] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsCatModalOpen(false)} />
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white w-full max-w-sm rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-slate-100 p-8 space-y-6">
+               <h2 className="text-lg font-bold text-slate-900 uppercase tracking-tighter">Add Category</h2>
+               <ModernInput label="Category Name" value={catForm.name} onChange={val => setCatForm({ name: val })} />
+               <div className="flex gap-4">
+                  <button onClick={() => setIsCatModalOpen(false)} className="flex-1 h-12 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-all">Cancel</button>
+                  <button onClick={handleSaveCategory} className="flex-1 h-12 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all">Save</button>
+               </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -614,42 +499,18 @@ export default function InventoryPage() {
 
 function StatCard({ label, value, icon, trend, color }) {
     const colors = {
-        slate: 'bg-slate-50 text-slate-400',
+        slate: 'bg-slate-100 text-slate-400',
         emerald: 'bg-emerald-50 text-emerald-500',
-        blue: 'bg-blue-50 text-blue-500'
     };
-
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-4 hover:border-primary/20 transition-all group">
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${colors[color] || 'bg-slate-50'}`}>
-                {icon}
-            </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+            <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${colors[color] || 'bg-slate-100'}`}>{icon}</div>
             <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-                <div className="flex items-baseline gap-2">
-                   <p className="text-2xl font-bold text-slate-900 tracking-tight leading-none">{value}</p>
-                   {trend && <span className="text-[9px] font-bold text-emerald-600">{trend}</span>}
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+                <div className="flex items-center gap-2">
+                    <p className="text-xl font-bold text-slate-900 tracking-tight">{value}</p>
+                    {trend && <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded uppercase">{trend}</span>}
                 </div>
-            </div>
-        </div>
-    );
-}
-
-function InputGroup({ label, value, onChange, placeholder, icon: Icon, type="text" }) {
-    return (
-        <div className="space-y-2.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 ml-1">
-                {label}
-            </label>
-            <div className="relative group">
-                {Icon && <Icon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" />}
-                <input 
-                    type={type}
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    placeholder={placeholder}
-                    className={`w-full h-11 bg-slate-50 border border-slate-200 rounded-xl ${Icon ? 'pl-11' : 'pl-4'} pr-4 font-semibold text-sm text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all`}
-                />
             </div>
         </div>
     );

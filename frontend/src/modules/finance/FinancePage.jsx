@@ -25,6 +25,9 @@ import {
 } from 'lucide-react';
 import api from '../../shared/api/client';
 import { useTranslation } from "react-i18next";
+import ModernInput from '../../components/ui/ModernInput';
+import { ValidationUtils } from '../../shared/utils/ValidationUtils';
+import { useNotify } from '../../context/NotificationContext';
 
 const CATEGORY_MAP = {
     'ritual_fees': { label: 'Ritual Fees', color: 'text-emerald-500', bg: 'bg-emerald-50' },
@@ -37,14 +40,23 @@ const CATEGORY_MAP = {
     'other': { label: 'Miscellaneous', color: 'text-slate-400', bg: 'bg-slate-50' }
 };
 
+const PAYMODE_MAP = {
+    'cash': 'Cash',
+    'bank': 'Bank Transfer',
+    'upi': 'UPI',
+    'card': 'Card'
+};
+
 export default function FinancePage() {
     const { t } = useTranslation();
+    const notify = useNotify();
     const [summary, setSummary] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [errors, setErrors] = useState({});
     
     const [form, setForm] = useState({
         txn_type: 'expense',
@@ -52,12 +64,37 @@ export default function FinancePage() {
         title: '',
         amount: '',
         date: new Date().toISOString().split('T')[0],
-        notes: ''
+        notes: '',
+        payment_mode: 'cash',
+        bank_account: null
     });
+
+    const [bankAccounts, setBankAccounts] = useState([]);
 
     useEffect(() => {
         fetchData();
+        fetchBankAccounts();
     }, []);
+
+    const fetchBankAccounts = async () => {
+        try {
+            const res = await api.get('/finance/bank-accounts/');
+            setBankAccounts(res.data.results || res.data || []);
+        } catch (err) {
+            console.error("Bank Load Error", err);
+        }
+    };
+
+    const updateForm = (key, val) => {
+        let err = null;
+        if (key === 'amount') err = ValidationUtils.validators.amount(val);
+        if (key === 'title') err = val.length < 3 ? "Title must be at least 3 characters" : null;
+        if (key === 'bank_account') err = ValidationUtils.validators.bankAccount(form.payment_mode, val);
+        if (key === 'date') err = ValidationUtils.validators.date(val);
+
+        setForm(prev => ({ ...prev, [key]: val }));
+        setErrors(prev => ({ ...prev, [key]: err }));
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -77,17 +114,35 @@ export default function FinancePage() {
 
     const handleAddTxn = async (e) => {
         e.preventDefault();
+        
+        // Final Validation
+        const newErrors = {
+            amount: ValidationUtils.validators.amount(form.amount),
+            title: form.title.length < 3 ? "Title must be at least 3 characters" : null,
+            bank_account: ValidationUtils.validators.bankAccount(form.payment_mode, form.bank_account),
+            date: ValidationUtils.validators.date(form.date)
+        };
+
+        const hasErrors = Object.values(newErrors).some(v => !!v);
+        if (hasErrors) {
+            setErrors(newErrors);
+            return notify.warn(t('fix_errors', "Please correct the highlighted errors."));
+        }
+
         setSubmitting(true);
         try {
             await api.post('/finance/transactions/', form);
             setIsAddOpen(false);
             setForm({
                 txn_type: 'expense', category: 'other', title: '', amount: '',
-                date: new Date().toISOString().split('T')[0], notes: ''
+                date: new Date().toISOString().split('T')[0], notes: '',
+                payment_mode: 'cash', bank_account: null
             });
+            setErrors({});
             fetchData();
+            notify.success(t('transaction_success', "Transaction recorded successfully"));
         } catch (err) {
-            alert("Record creation failed.");
+            notify.error(err.response?.data?.detail || "Record creation failed.");
         } finally {
             setSubmitting(false);
         }
@@ -295,13 +350,41 @@ export default function FinancePage() {
                                     </button>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Protocol Title</label>
-                                    <input 
-                                        required value={form.title} onChange={(e) => setForm({...form, title: e.target.value})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner"
-                                        placeholder="e.g., Temple Maintenance"
-                                    />
+                                <ModernInput 
+                                    label="Protocol Title" 
+                                    value={form.title} 
+                                    error={errors.title}
+                                    success={form.title.length >= 3}
+                                    onChange={e => updateForm('title', e.target.value)} 
+                                    placeholder="e.g., Temple Maintenance"
+                                    icon={ScrollText}
+                                />
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Payment Mode</label>
+                                        <select 
+                                            value={form.payment_mode} onChange={(e) => setForm({...form, payment_mode: e.target.value})}
+                                            className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs appearance-none"
+                                        >
+                                            {Object.entries(PAYMODE_MAP).map(([key, val]) => (
+                                                <option key={key} value={key}>{val}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Bank Account (If Bank/UPI)</label>
+                                        <select 
+                                            value={form.bank_account || ''} onChange={(e) => setForm({...form, bank_account: e.target.value || null})}
+                                            disabled={form.payment_mode === 'cash'}
+                                            className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs appearance-none disabled:opacity-50"
+                                        >
+                                            <option value="">No Account</option>
+                                            {bankAccounts.map(acc => (
+                                                <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6">
@@ -316,23 +399,27 @@ export default function FinancePage() {
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Total Remittance</label>
-                                        <input 
-                                            required type="number" value={form.amount} onChange={(e) => setForm({...form, amount: e.target.value})}
-                                            className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner"
-                                            placeholder="₹ 0.00"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] ml-1">Protocol Date</label>
-                                    <input 
-                                        type="date" required value={form.date} onChange={(e) => setForm({...form, date: e.target.value})}
-                                        className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner"
+                                    <ModernInput 
+                                        label="Total Remittance" 
+                                        type="number" 
+                                        value={form.amount} 
+                                        error={errors.amount}
+                                        success={form.amount >= 1}
+                                        onChange={e => updateForm('amount', e.target.value)} 
+                                        placeholder="₹ 0.00"
+                                        icon={DollarSign}
                                     />
                                 </div>
+
+                                <ModernInput 
+                                    label="Protocol Date" 
+                                    type="date" 
+                                    value={form.date} 
+                                    error={errors.date}
+                                    success={form.date && !errors.date}
+                                    onChange={e => updateForm('date', e.target.value)} 
+                                    icon={Calendar}
+                                />
 
                                 <div className="pt-6">
                                     <button 

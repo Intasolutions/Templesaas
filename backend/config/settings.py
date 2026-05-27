@@ -15,6 +15,8 @@ SECRET_KEY = env_config('SECRET_KEY', default='django-insecure-gs+nem@o2kq^i=fnz
 DEBUG = env_config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = env_config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+if DEBUG:
+    ALLOWED_HOSTS += ['.localhost', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -276,6 +278,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3002",
 ]
 
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^https://.*\.templesaas\.in$",
+    ]
+
 # If you use session auth from React later
 CORS_ALLOW_CREDENTIALS = True
 
@@ -295,6 +304,14 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3002",
     "http://127.0.0.1:3002",
 ]
+
+if DEBUG:
+    # Allow subdomains on localhost for CSRF as well
+    CSRF_TRUSTED_ORIGINS += [
+        "http://*.localhost:3000",
+        "http://*.localhost:3001",
+        "http://*.localhost:3002",
+    ]
 
 # --------------------------------------------
 # Development Email Backend

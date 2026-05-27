@@ -81,7 +81,7 @@ class Tenant(models.Model):
         if self.is_trial and not self.trial_ends_at:
             from django.utils import timezone
             from datetime import timedelta
-            self.trial_ends_at = timezone.now() + timedelta(days=7)
+            self.trial_ends_at = timezone.now() + timedelta(days=3)
         super().save(*args, **kwargs)
 
     def __str__(self):

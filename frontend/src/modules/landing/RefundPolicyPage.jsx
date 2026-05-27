@@ -4,39 +4,39 @@ const RefundPolicyPage = () => {
     return (
         <LegalLayout title="Refunds & Billing" effectiveDate="April 2026">
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">1. Subscription Model</h2>
-                <p className="font-medium text-slate-500 mb-6 font-mono text-sm leading-relaxed uppercase opacity-80">
-                    DEVALAYAM OS IS PROVIDED ON A RECURRING SUBSCRIPTION BASIS (MONTHLY OR ANNUAL). INSTITUTIONS ARE BILLED BASED ON SELECTED MODULES AND NODE DEPLOYMENTS.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">1. Monthly Subscriptions</h2>
+                <p className="mb-6">
+                    TempleSaaS works on a monthly or yearly plan. Once you pay for a month, you have full access to the software for that entire period.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">2. Auto-Renewal Terms</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    All institutional subscriptions are set to auto-renew to ensure continuous uptime and prevent mission-critical ritual booking outages. Invoices are generated 7 days prior to renewal.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">2. Automatic Payments</h2>
+                <p className="mb-6">
+                    To make sure your temple's counters never stop working, your plan will automatically renew each month. You will receive a clear bill on your registered email.
                 </p>
-                <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                    <p className="text-xs font-medium text-slate-500 leading-relaxed uppercase tracking-[0.2em] opacity-80">
-                        Automatic renewal may be deactivated via the <span className="text-slate-900 font-bold tracking-tight">Billing & Settings</span> node within the administrative dashboard.
+                <div className="p-8 bg-white rounded-3xl border border-wood/5">
+                    <p className="text-sm text-wood/60 leading-relaxed">
+                        You can turn off automatic renewal anytime in the <strong>Settings</strong> page of your temple dashboard.
                     </p>
                 </div>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">3. Refund Conditions</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    Payments made for subscriptions are non-refundable. Since Devalayam provides immediate provisioning of cloud infrastructure and node capacity, we do not offer partial refunds for unused time in a billing cycle.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">3. No Refund Policy</h2>
+                <p className="mb-6">
+                    We do not offer refunds once a payment is made. Since we provide the software and server space immediately, we cannot return the money for the current month.
                 </p>
-                <ul className="space-y-4 font-medium text-slate-500 text-sm">
-                    <li>• Institutional Errors: Fees paid for specific Vazhipadu bookings made by devotees through the gateway are managed by the Temple Trust's internal refund policy.</li>
-                    <li>• Duplicate Billing: In the event of a verified duplicated billing system error, a full credit will be applied to the next billing cycle.</li>
+                <ul className="space-y-4 text-sm">
+                    <li>• Devotee Refunds: If a devotee asks for a refund for a pooja booking, that must be handled by the temple office directly using the temple's own rules.</li>
+                    <li>• Double Payments: If you are accidentally charged twice for the same month, we will correct the mistake and apply the extra money to your next month's bill.</li>
                 </ul>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">4. Service Termination</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    In the event of institutional decommissioning, the Temple Trust must notify Devalayam 30 days in advance. Upon termination, institutional data is archived for 90 days before permanent node deletion.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">4. Stopping Service</h2>
+                <p className="mb-6">
+                    If your temple committee decides to stop using the software, please let us know. We will keep your temple data safe for 90 days in case you change your mind, after which it will be permanently deleted.
                 </p>
             </section>
         </LegalLayout>

@@ -22,7 +22,9 @@ class DonationSerializer(serializers.ModelSerializer):
     def get_donor_display_name(self, obj):
         if obj.is_anonymous:
             return "Anonymous"
-        return obj.display_name or obj.devotee.full_name
+        return obj.display_name or (obj.devotee.full_name if obj.devotee else "Unknown")
+
+    bank_account_name = serializers.CharField(source="bank_account.name", read_only=True)
 
     class Meta:
         model = Donation

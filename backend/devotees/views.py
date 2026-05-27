@@ -9,6 +9,7 @@ from django_filters.rest_framework import (
     DateFromToRangeFilter,
     CharFilter,
     NumberFilter,
+    BooleanFilter,
 )
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -41,6 +42,8 @@ class DevoteeFilter(FilterSet):
     # ✅ Optional (good to have): ?nakshatra=<id>
     nakshatra = NumberFilter(field_name="nakshatra__id")
 
+
+
     class Meta:
         model = Devotee
         fields = [
@@ -51,6 +54,7 @@ class DevoteeFilter(FilterSet):
             "pooja",
             "gothra",
             "nakshatra",
+            "is_trust_member",
         ]
 
 
@@ -85,6 +89,7 @@ class GothraListCreateView(TenantMixin, generics.ListCreateAPIView):
     search_fields = ["name"]
     ordering_fields = ["name"]
     ordering = ["name"]
+    pagination_class = None
 
 class GothraDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Gothra
@@ -102,6 +107,7 @@ class NakshatraListCreateView(TenantMixin, generics.ListCreateAPIView):
     search_fields = ["name"]
     ordering_fields = ["name"]
     ordering = ["name"]
+    pagination_class = None
 
 class NakshatraDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Nakshatra
@@ -238,9 +244,10 @@ class DevoteeStatsView(generics.GenericAPIView):
 
         # Identity verified count
         verified_count = qs.exclude(id_proof_type="").count()
+        trust_count = qs.filter(is_trust_member=True).count()
 
         return HttpResponse(
             status=200,
             content_type="application/json",
-            content=f'{{"count": {qs.count()}, "this_month": {this_month_count}, "trend": {round(trend, 1)}, "verified": {verified_count}}}'
+            content=f'{{"count": {qs.count()}, "trust_count": {trust_count}, "this_month": {this_month_count}, "trend": {round(trend, 1)}, "verified": {verified_count}}}'
         )

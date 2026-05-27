@@ -13,43 +13,32 @@ export default {
                     200: '#fed7aa',
                     300: '#fdba74',
                     400: '#fb923c',
-                    500: '#f97316', // Orange-500
+                    500: '#f97316', // Saffron
                     600: '#ea580c',
                     700: '#c2410c',
                     800: '#9a3412',
                     900: '#7c2d12',
                 },
-                secondary: {
-                    50: '#fdf4ff',
-                    100: '#fae8ff',
-                    200: '#f0d0ff',
-                    300: '#e879f9',
-                    400: '#d946ef',
-                    500: '#d946ef', // Fuchsia-500
-                    600: '#c026d3',
-                    700: '#a21caf',
-                    800: '#86198f',
-                    900: '#701a75',
+                accent: {
+                    500: '#8b5cf6',
                 },
                 gold: {
                     400: '#FACC15',
                     500: '#EAB308',
                     600: '#CA8A04',
-                },
-                dark: {
-                    bg: '#0f172a', // Slate-950
-                    card: '#1e293b', // Slate-800
-                    surface: '#334155', // Slate-700
                 }
             },
             fontFamily: {
                 sans: ['"Inter"', 'sans-serif'],
+                display: ['"Outfit"', 'sans-serif'],
                 serif: ['"Playfair Display"', 'serif'],
             },
             animation: {
                 'fade-in': 'fadeIn 0.5s ease-out',
-                'slide-up': 'slideUp 0.5s ease-out',
-                'pulse-slow': 'pulse 3s infinite',
+                'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'float': 'float 6s ease-in-out infinite',
+                'scale-in': 'scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
             },
             keyframes: {
                 fadeIn: {
@@ -57,11 +46,20 @@ export default {
                     '100%': { opacity: '1' },
                 },
                 slideUp: {
-                    '0%': { transform: 'translateY(10px)', opacity: '0' },
+                    '0%': { transform: 'translateY(20px)', opacity: '0' },
                     '100%': { transform: 'translateY(0)', opacity: '1' },
+                },
+                float: {
+                    '0%, 100%': { transform: 'translateY(0)' },
+                    '50%': { transform: 'translateY(-10px)' },
+                },
+                scaleIn: {
+                    '0%': { transform: 'scale(0.95)', opacity: '0' },
+                    '100%': { transform: 'scale(1)', opacity: '1' },
                 },
             },
         },
     },
     plugins: [],
 }
+

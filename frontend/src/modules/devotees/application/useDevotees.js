@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { DevoteeService } from "../infrastructure/DevoteeService";
+import { useNotify, useConfirm } from "../../../context/NotificationContext";
+import { ValidationUtils } from "../../../shared/utils/ValidationUtils";
 
 /**
  * Utility to extract DRF API validation errors
@@ -26,6 +28,8 @@ function extractDRFError(e) {
  */
 export function useDevotees() {
     const { t } = useTranslation();
+    const notify = useNotify();
+    const confirmDialog = useConfirm();
 
     // States
     const [loading, setLoading] = useState(false);
@@ -57,7 +61,9 @@ export function useDevotees() {
     const [form, setForm] = useState({
         full_name: "", phone: "", email: "", nakshatra: "",
         address: "", id_proof_type: "", id_proof_number: "", id_proof_file: null,
+        family_head: ""
     });
+    const [formErrors, setFormErrors] = useState({});
     const [masterForm, setMasterForm] = useState({ name: "" });
 
     const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
@@ -85,7 +91,7 @@ export function useDevotees() {
         setLoading(true);
         setError("");
         try {
-            const params = new URLSearchParams({ ordering, page, page_size: pageSize });
+            const params = new URLSearchParams({ ordering, page, page_size: pageSize, is_trust_member: 'true' });
             if (search) {
                 if (searchField === "id") params.append("id", search);
                 else if (searchField === "phone") params.append("phone", search);
@@ -110,44 +116,76 @@ export function useDevotees() {
     }, [page, search, searchField, ordering, dateFilter, tab, t]);
 
     const saveMaster = async () => {
-        if (!masterForm.name.trim()) return setError(t('name_required', "Name is required"));
+        const errors = {
+            name: ValidationUtils.validators.name(masterForm.name)
+        };
+        const hasErrors = Object.values(errors).some(v => !!v);
+        
+        if (hasErrors) {
+            setFormErrors(errors);
+            return notify.warn(t('fix_errors', "Please correct the highlighted errors."));
+        }
+
         try {
             if (editingId && tab === "nakshatras") {
-                await DevoteeService.updateNakshatra(editingId, { name: masterForm.name });
+                await DevoteeService.updateNakshatra(editingId, { 
+                    name: masterForm.name,
+                    name_ml: masterForm.name_ml 
+                });
             } else {
-                await DevoteeService.createNakshatra({ name: masterForm.name });
+                await DevoteeService.createNakshatra({ 
+                    name: masterForm.name,
+                    name_ml: masterForm.name_ml 
+                });
             }
             setMasterOpen(false);
-            setMasterForm({ name: "" });
+            setMasterForm({ name: "", name_ml: "" });
             setEditingId(null);
+            setFormErrors({});
             fetchMasters();
+            notify.success(editingId ? t('master_updated', 'Master record updated') : t('master_created', 'Master record created'));
         } catch (e) {
-            setError(extractDRFError(e));
+            notify.error(extractDRFError(e));
         }
     };
 
     const deleteDevotee = async (id) => {
-        if (!window.confirm(t('confirm_delete', "Are you sure you want to deactivate this record?"))) return;
-        try {
-            await DevoteeService.deleteDevotee(id);
-            fetchDevotees();
-        } catch (e) {
-            setError(t('delete_failed', "Failed to delete. Active dependencies might exist."));
-        }
+        confirmDialog({
+            title: t('deactivate_member', 'Deactivate Member'),
+            message: t('confirm_deactivate_msg', 'Are you sure you want to deactivate this trust member? This action is reversible by an administrator.'),
+            confirmText: 'Deactivate',
+            onConfirm: async () => {
+                try {
+                    await DevoteeService.deleteDevotee(id);
+                    notify.success(t('member_deactivated', 'Member deactivated successfully'));
+                    fetchDevotees();
+                } catch (e) {
+                    notify.error(t('delete_failed', "Failed to deactivate record. Active dependencies might exist."));
+                }
+            }
+        });
     };
 
     const deleteMaster = async (id) => {
-        if (!window.confirm(t('confirm_delete_master', "Are you sure? This cannot be undone."))) return;
-        try {
-            await DevoteeService.deleteNakshatra(id);
-            fetchMasters();
-        } catch (e) {
-            setError(t('delete_failed', "Failed to delete record."));
-        }
+        confirmDialog({
+            title: t('delete_master', 'Delete Master Record'),
+            message: t('confirm_delete_master_msg', 'Are you sure? This action cannot be undone and may affect associated records.'),
+            confirmText: 'Delete Forever',
+            onConfirm: async () => {
+                try {
+                    await DevoteeService.deleteNakshatra(id);
+                    notify.success(t('master_deleted', 'Master record deleted'));
+                    fetchMasters();
+                } catch (e) {
+                    notify.error(t('delete_failed', "Failed to delete record."));
+                }
+            }
+        });
     };
 
     const resetForm = () => {
-        setForm({ full_name: "", phone: "", email: "", nakshatra: "", address: "", id_proof_type: "", id_proof_number: "", id_proof_file: null });
+        setForm({ full_name: "", phone: "", email: "", nakshatra: "", address: "", id_proof_type: "", id_proof_number: "", id_proof_file: null, family_head: "" });
+        setFormErrors({});
         setEditingId(null);
         setError("");
     };
@@ -174,26 +212,63 @@ export function useDevotees() {
             id_proof_type: devotee.id_proof_type || "",
             id_proof_number: devotee.id_proof_number || "",
             id_proof_file: null,
+            is_trust_member: devotee.is_trust_member || false,
+            family_head: devotee.family_head || ""
         });
         setEditingId(devotee.id);
+        setFormErrors({});
         setAddOpen(true);
     };
 
+    const updateForm = (key, val) => {
+        let finalVal = val;
+        let error = null;
+
+        if (key === 'phone') {
+            finalVal = ValidationUtils.formatters.phone(val);
+            error = ValidationUtils.validators.phone(finalVal);
+        } else if (key === 'full_name') {
+            error = ValidationUtils.validators.name(val);
+        } else if (key === 'email') {
+            error = ValidationUtils.validators.email(val);
+        } else if (key === 'id_proof_number') {
+            if (form.id_proof_type === 'pan') error = ValidationUtils.validators.pan(val);
+            if (form.id_proof_type === 'aadhar') error = ValidationUtils.validators.aadhar(val);
+        }
+
+        setForm(prev => ({ ...prev, [key]: finalVal }));
+        setFormErrors(prev => ({ ...prev, [key]: error }));
+    };
+
     const saveDevotee = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         setError("");
-        if (!form.full_name.trim()) return setError(t('full_name_required', "Full name is required"));
-        if (!form.phone.trim()) return setError(t('phone_required', "Phone is required"));
+
+        // Final Validation Check
+        const errors = {
+            full_name: ValidationUtils.validators.name(form.full_name),
+            phone: ValidationUtils.validators.phone(form.phone)
+        };
+        if (form.id_proof_type === 'pan') errors.id_proof_number = ValidationUtils.validators.pan(form.id_proof_number);
+        if (form.id_proof_type === 'aadhar') errors.id_proof_number = ValidationUtils.validators.aadhar(form.id_proof_number);
+
+        const hasErrors = Object.values(errors).some(v => !!v);
+        if (hasErrors) {
+            setFormErrors(errors);
+            return notify.warn(t('fix_errors', "Please correct the highlighted errors before saving."));
+        }
 
         const formData = new FormData();
         formData.append("full_name", form.full_name);
-        formData.append("phone", form.phone);
+        formData.append("phone", ValidationUtils.formatters.unmaskPhone(form.phone));
         if (form.email) formData.append("email", form.email);
         if (form.nakshatra) formData.append("nakshatra", form.nakshatra);
         if (form.address) formData.append("address", form.address);
         if (form.id_proof_type) formData.append("id_proof_type", form.id_proof_type);
         if (form.id_proof_number) formData.append("id_proof_number", form.id_proof_number);
         if (form.id_proof_file instanceof File) formData.append("id_proof_file", form.id_proof_file);
+        if (form.family_head) formData.append("family_head", form.family_head);
+        formData.append("is_trust_member", "true"); // Always true when adding from this management page
 
         try {
             if (editingId) {
@@ -205,8 +280,9 @@ export function useDevotees() {
             resetForm();
             if (!editingId) setPage(1);
             fetchDevotees();
+            notify.success(editingId ? t('member_updated', 'Member details updated') : t('member_added', 'New member added to trust'));
         } catch (e) {
-            setError(extractDRFError(e));
+            notify.error(extractDRFError(e));
         }
     };
 
@@ -241,18 +317,19 @@ export function useDevotees() {
         }
     };
 
-    const totalPages = useMemo(() => (count ? Math.max(1, Math.ceil(count / pageSize)) : 1), [count, pageSize]);
+    const dynamicPageSize = tab === 'nakshatras' ? 50 : 10;
+    const totalPages = useMemo(() => (count ? Math.max(1, Math.ceil(count / dynamicPageSize)) : 1), [count, dynamicPageSize]);
     const proofsCount = useMemo(() => devotees.filter((d) => !!d.id_proof_type).length, [devotees]);
 
     return {
         state: {
             loading, error, search, searchField, dateFilter, ordering, page, pageSize, count,
             devotees, nakshatras, tab, promoOpen, addOpen, historyOpen, masterOpen, selected,
-            history, historyLoading, editingId, form, masterForm, downloadMenuOpen, totalPages, proofsCount, stats
+            history, historyLoading, editingId, form, formErrors, masterForm, downloadMenuOpen, totalPages, proofsCount, stats
         },
         actions: {
             setSearch, setSearchField, setDateFilter, setOrdering, setPage, setTab,
-            setPromoOpen, setAddOpen, setHistoryOpen, setMasterOpen, setForm, setMasterForm,
+            setPromoOpen, setAddOpen, setHistoryOpen, setMasterOpen, setForm, updateForm, setMasterForm,
             setEditingId, setDownloadMenuOpen, fetchMasters, fetchDevotees, saveMaster, saveDevotee,
             onAddClick, onAddMasterClick, onEditClick, openHistory, onDownload, setError,
             deleteDevotee, deleteMaster

@@ -41,10 +41,14 @@ class StockTransactionSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         item = attrs.get("item")
         qty = attrs.get("quantity")
+        price = attrs.get("unit_price")
         txn_type = attrs.get("txn_type")
 
         if qty is None or qty <= 0:
             raise serializers.ValidationError({"quantity": "Quantity must be greater than zero."})
+        
+        if price is not None and price < 0:
+            raise serializers.ValidationError({"unit_price": "Price cannot be negative."})
 
         # Prevent negative stock (extra API-level guard)
         if txn_type == StockTransaction.TYPE_OUT and item:

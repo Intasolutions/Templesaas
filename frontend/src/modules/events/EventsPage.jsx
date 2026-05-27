@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useNotify, useConfirm } from '../../context/NotificationContext';
 import api from '../../shared/api/client';
 import {
   Calendar,
@@ -24,11 +25,16 @@ import {
   User,
   CreditCard
 } from 'lucide-react';
+import ResponsiveTable from '../../components/ui/ResponsiveTable';
 import Pagination from '../../components/common/Pagination';
+import ModernInput from '../../components/ui/ModernInput';
+import { ValidationUtils } from '../../shared/utils/ValidationUtils';
 
 const EventsPage = () => {
   const { t } = useTranslation();
   const { checkPermission } = useAuth();
+  const notify = useNotify();
+  const confirm = useConfirm();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,8 +53,9 @@ const EventsPage = () => {
     pass_price: "0",
     max_capacity: "0",
   });
-  const [errorMsg, setErrorMsg] = useState('');
   const [editingEvent, setEditingEvent] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [errorMsg, setErrorMsg] = useState("");
   
   // Ticketing State
   const [isTicketOpen, setIsTicketOpen] = useState(false);
@@ -57,8 +64,10 @@ const EventsPage = () => {
   const [ticketForm, setTicketForm] = useState({
       devotee_id: '',
       payment_mode: 'UPI',
-      amount: '0'
+      amount: '0',
+      bank_account: null
   });
+  const [bankAccounts, setBankAccounts] = useState([]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -66,6 +75,15 @@ const EventsPage = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [searchTerm]);
+
+  const updateForm = (key, val) => {
+    let err = null;
+    if (key === 'pass_price' && form.enable_digital_passes) err = ValidationUtils.validators.amount(val);
+    if (key === 'name') err = val.length < 3 ? "Name is too short" : null;
+
+    setForm(prev => ({ ...prev, [key]: val }));
+    setErrors(prev => ({ ...prev, [key]: err }));
+  };
 
   async function fetchEvents(page = 1) {
     setLoading(true);
@@ -92,15 +110,19 @@ const EventsPage = () => {
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
-    setErrorMsg('');
+    
+    // Final Validation
+    const nameErr = form.name.length < 3 ? "Name must be at least 3 characters" : null;
+    const priceErr = form.enable_digital_passes ? ValidationUtils.validators.amount(form.pass_price) : null;
 
-    if (!form.name || !form.start_date || !form.end_date) {
-      setErrorMsg(t('events_required_fields', 'Name and dates are mandatory for registry.'));
-      return;
+    if (nameErr || priceErr) {
+        setErrors({ name: nameErr, pass_price: priceErr });
+        return notify.warn("Please correct the highlighted fields.");
     }
 
     try {
       setSubmitting(true);
+      setErrorMsg("");
       if (editingEvent) {
           await api.patch(`/events/${editingEvent.id}/`, form);
       } else {
@@ -112,22 +134,32 @@ const EventsPage = () => {
         name: "", description: "", start_date: "", end_date: "",
         location: "", enable_digital_passes: false, pass_price: "0", max_capacity: "0",
       });
+      setErrors({});
       fetchEvents();
+      notify.success(editingEvent ? 'Event updated' : 'New event published');
     } catch (e) {
-      setErrorMsg(e.response?.data?.detail || 'registry_update_failed');
+      setErrorMsg(e.response?.data?.detail || "Action failed.");
+      notify.error("Form submission failed.");
     } finally {
       setSubmitting(false);
     }
   }
 
   async function handleDelete(id) {
-      if (!window.confirm(t('confirm_delete_event', 'Deactivate this event protocol?'))) return;
-      try {
-          await api.delete(`/events/${id}/`);
-          fetchEvents();
-      } catch (e) {
-          alert('Error deactivating event');
-      }
+      confirm({
+          title: t('deactivate_event', 'Deactivate Event Protocol'),
+          message: t('confirm_deactivate_event_msg', 'Are you sure you want to deactivate this event protocol? This will remove it from the active registry.'),
+          confirmText: 'Deactivate Protocol',
+          onConfirm: async () => {
+              try {
+                  await api.delete(`/events/${id}/`);
+                  notify.success(t('event_deactivated', 'Event protocol deactivated successfully'));
+                  fetchEvents();
+              } catch (e) {
+                  notify.error('Error deactivating event');
+              }
+          }
+      });
   }
 
   function openEdit(evt) {
@@ -161,6 +193,15 @@ const EventsPage = () => {
     }
   };
 
+  const fetchBankAccounts = async () => {
+    try {
+      const res = await api.get('/finance/bank-accounts/');
+      setBankAccounts(res.data.results || res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleIssuePass = (evt) => {
     setSelectedEvent(evt);
     setTicketForm({
@@ -168,6 +209,7 @@ const EventsPage = () => {
         amount: evt.pass_price
     });
     fetchDevotees();
+    fetchBankAccounts();
     setIsTicketOpen(true);
   };
 
@@ -192,6 +234,7 @@ const EventsPage = () => {
             amount: ticketForm.amount,
             payment_status: 'success',
             payment_mode: ticketForm.payment_mode.toLowerCase(),
+            bank_account: ticketForm.bank_account,
             status: 'confirmed',
             booking_date: new Date().toISOString().split('T')[0]
         });
@@ -201,8 +244,9 @@ const EventsPage = () => {
         
         setIsTicketOpen(false);
         fetchEvents(); // Update occupancy
+        notify.success(t('pass_issued', 'Event pass issued successfully'));
     } catch (err) {
-        alert(err.response?.data?.detail || "Booking failed");
+        notify.error(err.response?.data?.detail || "Booking failed");
     } finally {
         setSubmitting(false);
     }
@@ -259,22 +303,101 @@ const EventsPage = () => {
         </div>
       ) : (
         <>
-          <motion.div 
-            layout
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {events.map(evt => (
-              <EventCard 
-                key={evt.id} 
-                event={evt} 
-                onEdit={() => openEdit(evt)} 
-                onDelete={() => handleDelete(evt.id)} 
-                onIssue={() => handleIssuePass(evt)}
-                canEdit={checkPermission('events', 'edit')}
-                canDelete={checkPermission('events', 'delete')}
-              />
-            ))}
-          </motion.div>
+          <ResponsiveTable
+            columns={[
+              {
+                header: "Ritual Identity",
+                key: "name",
+                mobileLabel: "Event Details",
+                render: (evt) => (
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-lg">
+                      <Sparkles size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-900 tracking-tight uppercase leading-none">{evt.name}</h3>
+                      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
+                        <Calendar size={10} /> {new Date(evt.start_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                )
+              },
+              {
+                header: "Spatial Node",
+                key: "location",
+                render: (evt) => (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                    <MapPin size={12} className="text-primary" /> {evt.location || 'Central Complex'}
+                  </div>
+                )
+              },
+              {
+                header: "Ticketing",
+                key: "ticketing",
+                render: (evt) => (
+                  <>
+                    {evt.enable_digital_passes ? (
+                      <span className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-bold uppercase tracking-widest">
+                        ₹{evt.pass_price} / Pass
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-lg bg-slate-50 text-slate-400 border border-slate-100 text-[8px] font-bold uppercase tracking-widest">
+                        Free Access
+                      </span>
+                    )}
+                  </>
+                )
+              },
+              {
+                header: "Protocol State",
+                key: "state",
+                render: (evt) => {
+                  const now = new Date();
+                  const start = new Date(evt.start_date);
+                  const end = new Date(evt.end_date);
+                  const isLive = now >= start && now <= end;
+                  const isUpcoming = now < start;
+                  
+                  return (
+                    <div className="flex items-center gap-2">
+                      <div className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-emerald-500 animate-pulse' : isUpcoming ? 'bg-primary' : 'bg-slate-300'}`} />
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-slate-500">
+                        {isLive ? 'Live' : isUpcoming ? 'Upcoming' : 'Archived'}
+                      </span>
+                    </div>
+                  );
+                }
+              },
+              {
+                header: "Actions",
+                key: "actions",
+                align: "right",
+                render: (evt) => (
+                  <div className="flex justify-end gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-all translate-x-3 group-hover:translate-x-0">
+                    {evt.enable_digital_passes && (
+                      <button onClick={(e) => { e.stopPropagation(); handleIssuePass(evt); }} className="h-9 px-4 bg-primary text-white text-[8px] font-bold rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 uppercase tracking-[0.2em] active:scale-95 transition-all">
+                        <Ticket size={12} className="mr-2" /> Issue
+                      </button>
+                    )}
+                    {checkPermission('events', 'edit') && (
+                      <button onClick={(e) => { e.stopPropagation(); openEdit(evt); }} className="h-9 w-9 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                        <Zap size={12} />
+                      </button>
+                    )}
+                    {checkPermission('events', 'delete') && (
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(evt.id); }} className="h-9 w-9 bg-white border border-slate-100 text-slate-300 hover:text-red-500 hover:border-red-100 rounded-xl flex items-center justify-center active:scale-90 transition-all">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                )
+              }
+            ]}
+            data={events}
+            loading={loading}
+            emptyMessage="Registry Void: No Events Programmed"
+          />
 
           {/* Pagination Controls */}
           <div className="pt-10 border-t border-slate-100/60">
@@ -323,38 +446,42 @@ const EventsPage = () => {
 
               <div className="p-10 overflow-y-auto max-h-[60vh] custom-scrollbar">
                 <form id="event-form" onSubmit={handleSubmit} className="space-y-8">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Universal Designation</label>
-                    <input 
-                      required value={form.name} onChange={(e) => setForm({...form, name: e.target.value})}
-                      className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
-                      placeholder="e.g., Mahotsavam Prime"
+                   <div className="space-y-2">
+                    <ModernInput 
+                        label="Universal Designation" 
+                        value={form.name} 
+                        error={errors.name}
+                        success={form.name.length >= 3}
+                        onChange={val => updateForm('name', val)} 
+                        placeholder="e.g. Maha Shivaratri 2026"
+                        icon={Calendar}
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Initiation</label>
-                        <input 
-                          type="date" required value={form.start_date} onChange={(e) => setForm({...form, start_date: e.target.value})}
-                          className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
-                        />
-                     </div>
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Completion</label>
-                        <input 
-                          type="date" required value={form.end_date} onChange={(e) => setForm({...form, end_date: e.target.value})}
-                          className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
-                        />
-                     </div>
+                      <ModernInput 
+                        label="Initiation" 
+                        type="date" 
+                        value={form.start_date} 
+                        onChange={val => setForm({...form, start_date: val})} 
+                        icon={Clock}
+                      />
+                      <ModernInput 
+                        label="Completion" 
+                        type="date" 
+                        value={form.end_date} 
+                        onChange={val => setForm({...form, end_date: val})} 
+                        icon={Clock}
+                      />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Spatial Node</label>
-                    <input 
-                      value={form.location} onChange={(e) => setForm({...form, location: e.target.value})}
-                      className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-5 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 transition-all shadow-inner text-xs"
-                      placeholder="Temple Sanctum..."
+                    <ModernInput 
+                        label="Spatial Node" 
+                        value={form.location} 
+                        onChange={val => setForm({...form, location: val})} 
+                        placeholder="Temple Sanctum..."
+                        icon={MapPin}
                     />
                   </div>
 
@@ -373,16 +500,28 @@ const EventsPage = () => {
                      </div>
                      {form.enable_digital_passes && (
                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5 animate-in fade-in slide-in-from-top-2">
-                          <div className="space-y-1.5">
-                             <label className="text-[7px] font-bold text-white/30 uppercase tracking-[0.2em]">Remittance</label>
-                             <input type="number" value={form.pass_price} onChange={(e) => setForm({...form, pass_price: e.target.value})} className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-3 text-white font-bold outline-none focus:border-primary text-xs" />
-                          </div>
-                          <div className="space-y-1.5">
-                             <label className="text-[7px] font-bold text-white/30 uppercase tracking-[0.2em]">Registry Cap</label>
-                             <input type="number" value={form.max_capacity} onChange={(e) => setForm({...form, max_capacity: e.target.value})} className="w-full h-9 bg-white/5 border border-white/10 rounded-lg px-3 text-white font-bold outline-none focus:border-primary text-xs" />
-                          </div>
+                          <ModernInput 
+                            label="Remittance" 
+                            type="number" 
+                            value={form.pass_price} 
+                            error={errors.pass_price}
+                            success={form.pass_price >= 1}
+                            onChange={val => updateForm('pass_price', val)} 
+                            placeholder="0.00"
+                            icon={Ticket}
+                            variant="dark"
+                          />
+                          <ModernInput 
+                            label="Registry Cap" 
+                            type="number" 
+                            value={form.max_capacity} 
+                            onChange={val => setForm({...form, max_capacity: val})} 
+                            placeholder="0"
+                            icon={Database}
+                            variant="dark"
+                          />
                        </div>
-                     )}
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -470,6 +609,23 @@ const EventsPage = () => {
                          </div>
                       </div>
                    </div>
+
+                    {ticketForm.payment_mode === 'UPI' && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+                           <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 ml-1">Destination Bank Account</label>
+                           <select 
+                             required 
+                             className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner text-xs"
+                             value={ticketForm.bank_account || ''}
+                             onChange={(e) => setTicketForm({...ticketForm, bank_account: e.target.value || null})}
+                           >
+                              <option value="">Select Ledger Account...</option>
+                              {bankAccounts.map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name}</option>
+                              ))}
+                           </select>
+                        </div>
+                    )}
                 </form>
               </div>
 

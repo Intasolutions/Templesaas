@@ -7,7 +7,7 @@ from core.permissions import ModulePermission
 from core.utils import TenantMixin
 from .models import Booking
 from .serializers import BookingSerializer
-from .pdf_utils import generate_booking_receipt_pdf
+from .pdf_utils import generate_booking_receipt_pdf, generate_poochari_slip_pdf
 
 class BookingListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Booking
@@ -78,6 +78,16 @@ def booking_receipt_pdf(request, pk):
 
     buffer = generate_booking_receipt_pdf(booking)
     return FileResponse(buffer, as_attachment=True, filename=f"Receipt_{booking.receipt_no or booking.id}.pdf")
+
+
+def booking_poochari_slip_pdf(request, pk):
+    try:
+        booking = Booking.objects.select_related("devotee", "pooja", "organization").get(pk=pk)
+    except Booking.DoesNotExist:
+        return HttpResponse("Booking not found", status=404)
+
+    buffer = generate_poochari_slip_pdf(booking)
+    return FileResponse(buffer, as_attachment=True, filename=f"PoochariSlip_{booking.id}.pdf")
 
 
 @api_view(["POST"])
@@ -169,3 +179,43 @@ def refund_booking(request, pk):
     booking.save()
 
     return Response(BookingSerializer(booking, context={"request": request}).data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated, ModulePermission])
+def bulk_create(request):
+    """
+    POST /api/bookings/bulk/
+    Accepts a list of dates and standard booking details to create multiple bookings.
+    Payload:
+    {
+        "dates": ["YYYY-MM-DD", "YYYY-MM-DD"],
+        ... standard booking payload ...
+    }
+    """
+    dates = request.data.pop("dates", [])
+    if not dates:
+        return Response({"error": "Dates array is required for bulk creation."}, status=status.HTTP_400_BAD_REQUEST)
+
+    created_bookings = []
+    errors = []
+
+    for date_str in dates:
+        data = request.data.copy()
+        data["booking_date"] = date_str
+        
+        serializer = BookingSerializer(data=data, context={"request": request})
+        if serializer.is_valid():
+            try:
+                # Set tenant/organization from request
+                serializer.save(organization=getattr(request, 'tenant', None))
+                created_bookings.append(serializer.data)
+            except Exception as e:
+                errors.append({"date": date_str, "error": str(e)})
+        else:
+            errors.append({"date": date_str, "errors": serializer.errors})
+
+    return Response({
+        "created": len(created_bookings),
+        "errors": errors,
+        "bookings": created_bookings
+    }, status=status.HTTP_201_CREATED if created_bookings else status.HTTP_400_BAD_REQUEST)

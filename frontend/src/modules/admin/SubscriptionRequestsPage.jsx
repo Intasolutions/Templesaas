@@ -15,6 +15,7 @@ import {
     Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
 
 const SubscriptionRequestsPage = () => {
     const [requests, setRequests] = useState([]);
@@ -103,109 +104,119 @@ const SubscriptionRequestsPage = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-white border-b border-slate-50">
-                                <th className="px-12 py-7 text-[10px] font-black uppercase tracking-widest text-slate-400">Tenant Identity</th>
-                                <th className="px-10 py-7 text-[10px] font-black uppercase tracking-widest text-slate-400">Target Protocol</th>
-                                <th className="px-10 py-7 text-[10px] font-black uppercase tracking-widest text-slate-400">Financial Value</th>
-                                <th className="px-10 py-7 text-[10px] font-black uppercase tracking-widest text-slate-400">Auth Status</th>
-                                <th className="px-12 py-7 border-b border-slate-50"></th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {loading ? (
-                                <tr><td colSpan="5" className="py-32 text-center text-[11px] font-black text-slate-200 uppercase tracking-[0.5em] animate-pulse">Synchronizing with Registry...</td></tr>
-                            ) : filteredRequests.length === 0 ? (
-                                <tr><td colSpan="5" className="py-24 text-center text-[10px] font-black text-slate-300 uppercase tracking-widest">No active requests detected in local sector</td></tr>
-                            ) : filteredRequests.map(req => (
-                                <tr key={req.id} className="group/row hover:bg-slate-50/50 transition-all">
-                                    <td className="px-12 py-8">
-                                        <div className="flex items-center gap-5">
-                                            <div className="h-12 w-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-sm uppercase">
-                                                {req.tenant_name?.[0]}
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-black text-slate-900 tracking-tighter uppercase leading-none">{req.tenant_name}</p>
-                                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-1.5">
-                                                    <Clock size={10} /> Req: {new Date(req.requested_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-10 py-8">
-                                        <span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
-                                            req.plan_name === 'PRO_MAX' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-100 text-slate-500 border-slate-200/50'
-                                        }`}>
-                                            {req.plan_name} Plan
+                <ResponsiveTable
+                    columns={[
+                        {
+                            header: "Tenant Identity",
+                            key: "tenant",
+                            mobileLabel: "Tenant Info",
+                            render: (req) => (
+                                <div className="flex items-center gap-5">
+                                    <div className="h-12 w-12 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center font-black text-white shadow-lg text-sm uppercase">
+                                        {req.tenant_name?.[0]}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-slate-900 tracking-tighter uppercase leading-none">{req.tenant_name}</p>
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2 flex items-center gap-1.5">
+                                            <Clock size={10} /> Req: {new Date(req.requested_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Target Protocol",
+                            key: "plan",
+                            render: (req) => (
+                                <span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
+                                    req.plan_name === 'PRO_MAX' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-slate-100 text-slate-500 border-slate-200/50'
+                                }`}>
+                                    {req.plan_name} Plan
+                                </span>
+                            )
+                        },
+                        {
+                            header: "Financial Value",
+                            key: "value",
+                            render: (req) => (
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-1 text-sm font-black text-slate-900 tracking-tight">
+                                        <IndianRupee size={12} /> {req.amount}
+                                    </div>
+                                    <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+                                        Cycle: {req.billing_cycle}
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Auth Status",
+                            key: "status",
+                            render: (req) => (
+                                <>
+                                    {req.status === 'pending' && (
+                                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black uppercase tracking-widest">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" /> Pending
                                         </span>
-                                    </td>
-                                    <td className="px-10 py-8">
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-1 text-sm font-black text-slate-900 tracking-tight">
-                                                <IndianRupee size={12} /> {req.amount}
-                                            </div>
-                                            <div className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                                                Cycle: {req.billing_cycle}
-                                            </div>
+                                    )}
+                                    {req.status === 'approved' && (
+                                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black uppercase tracking-widest">
+                                            <CheckCircle2 size={12} /> Approved
+                                        </span>
+                                    )}
+                                    {req.status === 'rejected' && (
+                                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 text-[9px] font-black uppercase tracking-widest">
+                                            <XCircle size={12} /> Rejected
+                                        </span>
+                                    )}
+                                    {req.status === 'paid' && (
+                                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 text-white border border-slate-800 text-[9px] font-black uppercase tracking-widest">
+                                            <ArrowUpRight size={12} className="text-primary" /> Active
+                                        </span>
+                                    )}
+                                </>
+                            )
+                        },
+                        {
+                            header: "Actions",
+                            key: "actions",
+                            align: "right",
+                            render: (req) => (
+                                <>
+                                    {req.status === 'pending' ? (
+                                        <div className="flex justify-end gap-3">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleApproval(req.id, 'approve'); }}
+                                                disabled={processingId === req.id}
+                                                className="h-10 px-5 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:opacity-50"
+                                            >
+                                                Approve
+                                            </button>
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); handleApproval(req.id, 'reject'); }}
+                                                disabled={processingId === req.id}
+                                                className="h-10 px-5 rounded-xl border border-slate-100 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-50"
+                                            >
+                                                Reject
+                                            </button>
                                         </div>
-                                    </td>
-                                    <td className="px-10 py-8">
-                                        {req.status === 'pending' && (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 text-[9px] font-black uppercase tracking-widest">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" /> Pending
-                                            </span>
-                                        )}
-                                        {req.status === 'approved' && (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black uppercase tracking-widest">
-                                                <CheckCircle2 size={12} /> Approved
-                                            </span>
-                                        )}
-                                        {req.status === 'rejected' && (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 text-[9px] font-black uppercase tracking-widest">
-                                                <XCircle size={12} /> Rejected
-                                            </span>
-                                        )}
-                                        {req.status === 'paid' && (
-                                            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 text-white border border-slate-800 text-[9px] font-black uppercase tracking-widest">
-                                                <ArrowUpRight size={12} className="text-primary" /> Active
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-12 py-8 text-right">
-                                        {req.status === 'pending' ? (
-                                            <div className="flex justify-end gap-3">
-                                                <button 
-                                                    onClick={() => handleApproval(req.id, 'approve')}
-                                                    disabled={processingId === req.id}
-                                                    className="h-10 px-5 rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 flex items-center gap-2 disabled:opacity-50"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleApproval(req.id, 'reject')}
-                                                    disabled={processingId === req.id}
-                                                    className="h-10 px-5 rounded-xl border border-slate-100 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-100 transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-50"
-                                                >
-                                                    Reject
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex justify-end gap-3 text-slate-300">
-                                                {req.admin_notes && (
-                                                    <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest">
-                                                        <MessageSquare size={12} /> Logged
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                                    ) : (
+                                        <div className="flex justify-end gap-3 text-slate-300">
+                                            {req.admin_notes && (
+                                                <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest">
+                                                    <MessageSquare size={12} /> Logged
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
+                            )
+                        }
+                    ]}
+                    data={filteredRequests}
+                    loading={loading}
+                    emptyMessage="No active requests detected in local sector"
+                />
             </div>
         </div>
     );

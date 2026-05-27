@@ -4,41 +4,41 @@ const TermsPage = () => {
     return (
         <LegalLayout title="Terms of Service" effectiveDate="April 2026">
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">1. Platform Scope & Acceptance</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    By accessing and utilizing Devalayam OS ("the Platform"), you, representing a Temple Trust, Devaswom Board, or authorized administrative body, agree to be bound by these Terms of Service. The Platform is provided by Devalayam Systems to facilitate heritage administration, receipt generation, and auditing.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">1. Using Our Software</h2>
+                <p className="mb-6">
+                    By using TempleSaaS, your temple committee agrees to follow these rules. This software is built to help temples manage poojas, accounts, and devotees safely.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">2. Subscription & Subscription Management</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    Devalayam provides subscription-based software services. Subscriptions are billed on a monthly or annual basis in accordance with the selected tier. Institutional clients may request manual billing nodes for compliance with Devaswom financial processes.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">2. Monthly Payments</h2>
+                <p className="mb-6">
+                    TempleSaaS is a subscription service. You agree to pay the monthly or yearly fee for the plan you choose. Payments are made at the start of each month.
                 </p>
-                <ul className="space-y-4 font-medium text-slate-500 text-sm">
-                    <li>• Auto-renewal: All subscriptions automatically renew unless cancelled 30 days prior to the billing cycle.</li>
-                    <li>• Cancellation: Cancellation of a subscription will take effect at the end of the current billing period. No partial refunds are issued for mid-cycle cancellations.</li>
+                <ul className="space-y-4 text-sm">
+                    <li>• Auto-Renewal: Your plan will renew automatically unless you cancel it before the month ends.</li>
+                    <li>• Cancellation: You can stop using the software at any time, but we do not give refunds for the current month already paid.</li>
                 </ul>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">3. Limitation of Liability</h2>
-                <p className="font-medium text-slate-500 mb-6 uppercase tracking-tight text-xs opacity-80">
-                    DEVALAYAM SYSTEMS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES RESULTING FROM THE USE OR INABILITY TO USE THE PLATFORM. THE INSTITUTION REMAINS SOLELY RESPONSIBLE FOR THE ACCURACY OF PHYSICAL CASH COUNTING AND RITUAL DISBURSEMENTS.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">3. Responsible Use</h2>
+                <p className="mb-6">
+                    The temple committee is responsible for making sure the data entered into the software (like pooja amounts and devotee names) is correct. We are not responsible for any mistakes made by temple staff during entry.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">4. Prohibited Misuse</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    Users shall not utilize the Platform for unauthorized data scraping, reverse-engineering of the astral telemetry engine, or attempting to bypass multi-tenant isolation protocols between institutional nodes. Violation of these terms will result in immediate termination of service and potential legal action under the IT Act 2000.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">4. System Availability</h2>
+                <p className="mb-6">
+                    We try to keep the software running 24 hours a day. However, we are not responsible if the software is slow or down because of internet problems at your temple or general power failures.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">5. Uptime Disclaimer</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    While we strive for 99.9% availability, Devalayam OS is provided on an "as-is" basis. We are not responsible for site outages caused by regional infrastructure failures, internet connectivity issues at the temple complex, or sovereign power disruptions.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">5. Data Privacy</h2>
+                <p className="mb-6">
+                    We promise to keep your temple's data safe and private. We will never sell your devotee lists or financial records to anyone else.
                 </p>
             </section>
         </LegalLayout>

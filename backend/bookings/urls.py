@@ -7,6 +7,8 @@ from .views import (
     refund_booking,
     payment_webhook,
     booking_receipt_pdf,
+    booking_poochari_slip_pdf,
+    bulk_create,
 )
 
 app_name = "bookings"
@@ -14,8 +16,10 @@ app_name = "bookings"
 urlpatterns = [
     # CRUD
     path("", BookingListCreateView.as_view(), name="booking-list-create"),
+    path("bulk/", bulk_create, name="booking-bulk-create"),
     path("<int:pk>/", BookingDetailView.as_view(), name="booking-detail"),
     path("<int:pk>/pdf/", booking_receipt_pdf, name="booking-receipt-pdf"),
+    path("<int:pk>/poochari-pdf/", booking_poochari_slip_pdf, name="booking-poochari-pdf"),
 
     # Online booking actions
     path("<int:pk>/create-order/", create_order, name="booking-create-order"),

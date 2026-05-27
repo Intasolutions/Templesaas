@@ -4,51 +4,51 @@ const PrivacyPage = () => {
     return (
         <LegalLayout title="Privacy Policy" effectiveDate="April 2026">
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">1. Compliance Status</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    Devalayam OS is fully compliant with the Information Technology Act 2000 and the Digital Personal Data Protection Act 2023 (DPDP). This privacy policy outlines how we handle the institutional data of temple trusts and the personal data of devotees.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">1. Keeping Your Data Safe</h2>
+                <p className="mb-6">
+                    TempleSaaS respects the privacy of every temple and its devotees. We follow all Indian digital privacy laws to make sure your information is handled correctly.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">2. Data Collection Metrics</h2>
-                <p className="font-medium text-slate-500 mb-8">
-                    We collect only the minimum data required to facilitate institutional administration and ritual automation.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">2. Information We Collect</h2>
+                <p className="mb-8">
+                    We only collect the minimum information needed to run your temple's daily operations.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                        <h4 className="text-sm font-black text-slate-900 mb-4 uppercase tracking-widest leading-none">Institutional Data</h4>
-                        <p className="text-xs font-medium text-slate-500 leading-relaxed uppercase tracking-tight opacity-70">
-                            Temple financial registers, transaction hashes, hundi counting records, and staff administrative logs.
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-8 bg-white rounded-3xl border border-wood/5">
+                        <h4 className="text-sm font-black text-wood mb-4 uppercase tracking-widest">Temple Records</h4>
+                        <p className="text-sm text-wood/60 leading-relaxed">
+                            Financial registers, pooja receipts, Hundi collection logs, and staff attendance.
                         </p>
                     </div>
-                    <div className="p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100">
-                        <h4 className="text-sm font-black text-slate-900 mb-4 uppercase tracking-widest leading-none">Devotee Data</h4>
-                        <p className="text-xs font-medium text-slate-500 leading-relaxed uppercase tracking-tight opacity-70">
-                            Names, birth nakshatras, contact numbers (for receipt generation and WhatsApp notifications), and ritual history.
+                    <div className="p-8 bg-white rounded-3xl border border-wood/5">
+                        <h4 className="text-sm font-black text-wood mb-4 uppercase tracking-widest">Devotee Details</h4>
+                        <p className="text-sm text-wood/60 leading-relaxed">
+                            Names, birth stars (Nakshatra), phone numbers, and pooja history for your temple records.
                         </p>
                     </div>
                 </div>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">3. Storage & Isolation</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    Every temple institution's data is siloed within its own private database node. We utilize industry-standard AES-256 encryption at rest and TLS 1.3 for all data in transit across the Devalayam network.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">3. Private Storage</h2>
+                <p className="mb-6">
+                    Every temple's data is kept in its own separate and private digital vault. We use high-level encryption (AES-256) so that no one outside your temple committee can see your records.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">4. Data Sharing & Third Parties</h2>
-                <p className="font-medium text-slate-500 mb-6">
-                    DEVALAYAM DOES NOT SELL DEVOTEE OR INSTITUTIONAL DATA. We only share data with authorized third-party service nodes (e.g., WhatsApp API, Secure Payment Gateways) solely for fulfilling service requests made by the Temple Trust.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">4. No Selling of Data</h2>
+                <p className="mb-6">
+                    We DO NOT sell your temple's data or your devotees' phone numbers to anyone. Your information is only used by your temple to manage its daily traditions.
                 </p>
             </section>
 
             <section>
-                <h2 className="text-2xl font-black text-slate-900 mb-8 tracking-tighter uppercase">5. User Rights (Fiduciary Duty)</h2>
-                <p className="font-medium text-slate-500 mb-6 font-mono text-sm leading-relaxed uppercase opacity-80">
-                    UNDER DPDP 2023, DEVALAYAM SYSTEMS ACTS AS A DATA PROCESSOR, WHILE THE TEMPLE TRUST ACTS AS THE DATA FIDUCIARY. DEVOTEES MAY REQUEST RECORD MODIFICATIONS OR DELETIONS THROUGH THEIR RESPECTIVE TEMPLE ADMINISTRATIVE OFFICE.
+                <h2 className="text-xl font-black text-wood mb-6 uppercase tracking-tight">5. Your Rights</h2>
+                <p className="mb-6">
+                    The temple committee has full control over their data. You can add, change, or delete any record in the software at any time.
                 </p>
             </section>
         </LegalLayout>

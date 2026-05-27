@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from devotees.models import Devotee
@@ -60,7 +61,7 @@ class Donation(models.Model):
         related_name="donations",
     )
 
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1.0)])
 
     # donor recognition
     display_name = models.CharField(max_length=120, blank=True)
@@ -85,6 +86,7 @@ class Donation(models.Model):
     gst_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     remarks = models.TextField(blank=True)
+    bank_account = models.ForeignKey("finance.BankAccount", on_delete=models.SET_NULL, null=True, blank=True, related_name="donations")
     donated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -157,6 +159,15 @@ class Donation(models.Model):
         from finance.models import Transaction
         txn_ref = f"DN-{self.receipt_no}"
         if not Transaction.objects.filter(reference=txn_ref).exists():
+            # Map donation payment mode to finance payment mode
+            mode_map = {
+                self.PAYMENT_CASH: "cash",
+                self.PAYMENT_UPI: "upi",
+                self.PAYMENT_BANK: "bank",
+                self.PAYMENT_CARD: "card",
+            }
+            finance_mode = mode_map.get(self.payment_mode, "cash")
+
             Transaction.objects.create(
                 organization=self.organization,
                 txn_type=Transaction.TYPE_INCOME,
@@ -165,6 +176,8 @@ class Donation(models.Model):
                 amount=self.amount,
                 date=self.donated_at.date(),
                 reference=txn_ref,
+                payment_mode=finance_mode,
+                bank_account=self.bank_account,
                 notes=f"Auto-generated from Donation ID {self.id}. Donor: {self.devotee.full_name if self.devotee else 'Unknown'}"
             )
 

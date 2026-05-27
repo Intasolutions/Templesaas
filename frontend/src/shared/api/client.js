@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Base URL configuration
 // TODO: Move to .env variable (VITE_API_URL)
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL = 'http://localhost:8000/api';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -48,46 +48,56 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response && error.response.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                }).then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return api(originalRequest);
-                }).catch(err => {
-                    return Promise.reject(err);
-                });
+        if (error.response) {
+            // Handle 403 Trial Expired
+            if (error.response.status === 403 && error.response.data?.trial_expired) {
+                if (window.location.pathname !== '/billing') {
+                    window.location.href = '/billing';
+                }
+                return Promise.reject(error);
             }
 
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (refreshToken) {
-                try {
-                    const res = await axios.post(`${API_URL}/users/token/refresh/`, { refresh: refreshToken });
-                    if (res.status === 200) {
-                        const { access } = res.data;
-                        localStorage.setItem('token', access);
-                        api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-                        originalRequest.headers.Authorization = `Bearer ${access}`;
-                        processQueue(null, access);
+            if (error.response.status === 401 && !originalRequest._retry) {
+                if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        failedQueue.push({ resolve, reject });
+                    }).then(token => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
                         return api(originalRequest);
-                    }
-                } catch (refreshError) {
-                    processQueue(refreshError, null);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('refreshToken');
-                    localStorage.removeItem('tenantCode');
-                    window.location.href = '/login';
-                    return Promise.reject(refreshError);
-                } finally {
-                    isRefreshing = false;
+                    }).catch(err => {
+                        return Promise.reject(err);
+                    });
                 }
-            } else {
-                localStorage.removeItem('token');
-                window.location.href = '/login';
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                const refreshToken = localStorage.getItem('refreshToken');
+                if (refreshToken) {
+                    try {
+                        const res = await axios.post(`${API_URL}/users/token/refresh/`, { refresh: refreshToken });
+                        if (res.status === 200) {
+                            const { access } = res.data;
+                            localStorage.setItem('token', access);
+                            api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+                            originalRequest.headers.Authorization = `Bearer ${access}`;
+                            processQueue(null, access);
+                            return api(originalRequest);
+                        }
+                    } catch (refreshError) {
+                        processQueue(refreshError, null);
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('refreshToken');
+                        localStorage.removeItem('tenantCode');
+                        window.location.href = '/login';
+                        return Promise.reject(refreshError);
+                    } finally {
+                        isRefreshing = false;
+                    }
+                } else {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
             }
         }
         return Promise.reject(error);

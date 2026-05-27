@@ -26,6 +26,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import Pagination from "../../components/common/Pagination";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
 import { useDebounce } from "../../shared/hooks/useDebounce";
 
 const AssetPage = () => {
@@ -328,98 +329,112 @@ const AssetPage = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-white border-b border-slate-50">
-                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">Asset Identity</th>
-                                <th className="px-8 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Protocol State</th>
-                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">Deployment Node</th>
-                                <th className="px-8 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">Economic Value</th>
-                                <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">Service Lifecycle</th>
-                                <th className="px-6 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {loading ? (
-                                <tr><td colSpan="5" className="py-32 text-center text-[10px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Initializing Security Uplink...</td></tr>
-                            ) : filteredAssets.length === 0 ? (
-                                <tr><td colSpan="5" className="py-24 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Registry Empty: No Property Recorded</td></tr>
-                            ) : filteredAssets.map(asset => (
-                                <tr key={asset.id} className="group/row hover:bg-slate-50/50 transition-all">
-                                    <td className="px-10 py-6">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-white scale-90 group-hover/row:scale-100 transition-transform shadow-lg shadow-slate-900/20">
-                                                <Gem size={18} />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-900 tracking-tighter uppercase leading-none">{asset.name}</p>
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 leading-none">
-                                                    {asset.asset_id} • {asset.category_name || 'Generic'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-center">
-                                        <span className={`px-3 py-1 rounded-lg border text-[8px] font-bold uppercase tracking-widest ${getStatusColor(asset.status)}`}>
-                                            {asset.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-10 py-6">
-                                        <div className="flex flex-col gap-1.5">
-                                            <div className="flex items-center gap-2 text-[9px] font-bold text-slate-800 uppercase tracking-widest">
-                                                <MapPin size={10} className="text-primary" /> {asset.location}
-                                            </div>
-                                            <div className="flex items-center gap-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
-                                                <User size={10} /> {asset.custodian || 'Unassigned'}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-6 text-right">
-                                        <div className="text-[12px] font-bold text-slate-900 tracking-tight">
-                                            ₹{parseFloat(asset.valuation || 0).toLocaleString('en-IN')}
-                                        </div>
-                                        <div className="text-[8px] font-bold text-slate-300 uppercase tracking-widest mt-1">
-                                            Market Est.
-                                        </div>
-                                    </td>
-                                    <td className="px-10 py-6 text-right">
-                                        <div className="flex flex-col items-end gap-1.5">
-                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
-                                                {asset.next_due ? `Due ${asset.next_due}` : 'No Service Date'}
-                                            </div>
-                                            {checkPermission('assets', 'edit') && (
-                                                <button 
-                                                    onClick={() => handleRecertify(asset.id)}
-                                                    className="flex items-center gap-1.5 text-[8px] font-bold text-slate-900 uppercase tracking-widest hover:text-primary transition-colors group/btn"
-                                                >
-                                                    Re-Certify <ArrowRight size={10} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-6 border-l border-slate-50">
-                                        <div className="flex items-center justify-center gap-3">
-                                            {checkPermission('assets', 'edit') && (
-                                                <button onClick={() => handleEdit(asset)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all">
-                                                    <Edit3 size={12} />
-                                                </button>
-                                            )}
-                                            <button onClick={() => handleViewHistory(asset)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all">
-                                                <History size={12} />
-                                            </button>
-                                            {checkPermission('assets', 'delete') && (
-                                                <button onClick={() => handleDelete(asset.id)} className="p-2 hover:bg-rose-50 rounded-lg text-slate-300 hover:text-rose-600 transition-all">
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <ResponsiveTable
+                    columns={[
+                        {
+                            header: "Asset Identity",
+                            key: "name",
+                            mobileLabel: "Asset & ID",
+                            render: (asset) => (
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-white scale-90 group-hover:scale-100 transition-transform shadow-lg shadow-slate-900/20">
+                                        <Gem size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-900 tracking-tighter uppercase leading-none">{asset.name}</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 leading-none">
+                                            {asset.asset_id} • {asset.category_name || 'Generic'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Protocol State",
+                            key: "status",
+                            align: "center",
+                            render: (asset) => (
+                                <span className={`px-3 py-1 rounded-lg border text-[8px] font-bold uppercase tracking-widest ${getStatusColor(asset.status)}`}>
+                                    {asset.status}
+                                </span>
+                            )
+                        },
+                        {
+                            header: "Deployment Node",
+                            key: "location",
+                            render: (asset) => (
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center gap-2 text-[9px] font-bold text-slate-800 uppercase tracking-widest">
+                                        <MapPin size={10} className="text-primary" /> {asset.location}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[8px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
+                                        <User size={10} /> {asset.custodian || 'Unassigned'}
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Economic Value",
+                            key: "valuation",
+                            align: "right",
+                            render: (asset) => (
+                                <div>
+                                    <div className="text-[12px] font-bold text-slate-900 tracking-tight">
+                                        ₹{parseFloat(asset.valuation || 0).toLocaleString('en-IN')}
+                                    </div>
+                                    <div className="text-[8px] font-bold text-slate-300 uppercase tracking-widest mt-1">
+                                        Market Est.
+                                    </div>
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Service Lifecycle",
+                            key: "lifecycle",
+                            align: "right",
+                            render: (asset) => (
+                                <div className="flex flex-col items-end gap-1.5">
+                                    <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+                                        {asset.next_due ? `Due ${asset.next_due}` : 'No Service Date'}
+                                    </div>
+                                    {checkPermission('assets', 'edit') && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleRecertify(asset.id); }}
+                                            className="flex items-center gap-1.5 text-[8px] font-bold text-slate-900 uppercase tracking-widest hover:text-primary transition-colors group/btn"
+                                        >
+                                            Re-Certify <ArrowRight size={10} />
+                                        </button>
+                                    )}
+                                </div>
+                            )
+                        },
+                        {
+                            header: "Actions",
+                            key: "actions",
+                            align: "center",
+                            render: (asset) => (
+                                <div className="flex items-center justify-center gap-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
+                                    {checkPermission('assets', 'edit') && (
+                                        <button onClick={(e) => { e.stopPropagation(); handleEdit(asset); }} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all">
+                                            <Edit3 size={12} />
+                                        </button>
+                                    )}
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(asset); }} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all">
+                                        <History size={12} />
+                                    </button>
+                                    {checkPermission('assets', 'delete') && (
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(asset.id); }} className="p-2 hover:bg-rose-50 rounded-lg text-slate-300 hover:text-rose-600 transition-all">
+                                            <Trash2 size={12} />
+                                        </button>
+                                    )}
+                                </div>
+                            )
+                        }
+                    ]}
+                    data={filteredAssets}
+                    loading={loading}
+                    emptyMessage="Registry Empty: No Property Recorded"
+                />
                 <div className="p-8 border-t border-slate-50 bg-slate-50/30">
                     <Pagination 
                         currentPage={pagination.current} 

@@ -3,7 +3,7 @@ from core.models import Plan
 plans_data = [
     {
         "name": "LITE",
-        "allowed_apps": ['pooja', 'bookings', 'hundi', 'inventory', 'donations', 'events', 'devotees'],
+        "allowed_apps": ['pooja', 'bookings', 'hundi', 'donations', 'devotees'],
         "amount_inr": 1500
     },
     {

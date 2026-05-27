@@ -24,8 +24,13 @@ import {
   Calendar,
   ChevronRight,
   ListFilter,
-  Check
+  Check,
+  PlusCircle
 } from "lucide-react";
+import ModernInput from "../../components/ui/ModernInput";
+import { ValidationUtils } from "../../shared/utils/ValidationUtils";
+import { useNotify } from "../../context/NotificationContext";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
 
 const fmtINR = (n) =>
   `₹ ${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -33,6 +38,7 @@ const fmtINR = (n) =>
 const HundiPage = () => {
   const { t } = useTranslation();
   const { checkPermission } = useAuth();
+  const notify = useNotify();
   const denoms = useMemo(() => [500, 200, 100, 50, 20, 10, 5, 2, 1], []);
   const [counts, setCounts] = useState({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 });
 
@@ -45,10 +51,12 @@ const HundiPage = () => {
   const [selectedSession, setSelectedSession] = useState(null);
 
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [errorMSG, setErrorMSG] = useState("");
+  const [errors, setErrors] = useState({});
   const [tab, setTab] = useState("audit"); // audit | history
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [bankAccount, setBankAccount] = useState(null);
   
   // Date Range Stats
   const [startDate, setStartDate] = useState(() => {
@@ -84,18 +92,28 @@ const HundiPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (tab === "audit" && bankAccounts.length === 0) {
+      api.get("/finance/bank-accounts/").then((res) => {
+        setBankAccounts(Array.isArray(res.data) ? res.data : res.data.results || []);
+      });
+    }
+  }, [tab]);
+
   const handleCountChange = (denom, qty) => {
     const val = parseInt(qty, 10);
     setCounts((prev) => ({ ...prev, [denom]: Number.isNaN(val) || val < 0 ? 0 : val }));
   };
 
   const submitSession = async () => {
-    setErrorMSG("");
-    if (witnesses.length < 2) {
-      return setErrorMSG("Minimum two witnesses are required for verification.");
-    }
-    if (total <= 0) {
-      return setErrorMSG("Total amount must be greater than zero.");
+    // Final Validation
+    const witnessErr = witnesses.length < 2 ? "Minimum two witnesses required" : null;
+    const amountErr = total < 1 ? "Amount must be at least ₹1.00" : null;
+    const dateErr = ValidationUtils.validators.date(sessionDate);
+
+    if (witnessErr || amountErr || dateErr) {
+        setErrors({ witness: witnessErr, amount: amountErr, date: dateErr });
+        return notify.warn(t('fix_errors', "Please verify witness count and collection total."));
     }
 
     setSubmitLoading(true);
@@ -107,12 +125,15 @@ const HundiPage = () => {
         denominations_input: counts,
         total_amount: total,
         witness_names: witnesses,
+        bank_account: bankAccount,
       });
 
       setCounts({ 500: 0, 200: 0, 100: 0, 50: 0, 20: 0, 10: 0, 5: 0, 2: 0, 1: 0 });
+      setErrors({});
       setTab("history");
+      notify.success(t('hundi_success', "Collection session recorded and locked."));
     } catch (e) {
-      setErrorMSG(e.response?.data?.detail || "Failed to submit collection record.");
+      notify.error(e.response?.data?.detail || "Failed to submit collection record.");
     } finally {
       setSubmitLoading(false);
     }
@@ -179,20 +200,33 @@ const HundiPage = () => {
              <ShieldCheck size={14} /> Official Remittance Record
            </p>
            
-           <div className="space-y-6 mb-10">
-             <div className="space-y-2">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Collection Ref #</label>
-                <input 
-                  type="text" value={sessionName} onChange={e => setSessionName(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-12 text-sm font-bold text-white outline-none focus:border-white/30 transition-all"
+             <div className="space-y-6 mb-10">
+                <ModernInput 
+                  label="Collection Ref #" 
+                  value={sessionName} 
+                  onChange={e => setSessionName(e.target.value)}
+                  dark={true}
                 />
-             </div>
-             <div className="space-y-2">
-                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Opening Date</label>
-                <input 
-                  type="date" value={sessionDate} onChange={e => setSessionDate(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-12 text-sm font-bold text-white outline-none focus:border-white/30 transition-all"
+                <ModernInput 
+                  label="Opening Date" 
+                  type="date" 
+                  value={sessionDate} 
+                  error={errors.date}
+                  onChange={e => setSessionDate(e.target.value)}
+                  dark={true}
                 />
+             <div className="space-y-2">
+                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest ml-1">Destination Bank (Optional)</label>
+                <select 
+                  value={bankAccount || ''} 
+                  onChange={e => setBankAccount(e.target.value || null)}
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 h-12 text-sm font-bold text-white outline-none focus:border-white/30 transition-all appearance-none cursor-pointer"
+                >
+                  <option value="" className="bg-slate-900 text-white">CASH OFFICE</option>
+                  {bankAccounts.map(acc => (
+                    <option key={acc.id} value={acc.id} className="bg-slate-900 text-white">{acc.name}</option>
+                  ))}
+                </select>
              </div>
            </div>
 
@@ -207,14 +241,15 @@ const HundiPage = () => {
                  <p className="text-xl font-bold">{notesCount}</p>
               </div>
               <div className="p-4 bg-white/5 rounded-xl border border-white/5 flex items-center justify-center">
-                 <CheckCircle2 size={20} className="text-emerald-500" />
+                 <CheckCircle2 size={20} className={total >= 1 ? "text-emerald-500" : "text-white/10"} />
                  <span className="text-[10px] font-bold uppercase tracking-widest ml-2">Verified</span>
               </div>
            </div>
 
-           {errorMSG && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold flex items-center gap-2">
-                 <AlertCircle size={14} /> {errorMSG}
+           {(errors.witness || errors.amount) && (
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold flex flex-col gap-1">
+                 {errors.witness && <div className="flex items-center gap-2"><AlertCircle size={14} /> {errors.witness}</div>}
+                 {errors.amount && <div className="flex items-center gap-2"><AlertCircle size={14} /> {errors.amount}</div>}
               </div>
            )}
 
@@ -296,57 +331,64 @@ const HundiPage = () => {
               </div>
           </div>
 
-          <div className="overflow-x-auto text-[13px]">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100 uppercase tracking-[0.1em]">
-                  <th className="px-8 py-5 text-[10px] font-bold">Reference Name</th>
-                  <th className="px-6 py-5 text-[10px] font-bold">Total Amount</th>
-                  <th className="px-6 py-5 text-[10px] font-bold">Witnesses</th>
-                  <th className="px-6 py-5 text-[10px] font-bold text-right">Date</th>
-                  <th className="px-8 py-5 text-[10px] font-bold text-right">Details</th>
-                </tr>
-              </thead>
-          <tbody className="divide-y divide-slate-50">
-            {sessionsLoading ? (
-               <tr><td colSpan="4" className="py-20 text-center animate-pulse text-[11px] font-bold text-slate-300 uppercase tracking-widest">Loading collection logs...</td></tr>
-            ) : sessions.length === 0 ? (
-               <tr><td colSpan="4" className="py-20 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">No collection records found</td></tr>
-            ) : sessions.map(s => (
-              <tr key={s.id} className="hover:bg-slate-50/50 transition-all group">
-                <td className="px-8 py-5">
-                   <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all text-[10px] font-bold">#</div>
-                      <span className="font-bold text-slate-900">{s.name || `Session ${s.id}`}</span>
-                   </div>
-                </td>
-                <td className="px-6 py-5">
-                   <span className="text-base font-bold text-slate-900 tracking-tight">{fmtINR(s.total_amount)}</span>
-                </td>
-                <td className="px-6 py-5">
-                   <div className="flex flex-wrap gap-1.5">
-                     {s.witnesses?.slice(0, 2).map((w, idx) => (
-                       <span key={idx} className="px-2 py-0.5 bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-100 rounded-md uppercase tracking-tight">{w.name || w}</span>
-                     ))}
-                     {s.witnesses?.length > 2 && <span className="text-[10px] font-bold text-slate-300">+{s.witnesses.length - 2} more</span>}
-                   </div>
-                </td>
-                <td className="px-6 py-5 text-right text-[11px] font-bold text-slate-400 whitespace-nowrap">
-                   {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                </td>
-                <td className="px-8 py-5 text-right">
-                   <button 
-                    onClick={() => setSelectedSession(s)}
+          <ResponsiveTable
+            columns={[
+              {
+                header: "Reference Name",
+                key: "name",
+                mobileLabel: "Session",
+                render: (s) => (
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all text-[10px] font-bold">#</div>
+                    <span className="font-bold text-slate-900">{s.name || `Session ${s.id}`}</span>
+                  </div>
+                )
+              },
+              {
+                header: "Total Amount",
+                key: "total_amount",
+                render: (s) => <span className="text-base font-bold text-slate-900 tracking-tight">{fmtINR(s.total_amount)}</span>
+              },
+              {
+                header: "Witnesses",
+                key: "witnesses",
+                render: (s) => (
+                  <div className="flex flex-wrap gap-1.5">
+                    {s.witnesses?.slice(0, 2).map((w, idx) => (
+                      <span key={idx} className="px-2 py-0.5 bg-slate-50 text-[10px] font-bold text-slate-500 border border-slate-100 rounded-md uppercase tracking-tight">{w.name || w}</span>
+                    ))}
+                    {s.witnesses?.length > 2 && <span className="text-[10px] font-bold text-slate-300">+{s.witnesses.length - 2} more</span>}
+                  </div>
+                )
+              },
+              {
+                header: "Date",
+                key: "date",
+                align: "right",
+                render: (s) => (
+                  <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">
+                    {new Date(s.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                )
+              },
+              {
+                header: "Details",
+                key: "actions",
+                align: "right",
+                render: (s) => (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setSelectedSession(s); }}
                     className="h-8 w-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all active:scale-90"
-                   >
-                     <ChevronRight size={14} />
-                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                )
+              }
+            ]}
+            data={sessions}
+            loading={sessionsLoading}
+            emptyMessage="No collection records found"
+          />
         </motion.div>
       </div>
     );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Layers, Check, ArrowRight, Zap, Target } from 'lucide-react';
+import { Building2, Layers, Check, ArrowRight, Zap, Target, Sparkles, Package, ShieldCheck } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
 
 const ManagementPage = () => {
@@ -9,128 +9,124 @@ const ManagementPage = () => {
 
     return (
         <MarketingLayout>
-            <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
-                <div className="max-w-7xl mx-auto px-6">
+            {/* ── Hero ── */}
+            <section className="relative pt-32 pb-24 md:pt-48 md:pb-40 bg-cream overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(230,81,0,0.04),transparent)]" />
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                                 Sovereign Operations
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-primary/10 shadow-sm mb-10">
+                                 <Package size={16} className="text-primary animate-pulse" />
+                                 <span className="text-[11px] font-bold uppercase tracking-widest text-wood/80">Inventory Module</span>
                             </div>
-                            <h1 className="text-6xl md:text-[84px] font-extrabold text-slate-900 tracking-tight mb-10 leading-[0.95]">
-                                Temple <br />
-                                <span className="text-slate-400">Governance.</span>
+                            <h1 className="text-5xl md:text-[84px] font-black leading-[0.95] tracking-tight text-wood mb-8 uppercase">
+                                Store & <br />
+                                <span className="text-primary font-serif italic">Assets.</span>
                             </h1>
-                            <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
-                                Complete administrative control for temple boards and trusts. Integrated staff permissions and multi-temple node management.
+                            <p className="text-lg md:text-xl text-wood/70 font-medium leading-relaxed mb-12 max-w-lg">
+                                Manage your temple's brass vessels, ornaments, and pooja materials easily. Keep a clear record of everything you own.
                             </p>
-                            <button onClick={() => navigate('/pricing')} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
-                                Explore Plans <ArrowRight size={18} />
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => navigate('/demo')} className="h-16 px-10 rounded-full bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-orange-700 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                                    See a Demo <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
                         </motion.div>
+                        
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }} 
                             animate={{ opacity: 1, scale: 1 }} 
+                            transition={{ duration: 1 }}
                             className="relative"
                         >
-                             <div className="relative w-full aspect-square max-w-[550px] mx-auto group">
-                                <div 
-                                    className="absolute inset-0 z-10"
-                                    style={{
-                                        background: 'radial-gradient(circle at 50% 50%, transparent 20%, rgba(255,255,255,1) 90%), linear-gradient(to top, white 5%, transparent 30%)'
-                                    }}
-                                />
+                            <div className="rounded-[2.5rem] border-8 border-white shadow-2xl overflow-hidden bg-wood/5 aspect-square relative">
                                 <img 
-                                    src="/management_hero.png" 
-                                    alt="Temple Management Operations" 
-                                    className="w-full h-full object-cover rounded-[5rem] group-hover:scale-105 transition-transform duration-1000"
+                                    src="/assets/landing/hero.png" 
+                                    alt="Temple Management" 
+                                    className="w-full h-full object-cover"
                                 />
-                             </div>
-                             
-                             {/* Institutional Badge */}
-                             <div className="absolute -bottom-10 -left-10 bg-slate-900 p-8 rounded-[40px] shadow-2xl text-white z-20">
-                                 <div className="flex items-center gap-4">
-                                     <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold"><Layers size={20} /></div>
-                                     <div>
-                                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest leading-none mb-1">Node Status</p>
-                                         <p className="text-xl font-extrabold text-white leading-none">Global Ready</p>
-                                     </div>
-                                 </div>
-                             </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-wood/60 to-transparent" />
+                                
+                                <div className="absolute bottom-8 left-8 bg-white p-6 rounded-2xl shadow-xl border border-primary/10 hidden md:block">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><ShieldCheck size={24} /></div>
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-wood/40 tracking-wider">Asset Status</p>
+                                            <p className="text-base font-black text-wood tracking-tight">Fully Verified</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
-            <section className="py-40 bg-slate-50 border-y border-slate-100">
+
+            <section className="py-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-                         <FeatureBullet title="Multi-Temple Hierarchy" desc="Manage hundreds of temple nodes from a single central registry for Devaswom Boards and Private Trusts." />
-                         <FeatureBullet title="Staff RBAC Protocol" desc="Granular Role-Based Access Control to ensure only authorized personnel can access sensitive ledger data." />
-                         <FeatureBullet title="Asset & Property Log" desc="Institutional tracking of temple properties, land, and valuable heritage assets with GPS tagging." />
-                         <FeatureBullet title="Inventory Automation" desc="Real-time tracking of ritual ingredients, prasad distribution, and construction materials." />
-                         <FeatureBullet title="Institutional Comms" desc="Integrated notification system for temple employees and administrators across all regional nodes." />
-                         <FeatureBullet title="Legal Tracking" desc="Monitor institutional compliance, board meeting minutes, and local government mandates." />
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl font-black text-wood mb-4">Complete Control for the Committee</h2>
+                        <p className="text-wood/60">Everything you need to manage temple property and materials.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-40">
+                         <FeatureBullet title="Stock Tracking" desc="Keep a live count of rice, oil, and pooja items in your temple store." />
+                         <FeatureBullet title="Asset Register" desc="Save photos and details of brass vessels, lamps, and temple gold." />
+                         <FeatureBullet title="Staff Permissions" desc="Choose which staff members can see accounts or change pooja settings." />
+                         <FeatureBullet title="Multi-Temple" desc="Manage many temple branches from one single computer screen." />
+                         <FeatureBullet title="Property Records" desc="Keep safe digital copies of temple land papers and building documents." />
+                         <FeatureBullet title="Vendor List" desc="Store contact details of your regular grocery and flower suppliers." />
                     </div>
 
                     <div className="mt-40 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
                         <div className="space-y-8">
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">Board-Level Oversight</span>
-                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase leading-[1.1]">
-                                Centralized <br />Trust Command.
+                            <span className="text-[12px] font-bold text-primary uppercase tracking-widest">Management Control</span>
+                            <h2 className="text-4xl md:text-5xl font-black text-wood tracking-tight leading-[1.1]">
+                                Central Board <br />
+                                <span className="text-primary font-serif italic">Command.</span>
                             </h2>
-                            <p className="text-lg text-slate-500 font-medium leading-relaxed">
-                                Devalayam provides temple boards with unparalleled visibility into regional operations. Monitor counter-level collections, staff attendance, and ritual throughput across all nodes in real-time.
+                            <p className="text-lg text-wood/70 leading-relaxed max-w-lg">
+                                Our software gives temple boards a clear view of all operations. Monitor stock, staff, and assets across all your temples.
                             </p>
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
-                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Consolidated Financial Statements</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
-                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Regional Node Comparison Analytics</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="h-6 w-6 rounded-lg bg-slate-900 flex items-center justify-center text-white"><Check size={14} /></div>
-                                    <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">Audit-Ready Compliance Logs</span>
-                                </div>
-                            </div>
                         </div>
-                        <div className="bg-slate-900 rounded-[3rem] p-12 text-white">
+                        <div className="bg-wood rounded-[3rem] p-12 text-white shadow-2xl relative overflow-hidden group">
                              <div className="flex items-center justify-between mb-12">
-                                <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center"><Target size={20} /></div>
-                                <span className="text-[10px] uppercase font-black tracking-widest opacity-40">System Node 01</span>
+                                <div className="h-12 w-12 bg-white/5 rounded-2xl flex items-center justify-center text-primary border border-white/10"><Target size={24} /></div>
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-white/20">Main Branch 01</span>
                              </div>
-                             <div className="space-y-8">
+                             <div className="space-y-10">
                                  <div>
-                                     <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-2">Total Node Capacity</p>
-                                     <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                         <div className="h-full bg-primary w-[75%]" />
+                                     <p className="text-[11px] uppercase font-bold text-white/40 tracking-widest mb-4">Asset Verification</p>
+                                     <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                                         <div className="h-full bg-primary w-[85%]" />
                                      </div>
                                  </div>
-                                 <div className="grid grid-cols-2 gap-8">
+                                 <div className="grid grid-cols-2 gap-10">
                                       <div>
-                                          <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-1">Active Counters</p>
-                                          <p className="text-3xl font-black tracking-tighter text-white uppercase">4 Nodes</p>
+                                          <p className="text-[11px] uppercase font-bold text-white/40 tracking-widest mb-2">Branches</p>
+                                          <p className="text-3xl font-black text-white">4 Live</p>
                                       </div>
                                       <div>
-                                          <p className="text-[10px] uppercase font-black text-slate-500 tracking-widest mb-1">Audit Sync</p>
-                                          <p className="text-3xl font-black tracking-tighter text-emerald-400 uppercase">100%</p>
+                                          <p className="text-[11px] uppercase font-bold text-white/40 tracking-widest mb-2">Data Sync</p>
+                                          <p className="text-3xl font-black text-emerald-400">100%</p>
                                       </div>
                                  </div>
                              </div>
                         </div>
                     </div>
-        </div>
-    </section>
-</MarketingLayout>
+                </div>
+            </section>
+        </MarketingLayout>
     );
 };
 
 const FeatureBullet = ({ title, desc }) => (
-    <div className="space-y-4">
-        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100"><Check size={20} strokeWidth={3} /></div>
-        <h4 className="text-xl font-bold text-slate-900 tracking-tight">{title}</h4>
-        <p className="text-slate-500 font-medium leading-relaxed">{desc}</p>
+    <div className="p-10 rounded-3xl border border-wood/5 bg-cream/50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+        <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-primary mb-8 shadow-sm border border-wood/5 group-hover:bg-primary group-hover:text-white transition-all">
+            <Check size={20} strokeWidth={3} />
+        </div>
+        <h4 className="text-xl font-black text-wood mb-4 uppercase tracking-tight">{title}</h4>
+        <p className="text-wood/70 text-sm leading-relaxed">{desc}</p>
     </div>
 );
 

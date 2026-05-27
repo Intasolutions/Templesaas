@@ -1,94 +1,101 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Users, Check, ArrowRight, Shield, Zap, Briefcase, Activity } from 'lucide-react';
+import { Clock, Users, Check, ArrowRight, Shield, Zap, Briefcase, Activity, Sparkles, Utensils } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
 
 const StaffPage = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             
-            <section className="pt-48 pb-32 bg-white font-['Plus_Jakarta_Sans',sans-serif]">
-                <div className="max-w-7xl mx-auto px-6">
+            {/* ── Hero ── */}
+            <section className="relative pt-32 pb-24 md:pt-48 md:pb-40 bg-cream overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(230,81,0,0.04),transparent)]" />
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                                 Human Capital Management
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-primary/10 shadow-sm mb-10">
+                                 <Utensils size={16} className="text-primary animate-pulse" />
+                                 <span className="text-[11px] font-bold uppercase tracking-widest text-wood/80">Staff Module</span>
                             </div>
-                            <h1 className="text-6xl md:text-[84px] font-extrabold text-slate-900 tracking-tight mb-10 leading-[0.95]">
-                                Staff <br />
-                                <span className="text-slate-400">Governance.</span>
+                            <h1 className="text-5xl md:text-[84px] font-black leading-[0.95] tracking-tight text-wood mb-8 uppercase">
+                                Annadhanam <br />
+                                <span className="text-primary font-serif italic">& Staff.</span>
                             </h1>
-                            <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
-                                Orchestrate your temple's workforce with institutional precision. From priest rosters to volunteer coordination and automated attendance tracking.
+                            <p className="text-lg md:text-xl text-wood/70 font-medium leading-relaxed mb-12 max-w-lg">
+                                Manage your temple's workforce and mass feeding programs easily. Track staff duties, attendance, and Annadhanam stocks.
                             </p>
-                            <button onClick={() => setIsModalOpen(true)} className="h-14 px-8 rounded-xl bg-slate-900 text-white font-bold text-sm shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 active:scale-95">
-                                Book Executive Demo <ArrowRight size={18} />
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => navigate('/demo')} className="h-16 px-10 rounded-full bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-orange-700 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                                    See a Demo <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </div>
                         </motion.div>
+                        
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }} 
                             animate={{ opacity: 1, scale: 1 }} 
+                            transition={{ duration: 1 }}
                             className="relative"
                         >
-                             <div className="relative w-full aspect-[4/3] max-w-[650px] mx-auto group">
-                                <div 
-                                    className="absolute inset-0 z-10"
-                                    style={{
-                                        background: 'radial-gradient(circle at 50% 10%, transparent 20%, rgba(255,255,255,1) 95%)'
-                                    }}
-                                />
+                            <div className="rounded-[2.5rem] border-8 border-white shadow-2xl overflow-hidden bg-wood/5 aspect-[4/3] relative">
                                 <img 
-                                    src="/management_hero.png" 
-                                    alt="Temple Staff Management" 
-                                    className="w-full h-full object-cover rounded-[3rem] shadow-2xl group-hover:scale-[1.02] transition-transform duration-1000 border border-slate-100"
+                                    src="/assets/landing/priest.png" 
+                                    alt="Temple Staff" 
+                                    className="w-full h-full object-cover"
                                 />
-                             </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-wood/60 to-transparent" />
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-24 bg-slate-950 border-y border-white/5 relative overflow-hidden">
+            {/* ── Key Metrics ── */}
+            <section className="py-24 bg-wood border-y border-white/10 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 relative z-10">
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-16">
-                        <MetricCard count="100%" label="Payroll Accuracy" isDark />
-                        <MetricCard count="REAL-TIME" label="Attendance Sync" isDark />
-                        <MetricCard count="RBAC" label="Role Security" isDark />
-                        <MetricCard count="DAILY" label="Roster Planning" isDark />
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 divide-x divide-white/10 text-center">
+                        <MetricCard count="100%" label="Duty Sync" />
+                        <MetricCard count="DAILY" label="Stock Check" />
+                        <MetricCard count="SAFE" label="Staff Records" />
+                        <MetricCard count="READY" label="Annadhanam" />
                     </div>
                 </div>
             </section>
 
-            <section className="py-40 bg-white border-b border-slate-100">
+            <section className="py-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl font-black text-wood mb-4">Manage Your Temple Workforce</h2>
+                        <p className="text-wood/60">Everything you need to coordinate priests, office staff, and volunteers.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                          <FeatureBullet 
-                            title="Dynamic Rostering" 
-                            desc="Optimized scheduling for priests, staff, and volunteers during peak festival seasons and daily rituals." 
+                            title="Daily Duty Lists" 
+                            desc="Easily plan which priests and staff are on duty for each pooja or festival shift." 
                          />
                          <FeatureBullet 
-                            title="Automated Attendance" 
-                            desc="Secure check-in protocols with geo-fencing and biometric integration options for institutional staff." 
+                            title="Annadhanam Stock" 
+                            desc="Keep a clear count of rice, oil, and groceries used for temple mass feeding." 
                          />
                          <FeatureBullet 
-                            title="Financial Integration" 
-                            desc="Seamless synchronization with the core finance module for automated salary and allowance processing." 
+                            title="Staff Attendance" 
+                            desc="A simple way to record when staff arrive and leave for their daily temple work." 
                          />
                          <FeatureBullet 
-                            title="Role-Based Access" 
-                            desc="Enforce strict permission boundaries between administrative staff, ritual practitioners, and general volunteers." 
+                            title="Salary Records" 
+                            desc="Keep a record of staff salaries and dakshina payments in your temple accounts." 
                          />
                          <FeatureBullet 
-                            title="Performance Analytics" 
-                            desc="Track operational efficiency and task completion across different temple departments and departments." 
+                            title="Volunteer Tracking" 
+                            desc="Manage the names and phone numbers of volunteers who help during big festivals." 
                          />
                          <FeatureBullet 
-                            title="Digital Registry" 
-                            desc="Centralized repository for staff credentials, historical service records, and institutional certifications." 
+                            title="Work Categories" 
+                            desc="Give different computer access to priests, office staff, and the manager." 
                          />
                     </div>
                 </div>
@@ -97,23 +104,23 @@ const StaffPage = () => {
     );
 };
 
-function MetricCard({ count, label, isDark }) {
+function MetricCard({ count, label }) {
     return (
-        <div className="text-center group">
-            <h3 className={`text-3xl md:text-5xl font-black tracking-tighter mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>{count}</h3>
-            <p className={`text-[10px] font-black uppercase tracking-[0.4em] ${isDark ? 'text-white/30' : 'text-slate-400'}`}>{label}</p>
+        <div className="px-4">
+            <h3 className="text-4xl md:text-5xl font-black tracking-tight mb-3 text-white">{count}</h3>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-white/50">{label}</p>
         </div>
     );
 }
 
 function FeatureBullet({ title, desc }) {
     return (
-        <div className="space-y-4">
-            <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100">
+        <div className="p-10 rounded-3xl border border-wood/5 bg-cream/50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-primary mb-8 shadow-sm border border-wood/5 group-hover:bg-primary group-hover:text-white transition-all">
                 <Check size={20} strokeWidth={3} />
             </div>
-            <h4 className="text-xl font-bold text-slate-900 tracking-tight uppercase">{title}</h4>
-            <p className="text-slate-500 font-medium leading-relaxed uppercase tracking-tight text-xs opacity-80">{desc}</p>
+            <h4 className="text-xl font-black text-wood mb-4 uppercase tracking-tight">{title}</h4>
+            <p className="text-wood/70 text-sm leading-relaxed">{desc}</p>
         </div>
     );
 }

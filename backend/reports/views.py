@@ -2,7 +2,8 @@ from datetime import date
 from django.db.models import Sum, Count, Q, F
 from django.db.models.functions import TruncMonth
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from core.permissions import ModulePermission
 from rest_framework.response import Response
 
 from bookings.models import Booking
@@ -14,7 +15,7 @@ from devotees.models import Devotee
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, ModulePermission])
 def dashboard_stats(request):
     """
     Module 11: Dashboard
@@ -83,7 +84,7 @@ def dashboard_stats(request):
 
 
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated, ModulePermission])
 def financial_report(request):
     """
     Module 9/Reports: Monthly/Annual Financial Report.
@@ -171,8 +172,156 @@ def financial_report(request):
                 "desc": t["title"],
                 "category": str(t["txn_type"]).title(),
                 "amount": float(t["amount"]),
-                "type": "credit" if t["txn_type"] == "income" else "debit"
+                "type": "credit" if t["txn_type"] == "income" else "debit",
+                "timestamp": Transaction.objects.get(id=t["id"]).created_at.isoformat() if Transaction.objects.filter(id=t["id"]).exists() else None
             } for t in recent_txns
         ],
         "trends": list(months_data.values())
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, ModulePermission])
+def daybook_report(request):
+    """
+    Daybook API: Calculates opening balance, lists daily transactions, and closing balance.
+    """
+    tenant = getattr(request, "tenant", None)
+    date_str = request.GET.get("date", str(date.today()))
+    page = request.GET.get("page", 1)
+    page_size = request.GET.get("page_size", 10)
+    
+    try:
+        query_date = date.fromisoformat(date_str)
+    except ValueError:
+        return Response({"error": "Invalid date format YYYY-MM-DD"}, status=400)
+
+    # Base Queryset
+    qs = Transaction.objects.all()
+    if tenant:
+        qs = qs.filter(organization=tenant)
+
+    # 1. Opening Balance (All transactions before the query_date)
+    past_txns = qs.filter(date__lt=query_date)
+    past_income = past_txns.filter(txn_type=Transaction.TYPE_INCOME).aggregate(total=Sum("amount"))["total"] or 0
+    past_expense = past_txns.filter(txn_type=Transaction.TYPE_EXPENSE).aggregate(total=Sum("amount"))["total"] or 0
+    opening_balance = past_income - past_expense
+
+    # 2. Today's Transactions
+    today_txns = qs.filter(date=query_date).order_by("created_at")
+    
+    # Advanced Filtering
+    bank_account_id = request.GET.get("bank_account_id")
+    if bank_account_id:
+        today_txns = today_txns.filter(bank_account_id=bank_account_id)
+    
+    payment_mode = request.GET.get("payment_mode")
+    if payment_mode:
+        today_txns = today_txns.filter(payment_mode=payment_mode)
+
+    # 3. Breakdown by Payment Mode (For "How much in Cash vs Bank")
+    mode_summary = today_txns.values("payment_mode").annotate(
+        total_income=Sum("amount", filter=Q(txn_type=Transaction.TYPE_INCOME)),
+        total_expense=Sum("amount", filter=Q(txn_type=Transaction.TYPE_EXPENSE))
+    )
+    
+    formatted_mode_summary = {
+        mode: {
+            "income": float(item["total_income"] or 0),
+            "expense": float(item["total_expense"] or 0),
+            "net": float((item["total_income"] or 0) - (item["total_expense"] or 0))
+        } for item in mode_summary for mode, label in Transaction.PAYMODE_CHOICES if item["payment_mode"] == mode
+    }
+
+    today_income = today_txns.filter(txn_type=Transaction.TYPE_INCOME).aggregate(total=Sum("amount"))["total"] or 0
+    today_expense = today_txns.filter(txn_type=Transaction.TYPE_EXPENSE).aggregate(total=Sum("amount"))["total"] or 0
+    closing_balance = opening_balance + today_income - today_expense
+
+    from django.core.paginator import Paginator
+    paginator = Paginator(today_txns, page_size)
+    p_txns = paginator.get_page(page)
+
+    # Format transactions for display
+    transactions = [
+        {
+            "id": f"TRX-{t.id}",
+            "time": t.created_at.isoformat(),
+            "desc": t.title,
+            "category": str(t.category).replace("_", " ").title(),
+            "payment_mode": t.get_payment_mode_display() if hasattr(t, 'get_payment_mode_display') else "Cash",
+            "bank_account": t.bank_account.name if hasattr(t, 'bank_account') and t.bank_account else None,
+            "income": float(t.amount) if t.txn_type == Transaction.TYPE_INCOME else 0,
+            "expense": float(t.amount) if t.txn_type == Transaction.TYPE_EXPENSE else 0,
+        } for t in p_txns
+    ]
+
+    return Response({
+        "date": date_str,
+        "opening_balance": float(opening_balance),
+        "total_income": float(today_income),
+        "total_expense": float(today_expense),
+        "closing_balance": float(closing_balance),
+        "mode_summary": formatted_mode_summary,
+        "transactions": transactions,
+        "pagination": {
+            "count": paginator.count,
+            "total_pages": paginator.num_pages,
+            "current_page": p_txns.number,
+            "has_next": p_txns.has_next(),
+            "has_previous": p_txns.has_previous()
+        }
+    })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated, ModulePermission])
+def profit_loss_report(request):
+    """
+    Financial Summary: Income vs Expense with breakdown by category and flow.
+    """
+    tenant = getattr(request, "tenant", None)
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    
+    qs = Transaction.objects.all()
+    if tenant:
+        qs = qs.filter(organization=tenant)
+    
+    if start_date:
+        qs = qs.filter(date__gte=start_date)
+    if end_date:
+        qs = qs.filter(date__lte=end_date)
+        
+    # Total Summaries
+    totals = qs.aggregate(
+        income=Sum("amount", filter=Q(txn_type=Transaction.TYPE_INCOME)),
+        expense=Sum("amount", filter=Q(txn_type=Transaction.TYPE_EXPENSE))
+    )
+    
+    # Category-wise Breakdown
+    category_data = qs.values("category", "txn_type").annotate(total=Sum("amount")).order_by("category")
+    
+    # Flow-wise Breakdown (Cash vs Bank)
+    flow_data = qs.values("payment_mode", "txn_type").annotate(total=Sum("amount")).order_by("payment_mode")
+    
+    return Response({
+        "summary": {
+            "total_income": float(totals["income"] or 0),
+            "total_expense": float(totals["expense"] or 0),
+            "net_profit": float((totals["income"] or 0) - (totals["expense"] or 0))
+        },
+        "breakdown_by_category": [
+            {
+                "category": dict(Transaction.CATEGORY_CHOICES).get(item["category"], item["category"]),
+                "type": item["txn_type"],
+                "total": float(item["total"] or 0)
+            } for item in category_data
+        ],
+        "breakdown_by_flow": [
+            {
+                "mode": dict(Transaction.PAYMODE_CHOICES).get(item["payment_mode"], item["payment_mode"]),
+                "type": item["txn_type"],
+                "total": float(item["total"] or 0)
+            } for item in flow_data
+        ]
     })

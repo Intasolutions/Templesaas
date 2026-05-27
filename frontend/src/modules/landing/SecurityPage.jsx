@@ -1,127 +1,128 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Lock, Check, ArrowRight, Eye, Database, Zap } from 'lucide-react';
+import { Shield, Lock, Check, ArrowRight, Eye, Database, Zap, Sparkles, ShieldCheck } from 'lucide-react';
 import MarketingLayout from './MarketingLayout';
-import DemoBookingModal from './DemoBookingModal';
 
 const SecurityPage = () => {
     const navigate = useNavigate();
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <MarketingLayout>
-            <DemoBookingModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
             
-            <section className="pt-48 pb-32 bg-white">
-                <div className="max-w-7xl mx-auto px-6">
+            {/* ── Hero ── */}
+            <section className="relative pt-32 pb-24 md:pt-48 md:pb-40 bg-cream overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(230,81,0,0.04),transparent)]" />
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-slate-600 text-[13px] font-bold uppercase tracking-wider mb-8 border border-slate-100">
-                                 Sovereign Data Protection
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+                             <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-primary/10 shadow-sm mb-10">
+                                 <Shield size={16} className="text-primary animate-pulse" />
+                                 <span className="text-[11px] font-bold uppercase tracking-widest text-wood/80">Trust Module</span>
                             </div>
-                            <h1 className="text-6xl md:text-[84px] font-black text-slate-900 tracking-tighter mb-10 leading-[0.95] uppercase">
-                                Trust & <br />
-                                <span className="text-slate-400">Security.</span>
+                            <h1 className="text-5xl md:text-[84px] font-black leading-[0.95] tracking-tight text-wood mb-8 uppercase">
+                                Safe & <br />
+                                <span className="text-primary font-serif italic">Secure.</span>
                             </h1>
-                            <p className="text-xl text-slate-600 font-medium leading-relaxed mb-12 max-w-lg">
-                                Military-grade data isolation and end-to-end encryption for the most sensitive temple records. Heritage compliance by design.
+                            <p className="text-lg md:text-xl text-wood/70 font-medium leading-relaxed mb-12 max-w-lg">
+                                Your temple's data is sacred. We use high-level encryption to keep your accounts, staff records, and devotee lists completely private and safe.
                             </p>
-                            <div className="flex flex-col sm:flex-row gap-5">
-                                <button onClick={() => setIsModalOpen(true)} className="h-16 px-10 rounded-2xl bg-slate-900 text-white font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/40 hover:bg-black transition-all flex items-center justify-center gap-3 active:scale-95">
-                                    Book Executive Demo <ArrowRight size={18} />
-                                </button>
-                                <button onClick={() => navigate('/pricing')} className="h-16 px-10 rounded-2xl border-2 border-slate-100 text-slate-900 font-black text-xs uppercase tracking-[0.3em] hover:bg-slate-50 transition-all">
-                                    View Plans
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => navigate('/demo')} className="h-16 px-10 rounded-full bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-orange-700 transition-all flex items-center justify-center gap-3 group active:scale-95">
+                                    See a Demo <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </div>
                         </motion.div>
+                        
                         <motion.div 
                             initial={{ opacity: 0, scale: 0.95 }} 
                             animate={{ opacity: 1, scale: 1 }} 
+                            transition={{ duration: 1 }}
                             className="relative"
                         >
-                             <div className="relative w-full aspect-[4/3] max-w-[650px] mx-auto group">
-                                <div 
-                                    className="absolute inset-0 z-10"
-                                    style={{
-                                        background: 'radial-gradient(circle at 50% 10%, transparent 20%, rgba(255,255,255,1) 95%)'
-                                    }}
-                                />
+                            <div className="rounded-[2.5rem] border-8 border-white shadow-2xl overflow-hidden bg-wood/5 aspect-[4/3] relative">
                                 <img 
-                                    src="/security_hero.png" 
-                                    alt="Institutional Vault Security" 
-                                    className="w-full h-full object-cover rounded-[3rem] shadow-2xl group-hover:scale-[1.02] transition-transform duration-1000 border border-slate-100"
+                                    src="/assets/landing/hero.png" 
+                                    alt="Temple Security" 
+                                    className="w-full h-full object-cover"
                                 />
-                             </div>
-                             
-                             {/* Security Badge */}
-                             <div className="absolute -bottom-10 -left-10 bg-slate-900 p-8 rounded-[40px] shadow-2xl text-white z-20">
-                                 <div className="flex items-center gap-4">
-                                     <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold"><Shield size={20} /></div>
-                                     <div>
-                                         <p className="text-[10px] uppercase font-bold text-slate-500 tracking-widest leading-none mb-1">Protection Level</p>
-                                         <p className="text-xl font-black text-white leading-none uppercase tracking-tighter">AES-256 CORE</p>
-                                     </div>
-                                 </div>
-                             </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-wood/60 to-transparent" />
+                                
+                                <div className="absolute bottom-8 left-8 bg-white p-6 rounded-2xl shadow-xl border border-primary/10 hidden md:block">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold border border-emerald-500/10"><ShieldCheck size={24} /></div>
+                                        <div>
+                                            <p className="text-[10px] uppercase font-bold text-wood/40 tracking-wider">Protection Level</p>
+                                            <p className="text-base font-black text-wood tracking-tight">AES-256 BANK GRADE</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-40 bg-white border-y border-slate-100">
+            <section className="py-32 bg-white">
                 <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl font-black text-wood mb-4">Protecting Your Temple Data</h2>
+                        <p className="text-wood/60">Built with the latest technology to ensure 100% privacy for your institution.</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                          <FeatureBullet 
-                            title="Institutional Isolation" 
-                            desc="Multi-tenant architecture ensures that your institution's data is logically and physically siloed from others." 
+                            title="Private Cloud" 
+                            desc="Your temple's data is kept completely separate and private from all other temples." 
                          />
                          <FeatureBullet 
-                            title="Regional Redundancy" 
-                            desc="Data is continuously backed up across multiple regional nodes (TVM-CORE, EKM-RESERVE) for disaster recovery." 
+                            title="Auto-Backups" 
+                            desc="All temple records are automatically backed up every day so you never lose any data." 
                          />
                          <FeatureBullet 
-                            title="Z-Leak Auditing" 
-                            desc="End-to-end encryption for every transaction record, ensuring zero leakage of sensitive financial data." 
+                            title="Safe Payments" 
+                            desc="We use secure encryption for every single pooja booking and donation entry." 
                          />
                          <FeatureBullet 
-                            title="Biometric Integration" 
-                            desc="Support for advanced physical counter security via biometric staff authentication and identity protocols." 
+                            title="Staff Role Access" 
+                            desc="You choose which staff can see accounts. No one else can access sensitive temple money records." 
                          />
                          <FeatureBullet 
-                            title="Cloud Security Alliance" 
-                            desc="Built following CSA guidelines for secure cloud infrastructure and institutional data safety." 
+                            title="Phone Safety" 
+                            desc="Access your temple dashboard safely from your phone with secure login protection." 
                          />
                          <FeatureBullet 
-                            title="Heritage Protocol" 
-                            desc="Digital preservation of administrative records in compliance with long-term heritage archival laws." 
+                            title="Long-term History" 
+                            desc="Your temple's financial and pooja history is safely archived for years and future generations." 
                          />
                     </div>
 
-                    <div className="mt-40 bg-slate-900 rounded-[3rem] p-16 text-white relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-16 opacity-5"><Lock size={120} /></div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="mt-40 bg-wood rounded-[3rem] p-16 md:p-32 text-white relative overflow-hidden shadow-2xl"
+                    >
+                        <div className="absolute top-0 right-0 p-20 opacity-5"><Lock size={150} /></div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center relative z-10 text-left">
                             <div>
-                                <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-8">
-                                    Zero-Trust <br /> Architecture.
+                                <h2 className="text-4xl md:text-6xl font-black tracking-tight uppercase leading-none mb-8">
+                                    Total Data <br /> Safety.
                                 </h2>
-                                <p className="text-lg text-white/50 font-medium leading-relaxed max-w-md uppercase tracking-widest text-[11px]">
-                                    Our core philosophy is simple: never trust, always verify. Every system access is audited, and every database entry is signed with institutional keys.
+                                <p className="text-lg text-white/50 leading-relaxed max-w-md">
+                                    Our philosophy is simple: keep temple data safe. Every access is recorded and every entry is secure.
                                 </p>
                             </div>
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <p className="text-3xl font-black text-primary">24/7</p>
-                                    <p className="text-[10px] uppercase font-black text-white/30 tracking-[0.2em]">Threat Monitoring</p>
+                            <div className="grid grid-cols-2 gap-12">
+                                <div className="space-y-4 text-center lg:text-left">
+                                    <p className="text-5xl font-black text-primary">24/7</p>
+                                    <p className="text-[11px] uppercase font-bold text-white/30 tracking-widest">Active Safety</p>
                                 </div>
-                                <div className="space-y-2">
-                                    <p className="text-3xl font-black text-white">99.9%</p>
-                                    <p className="text-[10px] uppercase font-black text-white/30 tracking-[0.2em]">Uptime SLI</p>
+                                <div className="space-y-4 text-center lg:text-left">
+                                    <p className="text-5xl font-black text-white">99.9%</p>
+                                    <p className="text-[11px] uppercase font-bold text-white/30 tracking-widest">System Uptime</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </section>
         </MarketingLayout>
@@ -129,12 +130,12 @@ const SecurityPage = () => {
 };
 
 const FeatureBullet = ({ title, desc }) => (
-    <div className="space-y-4">
-        <div className="h-12 w-12 rounded-xl bg-white flex items-center justify-center text-slate-900 shadow-sm border border-slate-100">
+    <div className="p-10 rounded-3xl border border-wood/5 bg-cream/50 hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+        <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-primary mb-8 shadow-sm border border-wood/5 group-hover:bg-primary group-hover:text-white transition-all">
             <Check size={20} strokeWidth={3} />
         </div>
-        <h4 className="text-xl font-bold text-slate-900 tracking-tight uppercase">{title}</h4>
-        <p className="text-slate-500 font-medium leading-relaxed uppercase tracking-tight text-xs opacity-80">{desc}</p>
+        <h4 className="text-xl font-black text-wood mb-4 uppercase tracking-tight">{title}</h4>
+        <p className="text-wood/70 text-sm leading-relaxed">{desc}</p>
     </div>
 );
 

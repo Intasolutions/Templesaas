@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import UserProfile, Attendance
-
+from django.contrib.auth.models import User
+import uuid
 
 class UserProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
@@ -16,8 +17,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             return obj.organization.plan.allowed_apps
         return []
 
-
-from django.contrib.auth.models import User
 
 class UserManagementSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
@@ -37,7 +36,15 @@ class UserManagementSerializer(serializers.ModelSerializer):
         new_username = validated_data.pop("new_username", "")
         
         # User needs a username
-        username = new_username or user_data.get("username", f"user_{User.objects.count()}")
+        username = new_username or user_data.get("email")
+        
+        if not username:
+             # Fallback to a guaranteed unique username if none provided
+             username = f"user_{uuid.uuid4().hex[:8]}"
+        
+        if User.objects.filter(username=username).exists():
+             raise serializers.ValidationError({"new_username": "A user with this username already exists."})
+
         user = User.objects.create(
             username=username,
             email=user_data.get("email", ""),
@@ -61,7 +68,10 @@ class UserManagementSerializer(serializers.ModelSerializer):
         
         user = instance.user
         if new_username:
+            if User.objects.filter(username=new_username).exclude(pk=user.pk).exists():
+                raise serializers.ValidationError({"new_username": "This username is already taken."})
             user.username = new_username
+            
         if "email" in user_data:
             user.email = user_data["email"]
         if "first_name" in user_data:
@@ -81,7 +91,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-from .models import UserProfile, Attendance, DutyRoster
+from .models import Attendance, DutyRoster
 
 class DutyRosterSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)

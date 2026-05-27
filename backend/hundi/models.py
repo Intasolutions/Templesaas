@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.models import User
 from core.models import Tenant
 
@@ -22,7 +23,8 @@ class HundiSession(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPEN)
     
-    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    bank_account = models.ForeignKey("finance.BankAccount", on_delete=models.SET_NULL, null=True, blank=True, related_name="hundi_sessions")
     
     # Audit Proof (Module 5 requirement)
     proof_attachment = models.FileField(upload_to="hundi_proofs/", null=True, blank=True)
@@ -51,6 +53,8 @@ class HundiSession(models.Model):
                     amount=self.total_amount,
                     date=self.opening_date,
                     reference=txn_ref,
+                    payment_mode="cash" if not self.bank_account else "bank",
+                    bank_account=self.bank_account,
                     notes=f"Auto-generated from Hundi Session ID {self.id}"
                 )
 

@@ -5,6 +5,7 @@ class ModulePermission(permissions.BasePermission):
     Highly granular permission check for SaaS Modules.
     Checks user.profile.module_permissions for 'view', 'edit', 'delete'.
     """
+    message = "DEBUG: Module Permission Denied"
     
     # Map app labels/URL prefixes to module IDs if they differ
     MODULE_MAP = {
@@ -30,6 +31,7 @@ class ModulePermission(permissions.BasePermission):
         'users/me',
         'users/profile',
         'core/profile',
+        'core/profile-image',
         'core/billing',
         'core/subscription-requests',
     ]
@@ -46,30 +48,42 @@ class ModulePermission(permissions.BasePermission):
             if profile:
                 tenant = profile.organization
 
+        # 1. Superusers and Temple Admins have full access
+        profile = getattr(user, 'profile', None)
+        
+        # LOGGING
+        print(f"--- Permission Check ---")
+        print(f"User: {user.username}")
+        print(f"Path: {request.path}")
+        print(f"Role: {profile.role if profile else 'No Profile'}")
+        print(f"Tenant: {tenant.name if tenant else 'No Tenant'}")
+        if tenant:
+             print(f"Tenant Status: {tenant.status}")
+
+        if user.is_superuser or (profile and profile.role == 'temple_admin') or (profile and profile.module_permissions.get('all')):
+            print("Decision: ALLOWED (Admin/All)")
+            return True
+
         # ── SaaS Paywall Check ─────────────────────────────────────────────
-        # If tenant is approved but payment is pending, or expired, block most APIs
-        # Superusers skip this check.
         if not user.is_superuser and tenant:
             from core.models import Tenant
             restricted_statuses = [
                 Tenant.STATUS_APPROVED, 
                 Tenant.STATUS_PENDING_APPROVAL, 
-                Tenant.STATUS_EXPIRED, 
-                Tenant.STATUS_SUSPENDED
+                Tenant.STATUS_EXPIRED
             ]
             
             if tenant.status in restricted_statuses:
                 path = request.path.strip('/')
                 is_whitelisted = any(wp in path for wp in self.WHITELISTED_PATHS)
                 if not is_whitelisted:
+                    self.message = f"DEBUG: Paywall Denied ({tenant.status})"
+                    print(f"Decision: FORBIDDEN (Paywall: {tenant.status})")
                     return False
 
-        # 1. Superusers and Temple Admins have full access
-        profile = getattr(user, 'profile', None)
-        if user.is_superuser or (profile and profile.role == 'temple_admin') or (profile and profile.module_permissions.get('all')):
-            return True
-
         if not profile:
+            self.message = "DEBUG: No Profile"
+            print("Decision: FORBIDDEN (No Profile)")
             return False
 
         # 2. Extract module name from URL
@@ -78,6 +92,7 @@ class ModulePermission(permissions.BasePermission):
         # Check whitelist first
         for white_path in self.WHITELISTED_PATHS:
             if white_path in path:
+                print("Decision: ALLOWED (Whitelist)")
                 return True
 
         path_parts = path.split('/')
@@ -91,20 +106,37 @@ class ModulePermission(permissions.BasePermission):
         # If we can't identify a specific module, we allow SAFE methods (View only)
         # but block destructive ones just in case.
         if not module_id:
-            return request.method in permissions.SAFE_METHODS
+            res = request.method in permissions.SAFE_METHODS
+            if not res:
+                self.message = "DEBUG: Non-safe method on unknown module"
+            print(f"Decision: {'ALLOWED' if res else 'FORBIDDEN'} (No Module ID, Safe Method Check)")
+            return res
         
         perms = profile.module_permissions.get(module_id, [])
+        print(f"Module: {module_id}, User Perms: {perms}")
 
         # 3. Method-based Check
         if request.method in permissions.SAFE_METHODS:
-            return 'view' in perms
+            res = 'view' in perms
+            if not res:
+                self.message = f"DEBUG: Missing 'view' permission for {module_id}"
+            print(f"Decision: {'ALLOWED' if res else 'FORBIDDEN'} (Safe Method: view)")
+            return res
         
         if request.method in ['POST', 'PUT', 'PATCH']:
-            # For creation/update, we check 'edit'
-            return 'edit' in perms
+            res = 'edit' in perms
+            if not res:
+                self.message = f"DEBUG: Missing 'edit' permission for {module_id}"
+            print(f"Decision: {'ALLOWED' if res else 'FORBIDDEN'} (Write Method: edit)")
+            return res
             
         if request.method == 'DELETE':
-            # For deletion, we check 'delete'
-            return 'delete' in perms
+            res = 'delete' in perms
+            if not res:
+                self.message = f"DEBUG: Missing 'delete' permission for {module_id}"
+            print(f"Decision: {'ALLOWED' if res else 'FORBIDDEN'} (Delete Method: delete)")
+            return res
 
+        self.message = "DEBUG: Permission Fallthrough"
+        print("Decision: FORBIDDEN (Fallthrough)")
         return False

@@ -1,15 +1,14 @@
 from django.db import models
 
 class Lead(models.Model):
-    INTEREST_LITE = "lite"
-    INTEREST_PRO = "pro"
-    INTEREST_PRO_MAX = "pro_max"
-    INTEREST_ULTIMATE = "ultimate"
+    INTEREST_LITE = "LITE"
+    INTEREST_PRO = "PRO"
+    INTEREST_MAX = "MAX"
     
     INTEREST_CHOICES = [
         (INTEREST_LITE, "Lite Plan"),
         (INTEREST_PRO, "Pro Heritage"),
-        (INTEREST_ULTIMATE, "Ultimate Devaswom"),
+        (INTEREST_MAX, "Ultimate Devaswom"),
     ]
 
     # 1. Contact Info

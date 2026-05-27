@@ -5,25 +5,26 @@ import {
   Users,
   Calendar,
   Wallet,
-  ArrowRight,
   Plus,
   Search,
   Activity,
   Package,
-  Sun,
   Moon,
   TrendingUp,
-  MapPin,
   ChevronRight,
   Sparkles,
   Zap,
   LayoutDashboard,
   Clock,
-  ShieldCheck
+  ShieldCheck,
+  ArrowRight
 } from 'lucide-react';
 import api from '../../shared/api/client';
 import ClockInModal from '../users/ClockInModal';
 import { useAuth } from '../../context/AuthContext';
+import InteractiveStats from '../../components/ui/InteractiveStats';
+import GlassCard from '../../components/ui/GlassCard';
+import PremiumButton from '../../components/ui/PremiumButton';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
@@ -66,194 +67,168 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div className="h-[70vh] flex flex-col items-center justify-center space-y-6">
-      <div className="w-16 h-16 border-[6px] border-slate-100 border-t-slate-900 rounded-full animate-spin shadow-inner"></div>
-      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-[0.2em] animate-pulse">Loading Dashboard...</p>
+      <div className="w-16 h-16 border-4 border-slate-100 border-t-primary rounded-full animate-spin shadow-inner"></div>
+      <p className="text-[10px] font-bold text-slate-400 tracking-[0.3em] animate-pulse uppercase">Syncing Workspace</p>
     </div>
   );
 
-  const trialDaysLeft = tenant?.trial_ends_at 
+  const trialDaysLeft = tenant?.trial_ends_at
     ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)))
     : null;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 pb-20 px-4 md:px-0">
-      {/* ── Upgrade Banner ────────────────── */}
-      {tenant?.is_trial && (
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-slate-900 rounded-2xl p-8 relative overflow-hidden group shadow-2xl border border-white/5"
-        >
-          <div className="absolute top-0 right-0 p-12 text-white/5 group-hover:scale-110 transition-transform duration-700">
-            <Zap size={180} />
-          </div>
-          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-6 text-center md:text-left">
-              <div className="h-14 w-14 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl">
-                <Sparkles size={28} />
-              </div>
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-white tracking-tight">Premium Trial Active</h2>
-                <p className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.3em] mt-2 flex items-center gap-2 justify-center md:justify-start">
-                   {trialDaysLeft} Days Remaining • Upgrade to unlock all features
-                </p>
-              </div>
-            </div>
-            <button 
-              onClick={() => window.location.href = '/billing'}
-              className="px-8 h-12 bg-white text-slate-900 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary transition-all active:scale-95 whitespace-nowrap shadow-xl"
-            >
-              Upgrade Now
-            </button>
-          </div>
-        </motion.div>
-      )}
+    <div className="max-w-7xl mx-auto space-y-10 pb-20 px-4 md:px-0 bg-mesh min-h-screen">
 
-      {/* Header */}
+      {/* ── Welcome Header ────────────────── */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 py-4">
-        <div className="flex items-center gap-5">
-            <div className="h-14 w-14 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg">
-                <LayoutDashboard size={28} />
-            </div>
-            <div>
-                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Temple Dashboard</h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em] mt-1 flex items-center gap-2">
-                    <ShieldCheck size={12} className="text-primary" /> Administrative Portal • {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                </p>
-            </div>
+        <div className="flex items-center gap-6">
+          <div className="h-16 w-16 bg-white rounded-[2rem] flex items-center justify-center text-slate-900 shadow-xl border border-slate-50 relative overflow-hidden group">
+            <LayoutDashboard size={28} className="text-primary relative z-10 transition-transform group-hover:scale-110" />
+            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight leading-none">{t('temple_workspace', 'Temple Dashboard')}</h1>
+            <p className="text-xs font-bold text-slate-500 mt-2 flex items-center gap-2 uppercase tracking-widest">
+                <Sparkles size={12} className="text-gold" /> 
+                Administrative Hub • {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-            <button onClick={() => setShowClockIn(true)} className="h-11 px-5 rounded-lg border border-slate-200 bg-white text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-slate-900 transition-all flex items-center gap-2 shadow-sm">
-                <Clock size={16} /> Staff Attendance
-            </button>
-            <button onClick={() => window.location.href='/bookings'} className="h-11 px-6 rounded-lg bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2 active:scale-95">
-                <Plus size={18} /> New Booking
-            </button>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowClockIn(true)} className="h-12 px-6 rounded-2xl bg-white border border-slate-100 text-xs font-bold text-slate-600 uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all flex items-center gap-2 shadow-sm">
+            <Clock size={16} /> Staff Attendance
+          </button>
+          <PremiumButton onClick={() => window.location.href = '/pooja/book'} variant="primary" icon={Plus}>
+            {t('new_booking', 'New Booking')}
+          </PremiumButton>
         </div>
       </header>
 
-      {/* Stats Cards */}
+      {/* ── Quick Insights ────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatItem label="Daily Poojas" value={stats.metrics.today_poojas} color="text-blue-600 bg-blue-50" icon={Activity} />
-        <StatItem label="Vazhipadu Income" value={`₹${(stats.metrics.today_income || 0).toLocaleString()}`} color="text-emerald-600 bg-emerald-50" icon={TrendingUp} />
-        <StatItem label="Registered Devotees" value={stats.metrics.total_devotees} color="text-orange-600 bg-orange-50" icon={Users} />
-        <StatItem label="Special Events" value={stats.upcoming_festivals.length} color="text-purple-600 bg-purple-50" icon={Calendar} />
+        <InteractiveStats label="Poojas Today" value={stats.metrics.today_poojas} icon={Activity} trend="+12%" />
+        <InteractiveStats label="Total Revenue" value={`₹${(stats.metrics.today_income || 0).toLocaleString()}`} icon={TrendingUp} trend="+5.4%" />
+        <InteractiveStats label="Devotees" value={stats.metrics.total_devotees} icon={Users} trend="+8%" />
+        <InteractiveStats label="Special Events" value={stats.upcoming_festivals.length} icon={Calendar} trend="Steady" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Quick Tasks */}
-          <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 px-2 flex items-center gap-2">
-                <Zap size={14} className="text-primary" /> Quick Actions
+
+          {/* ── Quick Actions ────────────────── */}
+          <GlassCard className="p-8">
+            <h3 className="text-base font-bold text-slate-900 mb-8 flex items-center gap-3 uppercase tracking-widest">
+              <Zap size={16} className="text-primary" /> Daily Operations
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
-                <ActionLink title="Pooja Booking" icon={Plus} href="/bookings" desc="Register ritual for devotee" color="bg-orange-50 text-orange-600" />
-                <ActionLink title="Hundi Collections" icon={Wallet} href="/hundi" desc="Record collection batches" color="bg-emerald-50 text-emerald-600" />
-                <ActionLink title="Devotee Directory" icon={Search} href="/devotees" desc="Search records & history" color="bg-blue-50 text-blue-600" />
-                <ActionLink title="Prasad Shipping" icon={Package} href="/shipments" desc="Manage active deliveries" color="bg-slate-50 text-slate-900" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <ActionLink title="Pooja Booking" icon={Plus} href="/pooja/book" desc="Register ritual for devotee" />
+              <ActionLink title="Hundi Records" icon={Wallet} href="/hundi" desc="Manage collection batches" />
+              <ActionLink title="Devotee Records" icon={Search} href="/devotees" desc="Search directory & history" />
+              <ActionLink title="Logistics" icon={Package} href="/shipments" desc="Manage active deliveries" />
+            </div>
+          </GlassCard>
+
+          {/* ── Daily Panchangam ────────────────── */}
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="bg-slate-900 rounded-[2.5rem] p-10 text-white relative shadow-2xl overflow-hidden group border border-slate-800"
+          >
+            <div className="absolute -top-10 -right-10 p-8 text-primary/10 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+              <Moon size={180} />
+            </div>
+            <div className="relative z-10">
+              <h4 className="text-xs font-bold text-primary tracking-[0.3em] mb-10 flex items-center gap-3 uppercase">
+                <Sparkles size={16} /> Daily Astrology
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+                <PanchangItem label="Nakshatra" value={panchang?.nakshatra || "Anizham"} />
+                <PanchangItem label="Tithi" value={panchang?.tithi || "Thiruvonam"} />
+                <PanchangItem label="Sunrise" value={panchang?.sunrise || "06:15 AM"} />
+                <PanchangItem label="Sunset" value={panchang?.sunset || "06:42 PM"} />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ── Events Panel ────────────────── */}
+        <GlassCard className="p-8 h-full flex flex-col min-h-[500px]">
+          <div className="flex items-center justify-between mb-10">
+            <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest">Upcoming Events</h4>
+            <div className="h-10 w-10 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+              <Calendar size={18} className="text-slate-400" />
             </div>
           </div>
 
-          {/* Simple Panchangam */}
-          <div className="bg-slate-900 rounded-2xl p-8 text-white relative shadow-xl overflow-hidden group">
-             <div className="absolute top-0 right-0 p-8 text-white/5 opacity-0 group-hover:opacity-100 transition-all duration-700">
-                <Sparkles size={80} />
-             </div>
-             <div className="relative z-10 h-full flex flex-col justify-between overflow-x-auto custom-scrollbar">
-                <h4 className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
-                   <Moon size={14} /> Daily Panchangam
-                </h4>
-                <div className="flex gap-10 lg:gap-16">
-                    <PanchangItem label="Nakshatram" value={panchang?.nakshatra || "Anizham"} />
-                    <PanchangItem label="Tithi" value={panchang?.tithi || "Thiruvonam"} />
-                    <PanchangItem label="Sunrise" value={panchang?.sunrise || "06:15 AM"} />
-                    <PanchangItem label="Sunset" value={panchang?.sunset || "06:42 PM"} />
+          <div className="flex-1 space-y-5">
+            {stats.upcoming_festivals.length === 0 ? (
+              <div className="py-20 text-center flex flex-col items-center gap-4">
+                <div className="h-14 w-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-200 border border-slate-50 shadow-inner">
+                  <Calendar size={24} />
                 </div>
-             </div>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No events scheduled</p>
+              </div>
+            ) : (
+              stats.upcoming_festivals.map((evt, i) => (
+                <motion.div 
+                    key={i} 
+                    whileHover={{ x: 5 }}
+                    className="flex gap-5 items-center group cursor-pointer p-4 rounded-2xl transition-all hover:bg-primary/5 border border-transparent hover:border-primary/10"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-white flex flex-col items-center justify-center border border-slate-100 shadow-sm group-hover:border-primary group-hover:shadow-primary/5 transition-all">
+                    <span className="text-lg font-bold text-slate-900 leading-none">{new Date(evt.start_date).getDate()}</span>
+                    <span className="text-xs font-bold text-slate-500 uppercase mt-1">{new Date(evt.start_date).toLocaleString('default', { month: 'short' })}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900 truncate uppercase tracking-tight">{evt.name}</p>
+                    <p className="text-xs font-bold text-slate-500 mt-1.5 flex items-center gap-2 uppercase tracking-widest">
+                      <Clock size={12} /> {evt.start_time || "All Day"}
+                    </p>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
-        </div>
 
-        {/* Festival List */}
-        <div className="bg-white rounded-2xl p-8 border border-slate-100 shadow-sm h-full flex flex-col min-h-[400px]">
-            <div className="flex items-center justify-between mb-8 px-2">
-                <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">Upcoming Festivals</h4>
-                <Calendar size={18} className="text-slate-200" />
-            </div>
-            
-            <div className="flex-1 space-y-6">
-                {stats.upcoming_festivals.length === 0 ? (
-                    <div className="py-16 text-center border border-dashed border-slate-100 rounded-xl flex flex-col items-center gap-3">
-                        <div className="h-8 w-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
-                           <Calendar size={16} />
-                        </div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">No events scheduled</p>
-                    </div>
-                ) : (
-                    stats.upcoming_festivals.map((evt, i) => (
-                        <div key={i} className="flex gap-4 items-center group cursor-pointer hover:translate-x-1 transition-all">
-                            <div className="w-10 h-10 rounded-lg bg-slate-50 flex flex-col items-center justify-center border border-slate-100 group-hover:bg-primary group-hover:text-white transition-all">
-                                <span className="text-sm font-bold leading-none">{new Date(evt.start_date).getDate()}</span>
-                                <span className="text-[8px] font-bold uppercase opacity-60">{new Date(evt.start_date).toLocaleString('default', { month: 'short' })}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold tracking-tight text-slate-900 truncate mb-0.5">{evt.name}</p>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 opacity-60">
-                                   <Clock size={8} /> {evt.start_time || "All Day"}
-                                </p>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-            
-            <button className="w-full mt-8 h-10 bg-slate-50 hover:bg-slate-100 transition-all rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 border border-slate-100 flex items-center justify-center gap-2 active:scale-95 shadow-sm">
-                View Calendar <ChevronRight size={14} />
-            </button>
-        </div>
+          <PremiumButton variant="outline" size="sm" className="w-full mt-10" onClick={() => window.location.href='/bookings'}>
+            View Calendar <ArrowRight size={14} className="ml-1" />
+          </PremiumButton>
+        </GlassCard>
       </div>
 
-      <ClockInModal 
-        isOpen={showClockIn} 
-        onClose={() => setShowClockIn(false)} 
-        onRefresh={fetchDashboard} 
+      <ClockInModal
+        isOpen={showClockIn}
+        onClose={() => setShowClockIn(false)}
+        onRefresh={fetchDashboard}
       />
     </div>
   );
 }
 
-function StatItem({ label, value, color, icon: Icon }) {
-    return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 hover:border-primary/20 transition-all shadow-sm group">
-            <div className={`h-9 w-9 mb-4 rounded-lg flex items-center justify-center transition-transform group-hover:scale-105 ${color}`}>
-                <Icon size={16} />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 tracking-tight leading-none mb-1.5">{value}</h3>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-        </div>
-    );
-}
-
-function ActionLink({ title, desc, icon: Icon, href, color }) {
-    return (
-        <a href={href} className="flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-50 hover:border-slate-100 shadow-sm hover:shadow-md transition-all group">
-            <div className={`h-11 w-11 rounded-lg flex items-center justify-center shrink-0 ${color} group-hover:scale-105 transition-transform`}>
-                <Icon size={20} />
-            </div>
-            <div className="overflow-hidden">
-                <p className="text-xs font-bold text-slate-900 tracking-tight mb-1">{title}</p>
-                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest truncate opacity-60">{desc}</p>
-            </div>
-        </a>
-    );
+function ActionLink({ title, desc, icon: Icon, href }) {
+  return (
+    <motion.a 
+        href={href} 
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center gap-5 p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-primary/20 hover:shadow-xl hover:shadow-primary/5 transition-all group"
+    >
+      <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 text-slate-400 group-hover:bg-primary group-hover:text-white transition-all duration-500 shadow-inner">
+        <Icon size={20} />
+      </div>
+      <div className="overflow-hidden">
+        <p className="text-xs font-bold text-slate-900 mb-0.5 tracking-tight uppercase">{title}</p>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest truncate">{desc}</p>
+      </div>
+    </motion.a>
+  );
 }
 
 function PanchangItem({ label, value }) {
-    return (
-        <div className="space-y-2">
-            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{label}</p>
-            <p className="text-sm font-bold tracking-tight uppercase">{value}</p>
-        </div>
-    );
-}
+  return (
+    <div className="space-y-4 group/item">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover/item:text-primary transition-colors">{label}</p>
+      <p className="text-xl font-bold text-white tracking-tight">{value}</p>
+    </div>
+  );
+}

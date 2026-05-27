@@ -9,12 +9,18 @@ class PlanSerializer(serializers.ModelSerializer):
 class TenantSerializer(serializers.ModelSerializer):
     plan_name = serializers.SerializerMethodField()
     allowed_apps = serializers.SerializerMethodField()
+    subscription_ends_at = serializers.SerializerMethodField()
 
     def get_plan_name(self, obj):
         return obj.plan.name if obj.plan else "N/A"
 
     def get_allowed_apps(self, obj):
         return obj.plan.allowed_apps if obj.plan else []
+
+    def get_subscription_ends_at(self, obj):
+        if hasattr(obj, 'subscription') and obj.subscription:
+            return obj.subscription.current_period_end
+        return None
 
     class Meta:
         model = Tenant
@@ -23,9 +29,9 @@ class TenantSerializer(serializers.ModelSerializer):
             'contact_email', 'contact_phone', 'address',
             'latitude', 'longitude', 'plan', 'plan_name', 'allowed_apps', 
             'authorized_signatory_name', 'authorized_signatory_designation',
-            'is_active', 'is_trial', 'trial_ends_at', 'status'
+            'is_active', 'is_trial', 'trial_ends_at', 'status', 'subscription_ends_at'
         ]
-        read_only_fields = ['subdomain', 'plan', 'allowed_apps', 'is_active', 'status']
+        read_only_fields = ['subdomain', 'plan', 'allowed_apps', 'is_active', 'status', 'subscription_ends_at']
 
 class SubscriptionRequestSerializer(serializers.ModelSerializer):
     tenant_name = serializers.CharField(source="tenant.name", read_only=True)

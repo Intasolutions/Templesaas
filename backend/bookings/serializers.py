@@ -17,12 +17,12 @@ class BookingSerializer(serializers.ModelSerializer):
 
     def get_devotee_gothra(self, obj):
         if obj.devotee and obj.devotee.gothra:
-            return obj.devotee.gothra.name
+            return obj.devotee.gothra.name_ml or obj.devotee.gothra.name
         return ""
 
     def get_devotee_nakshatra(self, obj):
         if obj.devotee and obj.devotee.nakshatra:
-            return obj.devotee.nakshatra.name
+            return obj.devotee.nakshatra.name_ml or obj.devotee.nakshatra.name
         return ""
 
     # Pooja details - Bulletproof

@@ -1,14 +1,16 @@
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from core.models import Tenant
 from events.models import Event
+from decimal import Decimal
 
 class Pooja(models.Model):
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="poojas", null=True, blank=True)
     name = models.CharField(max_length=150)
 
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(Decimal('1.0'))])
     duration_minutes = models.PositiveIntegerField(default=0)
 
     # Festival-specific pooja (optional)

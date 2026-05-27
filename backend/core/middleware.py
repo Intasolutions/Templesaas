@@ -41,23 +41,33 @@ class TenantMiddleware:
             # ── Check Trial Expiration ───────────────────────────────────
             from django.utils import timezone
             if tenant.is_trial and tenant.trial_ends_at and timezone.now() > tenant.trial_ends_at:
-                return JsonResponse(
-                    {
-                        "error": "Trial Expired",
-                        "message": "Your 7-day free trial has concluded. Please upgrade to a premium plan to continue using the platform.",
-                        "trial_expired": True
-                    },
-                    status=403
-                )
+                path_parts = request.path.strip("/").split("/")
+                requested_app = path_parts[1] if len(path_parts) > 1 and path_parts[0] == "api" else ""
+                
+                # Allow 'users' (for auth/me) and 'core' (for billing plans) to load
+                if requested_app not in ["users", "core", "billing"]:
+                    print(f"MIDDLEWARE: Trial Expired for {tenant.name}")
+                    return JsonResponse(
+                        {
+                            "error": "Trial Expired",
+                            "message": "Your 3-day free trial has concluded. Please upgrade to a premium plan to continue using the platform.",
+                            "trial_expired": True
+                        },
+                        status=403
+                    )
 
             allowed_apps = tenant.plan.allowed_apps if (tenant.plan and hasattr(tenant.plan, 'allowed_apps')) else []
             path_parts = request.path.strip("/").split("/")
             if len(path_parts) > 1 and path_parts[0] == "api":
                 requested_app = path_parts[1]
-                # core, users, reports, and devotees are always allowed for basic operation
-                exempt_apps = ["core", "users", "reports", "tenants", "shipping", "shipments", "devotees"]
+                # Core infrastructure and auth modules are always exempt
+                exempt_apps = ["core", "users", "tenants", "billing"]
+                
+                print(f"MIDDLEWARE: App: {requested_app}, Allowed: {allowed_apps}, Exempt: {exempt_apps}")
+                
                 if requested_app not in allowed_apps and requested_app not in exempt_apps:
                      plan_name = tenant.plan.name if tenant.plan else "N/A"
+                     print(f"MIDDLEWARE: ACCESS DENIED for {requested_app} on {plan_name}")
                      return JsonResponse(
                          {"error": f"Access Denied: Your {plan_name} plan does not include the '{requested_app}' module."},
                          status=403

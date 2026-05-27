@@ -12,14 +12,14 @@ from core.utils import TenantMixin
 
 class EventListCreateView(TenantMixin, generics.ListCreateAPIView):
     model = Event
-    queryset = Event.objects.all()
+    queryset = Event.objects.all().order_by("-id")
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated, ModulePermission]
 
 
 class EventDetailView(TenantMixin, generics.RetrieveUpdateDestroyAPIView):
     model = Event
-    queryset = Event.objects.all()
+    queryset = Event.objects.all().order_by("-id")
     serializer_class = EventSerializer
     permission_classes = [IsAuthenticated, ModulePermission]
 

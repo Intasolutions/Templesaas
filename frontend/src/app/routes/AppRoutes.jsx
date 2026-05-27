@@ -2,35 +2,11 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import AppLayout from "../layout/AppLayout.jsx";
 import { useAuth } from "../../context/AuthContext";
 
-// ... (existing imports)
-
-const PaywallGuard = ({ children }) => {
-  const { tenant, user } = useAuth();
-  const location = useLocation();
-
-  // Superusers (SaaS Owners) can always access everything
-  if (user?.is_superuser) return children;
-
-  // Logic: If status is 'approved' (Payment Pending), force them to Billing
-  // Unless they are already on Billing or Settings (Profile)
-  const restrictedStatuses = ['approved', 'pending_approval', 'expired', 'suspended'];
-  const isRestricted = restrictedStatuses.includes(tenant?.status);
-
-  if (isRestricted && location.pathname !== '/billing' && !location.pathname.startsWith('/settings')) {
-    return <Navigate to="/billing" replace />;
-  }
-
-  return children;
-};
-
-export default function AppRoutes() {
-  const { isAuthenticated, loading } = useAuth();
+// Landing Content Pages
 import LandingPage from "../../modules/landing/LandingPage.jsx";
 import PricingPage from "../../modules/landing/PricingPage.jsx";
 import LoginPage from "../../modules/auth/LoginPage.jsx";
 import SignUpPage from "../../modules/auth/SignUpPage.jsx";
-
-// Landing Content Pages
 import VazhipaduGateway from "../../modules/landing/VazhipaduGateway.jsx";
 import AnalyticsPage from "../../modules/landing/AnalyticsPage.jsx";
 import PanchangamPage from "../../modules/landing/PanchangamPage.jsx";
@@ -38,7 +14,7 @@ import DocsPage from "../../modules/landing/DocsPage.jsx";
 import SupportPage from "../../modules/landing/SupportPage.jsx";
 import ManagementPage from "../../modules/landing/ManagementPage.jsx";
 import CrmPage from "../../modules/landing/CrmPage.jsx";
-import StaffPage from "../../modules/landing/StaffPage.jsx";
+import StaffLandingPage from "../../modules/landing/StaffPage.jsx";
 import SignageLandingPage from "../../modules/landing/SignageLandingPage.jsx";
 import SecurityPage from "../../modules/landing/SecurityPage.jsx";
 import TermsPage from "../../modules/landing/TermsPage.jsx";
@@ -47,6 +23,9 @@ import RefundPolicyPage from "../../modules/landing/RefundPolicyPage.jsx";
 import CookiePolicyPage from "../../modules/landing/CookiePolicyPage.jsx";
 import SaasAgreementPage from "../../modules/landing/SaasAgreementPage.jsx";
 import PartnerPage from "../../modules/landing/PartnerPage.jsx";
+import ShippingLandingPage from "../../modules/landing/ShippingLandingPage.jsx";
+import ProjectReportPage from "../../modules/landing/ProjectReportPage.jsx";
+import DemoPage from "../../modules/landing/DemoPage.jsx";
 import BillingPage from "../../modules/billing/BillingPage.jsx";
 
 // Core Operations
@@ -62,12 +41,38 @@ import DonationsPage from "../../modules/donations/DonationsPage.jsx";
 import EventsPage from "../../modules/events/EventsPage.jsx";
 import ShipmentsPage from "../../modules/shipments/ShipmentsPage.jsx";
 import BookingsPage from "../../modules/bookings/BookingsPage.jsx";
+import BookingSuccessPage from "../../modules/bookings/BookingSuccessPage.jsx";
 import HundiPage from "../../modules/hundi/HundiPage.jsx";
 import AttendancePage from "../../modules/users/AttendancePage.jsx";
 import AssetPage from "../../modules/assets/AssetPage.jsx";
 import FinanceReportsPage from "../../modules/finance/FinanceReportsPage.jsx";
 import SettingsPage from "../../modules/settings/TempleProfilePage.jsx";
 import SubscriptionRequestsPage from "../../modules/admin/SubscriptionRequestsPage.jsx";
+
+const PaywallGuard = ({ children }) => {
+  const { tenant, user } = useAuth();
+  const location = useLocation();
+
+  // Superusers (SaaS Owners) can always access everything
+  if (user?.is_superuser) return children;
+
+  const trialDaysLeft = tenant?.trial_ends_at
+      ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24)))
+      : 0;
+  const isTrialActive = tenant?.is_trial && trialDaysLeft > 0;
+
+  // Logic: If status is 'approved' (Payment Pending), force them to Billing
+  // Unless they are already on Billing or Settings (Profile) or still in Trial
+  const isTrialExpired = tenant?.status === 'trial' && (!tenant?.is_trial || trialDaysLeft <= 0);
+  const restrictedStatuses = ['approved', 'pending_approval', 'expired', 'suspended'];
+  const isRestricted = !user?.is_superuser && (restrictedStatuses.includes(tenant?.status) || isTrialExpired);
+
+  if (isRestricted && location.pathname !== '/billing' && !location.pathname.startsWith('/settings')) {
+    return <Navigate to="/billing" replace />;
+  }
+
+  return children;
+};
 
 export default function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
@@ -84,9 +89,11 @@ export default function AppRoutes() {
       <Route path="/products/panchangam" element={<PanchangamPage />} />
       <Route path="/products/signage" element={<SignageLandingPage />} />
       <Route path="/solutions/management" element={<ManagementPage />} />
+      <Route path="/products/shipping" element={<ShippingLandingPage />} />
+      <Route path="/solutions/shipping" element={<ShippingLandingPage />} />
       <Route path="/docs" element={<DocsPage />} />
       <Route path="/support" element={<SupportPage />} />
-      <Route path="/solutions/staff" element={<StaffPage />} />
+      <Route path="/solutions/staff" element={<StaffLandingPage />} />
       <Route path="/products/crm" element={<CrmPage />} />
       <Route path="/solutions/security" element={<SecurityPage />} />
       <Route path="/terms" element={<TermsPage />} />
@@ -95,6 +102,8 @@ export default function AppRoutes() {
       <Route path="/cookie-policy" element={<CookiePolicyPage />} />
       <Route path="/saas-agreement" element={<SaasAgreementPage />} />
       <Route path="/partner" element={<PartnerPage />} />
+      <Route path="/project-report" element={<ProjectReportPage />} />
+      <Route path="/demo" element={<DemoPage />} />
 
       <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/dashboard" replace />} />
       <Route path="/signup" element={!isAuthenticated ? <SignUpPage /> : <Navigate to="/dashboard" replace />} />
@@ -114,6 +123,7 @@ export default function AppRoutes() {
         <Route path="/pooja" element={<PoojaListPage />} />
         <Route path="/pooja/book" element={<PoojaBookingPage />} />
         <Route path="/bookings" element={<BookingsPage />} />
+        <Route path="/bookings/success" element={<BookingSuccessPage />} />
         <Route path="/donations" element={<DonationsPage />} />
         <Route path="/hundi" element={<HundiPage />} />
         <Route path="/inventory" element={<InventoryPage />} />

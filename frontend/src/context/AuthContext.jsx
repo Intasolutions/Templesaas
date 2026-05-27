@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
             document.documentElement.style.setProperty('--primary', color);
             // Also generate a muted version for backgrounds if needed
             document.documentElement.style.setProperty('--primary-muted', `${color}15`);
-            
+
             // Convert Hex to RGB for rgba() usage in CSS/Tailwind
             const r = parseInt(color.slice(1, 3), 16);
             const g = parseInt(color.slice(3, 5), 16);
@@ -29,19 +29,19 @@ export const AuthProvider = ({ children }) => {
                 setLoading(false);
                 return;
             }
-            
+
             try {
                 const response = await api.get('/users/me/');
                 const { user, tenant } = response.data;
-                
+
                 setUser(user);
                 setTenant(tenant);
-                
+
                 // Keep tenantCode persistent even on refresh
                 if (tenant && tenant.subdomain) {
                     localStorage.setItem('tenantCode', tenant.subdomain);
                 }
-                
+
                 // Set initial theme from tenant branding
                 if (tenant && tenant.brand_color) {
                     updateTheme(tenant.brand_color);
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await api.post('/users/login/', credentials);
             const { access, refresh, user, tenant } = response.data;
-            
+
             if (access) {
                 localStorage.setItem('token', access);
             }
@@ -70,16 +70,16 @@ export const AuthProvider = ({ children }) => {
             if (tenant && tenant.subdomain) {
                 localStorage.setItem('tenantCode', tenant.subdomain);
             }
-            
+
             setUser(user);
             setTenant(tenant);
             if (tenant && tenant.brand_color) updateTheme(tenant.brand_color);
             return { success: true };
         } catch (err) {
             console.error("Login failed:", err);
-            return { 
-                success: false, 
-                error: err.response?.data?.error || "Invalid username or password" 
+            return {
+                success: false,
+                error: err.response?.data?.error || "Invalid username or password"
             };
         }
     };
@@ -99,19 +99,22 @@ export const AuthProvider = ({ children }) => {
 
     const checkPermission = (moduleId, action = 'view') => {
         if (!user) return false;
-        
+
         // 1. Core modules are always allowed for everyone
         const coreModules = ['dashboard', 'billing', 'settings', 'users'];
         if (coreModules.includes(moduleId)) return true;
 
-        // 2. Check Plan allowed apps (Global restriction)
+        // 2. Full Access for Superusers
+        if (user.is_superuser) return true;
+
+        // 3. Check Plan allowed apps (Global restriction)
         const allowedApps = user.allowed_apps || [];
         if (!allowedApps.includes(moduleId)) return false;
 
-        // 3. Temple Admin or "all" permission bypasses internal checks
+        // 4. Temple Admin or "all" permission bypasses internal checks
         if (user.role === 'temple_admin' || user.module_permissions?.all) return true;
 
-        // 4. Check User specific permission (view/edit/delete)
+        // 5. Check User specific permission (view/edit/delete)
         const userPerms = user.module_permissions?.[moduleId] || [];
         return userPerms.includes(action);
     };

@@ -25,6 +25,8 @@ class SignupView(views.APIView):
         email = data.get('email')
         password = data.get('password')
         admin_name = data.get('admin_name', 'Admin')
+        phone = data.get('phone', '')
+        location = data.get('location', '')
 
         if not all([temple_name, subdomain, email, password]):
             return response.Response({"errors": {"non_field": "All fields are required"}}, status=400)
@@ -37,11 +39,24 @@ class SignupView(views.APIView):
 
         try:
             # 1. Create Tenant
+            from core.models import Plan
+            selected_plan = None
+            plan_name = data.get('plan_name')
+            if plan_name:
+                selected_plan = Plan.objects.filter(name=plan_name).first()
+
+            is_trial = data.get('is_trial', True) # Default to trial if signing up from landing
+
             tenant = Tenant.objects.create(
                 name=temple_name,
                 subdomain=subdomain,
                 contact_email=email,
-                db_name=subdomain.replace("-", "_")
+                contact_phone=phone,
+                address=location,
+                db_name=subdomain.replace("-", "_"),
+                plan=selected_plan,
+                is_trial=is_trial,
+                status=Tenant.STATUS_TRIAL if is_trial else Tenant.STATUS_PENDING_APPROVAL
             )
 
             # 2. Create User

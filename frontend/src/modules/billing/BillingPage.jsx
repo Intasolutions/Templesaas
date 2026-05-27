@@ -16,9 +16,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../shared/api/client';
+import { useNotify } from '../../context/NotificationContext';
 
 export default function BillingPage() {
     const { tenant, refreshUser } = useAuth();
+    const notify = useNotify();
     const [loading, setLoading] = useState(false);
     const [activeRequest, setActiveRequest] = useState(null);
     const [dbPlans, setDbPlans] = useState([]);
@@ -68,7 +70,7 @@ export default function BillingPage() {
             features: ['Multi-Counter Support', 'Advanced Financial Reports', 'Panchangam Integration', 'SMS & WhatsApp Notifications', 'E-Prasad Shipping Tools', 'Priority Multi-User Access']
         },
         {
-            id: 'MAX',
+            id: 'PRO_MAX',
             name: 'Enterprise / Institution',
             price: 3000,
             icon: Gem,
@@ -80,37 +82,28 @@ export default function BillingPage() {
     const handleAction = async (plan) => {
         setLoading(true);
         try {
-            if (!activeRequest || activeRequest.status === 'rejected') {
-                const dbPlan = dbPlans.find(p => p.name === plan.id);
-                if (!dbPlan) throw new Error("Plan not found in registry");
-
-                await api.post('/core/subscription-requests/', {
-                    plan: dbPlan.id,
-                    amount: dbPlan.amount_inr,
-                    billing_cycle: 'monthly'
-                });
-                alert("Request Sent! The SaaS owner will verify your temple shortly.");
-                fetchActiveRequest();
-                refreshUser();
-            } else if (activeRequest.status === 'approved') {
-                const res = await api.post('/core/billing/create-order/', { plan_name: plan.id });
+            const isTenantApproved = tenant?.status === 'approved';
+            const isReqApproved = activeRequest?.status === 'approved';
+            const isTenantExpired = tenant?.status === 'expired';
+            const canDirectPurchase = isTenantApproved || isReqApproved || isTenantExpired;
+            
+            if (canDirectPurchase) {
+                const res = await api.post('/core/billing/create-subscription/', { plan_name: plan.id });
                 const options = {
                     key: res.data.razorpay_key,
-                    amount: res.data.amount,
-                    currency: res.data.currency,
+                    subscription_id: res.data.subscription_id,
                     name: "TempleSaaS",
-                    description: `Payment for ${plan.name}`,
-                    order_id: res.data.order_id,
+                    description: `Recurring Subscription for ${plan.name}`,
                     handler: async (response) => {
                         try {
-                            await api.post('/core/billing/verify/', {
+                            await api.post('/core/billing/verify-subscription/', {
                                 ...response,
                                 plan_name: plan.id
                             });
-                            alert("Payment Successful! Your plan is now active.");
+                            notify.success("Subscription Successful! Your plan is now active.");
                             window.location.reload();
                         } catch (err) {
-                            alert("Payment verification failed.");
+                            notify.error("Subscription verification failed.");
                         }
                     },
                     prefill: {
@@ -121,10 +114,22 @@ export default function BillingPage() {
                 };
                 const rzp = new window.Razorpay(options);
                 rzp.open();
+            } else if (!activeRequest || activeRequest.status === 'rejected') {
+                const dbPlan = dbPlans.find(p => p.name === plan.id);
+                if (!dbPlan) throw new Error("Plan not found in registry");
+
+                await api.post('/core/subscription-requests/', {
+                    plan: dbPlan.id,
+                    amount: dbPlan.amount_inr,
+                    billing_cycle: 'monthly'
+                });
+                notify.success("Request Sent! The SaaS owner will verify your temple shortly.");
+                fetchActiveRequest();
+                refreshUser();
             }
         } catch (err) {
             console.error(err);
-            alert("Action failed. Please contact support.");
+            notify.error("Action failed. Please contact support.");
         } finally {
             setLoading(false);
         }
@@ -173,6 +178,11 @@ export default function BillingPage() {
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
                             <Clock size={14} className="text-primary" /> 
                             {tenant?.status === 'trial' ? `Logic Cycle: ${trialDaysLeft} Solar Days Remaining` : `Lifecycle State: ${tenant?.status?.replace('_', ' ').toUpperCase()}`}
+                            {tenant?.status === 'active' && tenant?.subscription_ends_at && (
+                                <span className="ml-2 px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[9px] font-bold">
+                                    Expires: {new Date(tenant.subscription_ends_at).toLocaleDateString()}
+                                </span>
+                            )}
                         </p>
                     </div>
                 </div>
@@ -188,9 +198,23 @@ export default function BillingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {plans.map((plan, idx) => {
                     const isCurrent = tenant?.plan_name === plan.id || (tenant?.plan_name === 'N/A' && plan.id === 'FREE');
+                    const assignedPlan = activeRequest?.plan_name || tenant?.plan_name;
+                    const isAssigned = assignedPlan && assignedPlan !== 'N/A';
+                    
+                    const isTenantApproved = tenant?.status === 'approved';
+                    const isReqApproved = activeRequest?.status === 'approved';
+                    const isTenantExpired = tenant?.status === 'expired';
+                    const isApprovedToPay = isTenantApproved || isReqApproved || isTenantExpired;
+                    
+                    const canPay = isApprovedToPay && (!isAssigned || assignedPlan === plan.id || isTenantExpired);
+                    const isLockedApproved = isApprovedToPay && isAssigned && assignedPlan !== plan.id && !isTenantExpired;
+
                     const isRequested = activeRequest?.plan_name === plan.id;
-                    const canPay = activeRequest?.status === 'approved' && isRequested;
                     const isPending = activeRequest?.status === 'pending' && isRequested;
+                    const isTrial = tenant?.status === 'trial';
+                    
+                    const isCurrentActive = isCurrent && tenant?.status === 'active';
+                    const showRenew = isCurrent && tenant?.status === 'expired';
 
                     return (
                         <div key={idx} className={`bg-white rounded-[2.5rem] p-10 border transition-all duration-300 relative flex flex-col ${plan.popular ? 'border-primary/20 shadow-2xl shadow-primary/5 bg-slate-50/20' : 'border-slate-100 shadow-sm hover:shadow-xl'}`}>
@@ -232,19 +256,25 @@ export default function BillingPage() {
                             <div className="pt-10">
                                 <button 
                                     onClick={() => handleAction(plan)}
-                                    disabled={loading || isCurrent || isPending}
+                                    disabled={loading || isPending || isLockedApproved || isCurrentActive}
                                     className={`w-full h-14 rounded-2xl font-black text-[9px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-sm
-                                        ${isCurrent ? 'bg-slate-50 text-slate-300 cursor-default' : 
+                                        ${showRenew ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100' : 
+                                          isCurrentActive ? 'bg-slate-100 text-slate-400 cursor-not-allowed' :
                                           canPay ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-600/20' :
                                           isPending ? 'bg-slate-100 text-slate-400' :
-                                          plan.popular ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-white text-slate-900 border border-slate-100 hover:border-primary hover:text-primary'}
+                                          isLockedApproved ? 'bg-slate-50 text-slate-300 cursor-not-allowed opacity-60' :
+                                          (isTrial && isCurrent) || plan.popular ? 'bg-slate-900 text-white hover:bg-slate-800' : 
+                                          'bg-white text-slate-900 border border-slate-100 hover:border-primary hover:text-primary'}
                                     `}
                                 >
-                                    {isCurrent ? 'Protocol Active' : 
+                                    {isCurrentActive ? 'Current Active Plan' :
+                                     showRenew ? 'Renew Subscription' : 
+                                     isLockedApproved ? 'Locked' :
                                      isPending ? 'Under Review' : 
-                                     canPay ? 'Finalize Payment' :
+                                     canPay ? 'Purchase Plan' :
+                                     isTrial && isCurrent ? 'Purchase Plan' :
                                      loading ? 'Processing...' : 'Request Protocol Access'}
-                                    {!isCurrent && !isPending && !loading && <ArrowRight size={14} />}
+                                    {(!isPending && !loading && !isLockedApproved && !isCurrentActive) && <ArrowRight size={14} />}
                                 </button>
                             </div>
                         </div>

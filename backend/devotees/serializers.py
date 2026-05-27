@@ -9,20 +9,23 @@ from donations.models import Donation
 class GothraSerializer(serializers.ModelSerializer):
     class Meta:
         model = Gothra
-        fields = ["id", "name", "organization"]
+        fields = ["id", "name", "name_ml", "organization"]
         read_only_fields = ["organization"]
 
 
 class NakshatraSerializer(serializers.ModelSerializer):
     class Meta:
         model = Nakshatra
-        fields = ["id", "name", "organization"]
+        fields = ["id", "name", "name_ml", "organization"]
         read_only_fields = ["organization"]
 
 
 class DevoteeSerializer(serializers.ModelSerializer):
     gothra_name = serializers.CharField(source="gothra.name", read_only=True)
+    gothra_name_ml = serializers.CharField(source="gothra.name_ml", read_only=True)
     nakshatra_name = serializers.CharField(source="nakshatra.name", read_only=True)
+    nakshatra_name_ml = serializers.CharField(source="nakshatra.name_ml", read_only=True)
+    family_head_name = serializers.CharField(source="family_head.full_name", read_only=True)
 
     class Meta:
         model = Devotee
@@ -33,12 +36,14 @@ class DevoteeSerializer(serializers.ModelSerializer):
 
     def validate_phone(self, value: str) -> str:
         """
-        Basic India-friendly phone validation (10-15 digits).
-        Adjust as per your country rules.
+        Strict 10-digit validation for +91 region.
         """
-        phone = re.sub(r"\s+", "", value or "")
-        if not re.fullmatch(r"^\+?\d{10,15}$", phone):
-            raise serializers.ValidationError("Enter a valid phone number (10-15 digits).")
+        phone = re.sub(r"\D", "", value or "")
+        if len(phone) > 10:
+            phone = phone[-10:] # Extract last 10 if +91 prefix included
+        
+        if not re.fullmatch(r"^\d{10}$", phone):
+            raise serializers.ValidationError("Enter a valid 10-digit phone number.")
         return phone
 
     def validate_email(self, value: str) -> str:
@@ -66,6 +71,20 @@ class DevoteeSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def create(self, validated_data):
+        phone = validated_data.get('phone')
+        organization = validated_data.get('organization')
+        
+        if phone and organization:
+            existing = Devotee.objects.filter(phone=phone, organization=organization).first()
+            if existing:
+                for attr, value in validated_data.items():
+                    setattr(existing, attr, value)
+                existing.save()
+                return existing
+                
+        return super().create(validated_data)
+
 
 # ---- Full details with history ----
 class BookingMiniSerializer(serializers.ModelSerializer):
@@ -89,6 +108,7 @@ class DevoteeFullSerializer(DevoteeSerializer):
     """
     bookings = serializers.SerializerMethodField()
     donations = serializers.SerializerMethodField()
+    family_members = serializers.SerializerMethodField()
 
     class Meta(DevoteeSerializer.Meta):
         fields = "__all__"
@@ -109,3 +129,16 @@ class DevoteeFullSerializer(DevoteeSerializer):
         if qs is None:
             return []
         return DonationMiniSerializer(qs.all().order_by("-donated_at"), many=True).data
+
+    def get_family_members(self, obj):
+        # If this is the head, return all linked members
+        if obj.family_members.exists():
+            return DevoteeSerializer(obj.family_members.all(), many=True).data
+        # If this is a member, return the head and their other members (excluding self)
+        if obj.family_head:
+            head = obj.family_head
+            members = head.family_members.exclude(id=obj.id)
+            data = DevoteeSerializer(members, many=True).data
+            data.insert(0, DevoteeSerializer(head).data)
+            return data
+        return []

@@ -4,9 +4,13 @@ import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Heart, Download as DownloadIcon, Plus, Search, RefreshCw, X, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Database, Zap, Layers, ArrowRight, ShieldCheck, Lock
+  Heart, Download as DownloadIcon, Plus, Search, RefreshCw, X, Sparkles, AlertCircle, ChevronLeft, ChevronRight, Database, Zap, Layers, ArrowRight, ShieldCheck, Lock, User, ListFilter, IndianRupee
 } from "lucide-react";
 import Pagination from "../../components/common/Pagination";
+import ModernInput from "../../components/ui/ModernInput";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
+import { ValidationUtils } from "../../shared/utils/ValidationUtils";
+import { useNotify } from "../../context/NotificationContext";
 
 /** -------------------- Helpers -------------------- */
 function extractDRFError(e) {
@@ -39,8 +43,10 @@ async function downloadFile(url, filename) {
 export default function DonationsPage() {
   const { t } = useTranslation();
   const { checkPermission } = useAuth();
+  const notify = useNotify();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   const [search, setSearch] = useState("");
   const [ordering, setOrdering] = useState("-created_at");
@@ -59,12 +65,23 @@ export default function DonationsPage() {
     amount: "",
     purpose: "",
     is_anonymous: false,
-    payment_status: "success"
+    payment_status: "success",
+    bank_account: null
   });
 
+  const [bankAccounts, setBankAccounts] = useState([]);
+
   const [devotees, setDevotees] = useState([]);
-  const [errorMSG, setErrorMSG] = useState("");
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
+
+  const updateForm = (key, val) => {
+    let err = null;
+    if (key === 'amount') err = ValidationUtils.validators.amount(val);
+    if (key === 'bank_account') err = ValidationUtils.validators.bankAccount(form.payment_mode, val);
+
+    setForm(prev => ({ ...prev, [key]: val }));
+    setErrors(prev => ({ ...prev, [key]: err }));
+  };
 
   useEffect(() => {
     if (checkPermission('donations', 'view')) {
@@ -76,6 +93,11 @@ export default function DonationsPage() {
     if (addOpen && devotees.length === 0) {
       api.get("/devotees/?page_size=100").then((res) => {
         setDevotees(Array.isArray(res.data) ? res.data : res.data.results || []);
+      });
+    }
+    if (addOpen && bankAccounts.length === 0) {
+      api.get("/finance/bank-accounts/").then((res) => {
+        setBankAccounts(Array.isArray(res.data) ? res.data : res.data.results || []);
       });
     }
   }, [addOpen]);
@@ -104,18 +126,30 @@ export default function DonationsPage() {
 
   async function handleCreate(e) {
     if (e) e.preventDefault();
-    setErrorMSG("");
-    if (!form.amount || !form.payment_mode) return setErrorMSG(t('amount_mode_required', "Amount and Mode are required."));
-    if (!form.is_anonymous && !form.devotee) return setErrorMSG(t('devotee_or_anon_required', "Select a Donor or mark Anonymous."));
+    
+    // Final Validation
+    const newErrors = {
+        amount: ValidationUtils.validators.amount(form.amount),
+        bank_account: ValidationUtils.validators.bankAccount(form.payment_mode, form.bank_account)
+    };
+    if (!form.is_anonymous && !form.devotee) newErrors.devotee = "Please select a donor";
+
+    const hasErrors = Object.values(newErrors).some(v => !!v);
+    if (hasErrors) {
+        setErrors(newErrors);
+        return notify.warn(t('fix_errors', "Please correct the highlighted errors."));
+    }
 
     try {
       await api.post("/donations/", form);
       setAddOpen(false);
-      setForm({ devotee: "", amount: "", category: "", payment_mode: "cash", purpose: "", is_anonymous: false, payment_status: "success" });
+      setForm({ devotee: "", amount: "", category: "", payment_mode: "cash", purpose: "", is_anonymous: false, payment_status: "success", bank_account: null });
+      setErrors({});
       setPage(1);
       fetchDonations();
+      notify.success(t('donation_success', "Donation recorded successfully"));
     } catch (e) {
-      setErrorMSG(extractDRFError(e));
+      notify.error(extractDRFError(e));
     }
   }
 
@@ -249,57 +283,62 @@ export default function DonationsPage() {
             </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-                <tr className="bg-white border-b border-slate-50">
-                    <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">registry index</th>
-                    <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">donor identity</th>
-                    <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">remittance</th>
-                    <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400">classification</th>
-                    <th className="px-10 py-6 text-[9px] font-bold uppercase tracking-widest text-slate-400 text-right">audit</th>
-                </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {loading ? (
-                <tr><td colSpan="5" className="py-32 text-center text-[10px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Syncing Treasury Pipeline...</td></tr>
-              ) : donations.length === 0 ? (
-                <tr><td colSpan="5" className="py-24 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">No capital contributions identified</td></tr>
-              ) : donations.map((d) => (
-                <tr key={d.id} className="group/row hover:bg-slate-50/50 transition-all">
-                  <td className="px-10 py-6">
-                    <span className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] group-hover/row:text-slate-900 transition-colors">#{d.id}</span>
-                  </td>
-                  <td className="px-10 py-6">
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-900 tracking-tighter uppercase leading-none">{d.is_anonymous ? t('anonymous') : d.devotee_name || t('unknown')}</span>
-                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{d.purpose || "GENERAL ENDOWMENT"}</span>
-                    </div>
-                  </td>
-                  <td className="px-10 py-6 text-center">
-                    <div className="flex flex-col items-center">
-                        <span className="text-base font-bold text-emerald-600 tracking-tighter">₹{d.amount}</span>
-                        <span className="text-[7px] font-bold text-slate-300 uppercase tracking-widest mt-0.5">{d.payment_mode}</span>
-                    </div>
-                  </td>
-                  <td className="px-10 py-6">
-                    <span className={`px-3 py-1 rounded-lg border text-[8px] font-bold uppercase tracking-widest transition-all ${getBadgeStyle(d.payment_status)}`}>
-                        {d.payment_status}
-                    </span>
-                  </td>
-                  <td className="px-10 py-6 text-right">
-                    <button
-                      onClick={() => window.open(`${api.defaults.baseURL}/donations/${d.id}/receipt-pdf/`, "_blank")}
-                      className="h-9 px-4 bg-slate-900 text-white rounded-lg text-[8px] font-bold uppercase tracking-widest opacity-0 group-hover/row:opacity-100 transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-1.5"
-                    >
-                      <DownloadIcon size={12} /> Receipt
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveTable
+          columns={[
+            {
+              header: "registry index",
+              key: "id",
+              render: (d) => <span className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em] group-hover:text-slate-900 transition-colors">#{d.id}</span>
+            },
+            {
+              header: "donor identity",
+              key: "donor",
+              mobileLabel: "Donor & Purpose",
+              render: (d) => (
+                <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-900 tracking-tighter uppercase leading-none">{d.is_anonymous ? t('anonymous') : d.devotee_name || t('unknown')}</span>
+                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">{d.purpose || "GENERAL ENDOWMENT"}</span>
+                </div>
+              )
+            },
+            {
+              header: "remittance",
+              key: "amount",
+              align: "center",
+              render: (d) => (
+                <div className="flex flex-col items-center">
+                    <span className="text-base font-bold text-emerald-600 tracking-tighter">₹{d.amount}</span>
+                    <span className="text-[7px] font-bold text-slate-300 uppercase tracking-widest mt-0.5">{d.payment_mode}</span>
+                </div>
+              )
+            },
+            {
+              header: "classification",
+              key: "status",
+              render: (d) => (
+                <span className={`px-3 py-1 rounded-lg border text-[8px] font-bold uppercase tracking-widest transition-all ${getBadgeStyle(d.payment_status)}`}>
+                    {d.payment_status}
+                </span>
+              )
+            },
+            {
+              header: "audit",
+              key: "actions",
+              align: "right",
+              render: (d) => (
+                <button
+                  onClick={(e) => { e.stopPropagation(); window.open(`${api.defaults.baseURL}/donations/${d.id}/receipt-pdf/`, "_blank"); }}
+                  className="h-9 px-4 bg-slate-900 text-white rounded-lg text-[8px] font-bold uppercase tracking-widest lg:opacity-0 lg:group-hover:opacity-100 transition-all shadow-xl shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-1.5"
+                >
+                  <DownloadIcon size={12} /> Receipt
+                </button>
+              )
+            }
+          ]}
+          data={donations}
+          loading={loading}
+          emptyMessage="No capital contributions identified"
+        />
         <div className="p-10 border-t border-slate-50 bg-slate-50/30">
           <Pagination 
             currentPage={page} 
@@ -348,10 +387,16 @@ export default function DonationsPage() {
                     )}
 
                     <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Capital Magnitude (₹)</label>
-                            <input type="number" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} required className="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 h-12 transition-all font-bold text-slate-900 text-sm outline-none focus:bg-white focus:border-slate-900 shadow-inner" placeholder="0.00" />
-                        </div>
+                        <ModernInput 
+                            label="Capital Magnitude (₹)" 
+                            type="number" 
+                            value={form.amount} 
+                            error={errors.amount}
+                            success={form.amount >= 1}
+                            onChange={e => updateForm('amount', e.target.value)} 
+                            placeholder="0.00" 
+                            icon={IndianRupee}
+                        />
                         <div className="grid grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Payment Protocol</label>
@@ -362,27 +407,40 @@ export default function DonationsPage() {
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Current Status</label>
-                                <select value={form.payment_status} onChange={e => setForm({ ...form, payment_status: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 h-12 transition-all font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner appearance-none cursor-pointer text-xs">
-                                    <option value="success">Payment Received</option>
-                                    <option value="pending">Pending / Awaiting</option>
+                                <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Account</label>
+                                <select 
+                                    disabled={form.payment_mode === 'cash'}
+                                    value={form.bank_account || ''} 
+                                    onChange={e => setForm({ ...form, bank_account: e.target.value || null })} 
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 h-12 transition-all font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner appearance-none cursor-pointer text-xs disabled:opacity-50"
+                                >
+                                    <option value="">No Account</option>
+                                    {bankAccounts.map(acc => (
+                                        <option key={acc.id} value={acc.id}>{acc.name}</option>
+                                    ))}
                                 </select>
                             </div>
                         </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Current Status</label>
+                            <select value={form.payment_status} onChange={e => setForm({ ...form, payment_status: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-5 h-12 transition-all font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner appearance-none cursor-pointer text-xs">
+                                <option value="success">Payment Received</option>
+                                <option value="pending">Pending / Awaiting</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Administrative Remarks</label>
-                        <textarea placeholder="Specify purpose..." value={form.purpose} onChange={e => setForm({ ...form, purpose: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 transition-all font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner min-h-[100px] resize-none leading-relaxed text-[11px]"></textarea>
-                    </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Administrative Remarks</label>
+                    <textarea 
+                        placeholder="Specify purpose..." 
+                        value={form.purpose} 
+                        onChange={e => updateForm('purpose', e.target.value)} 
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-5 transition-all font-bold text-slate-900 outline-none focus:bg-white focus:border-slate-900 shadow-inner min-h-[100px] resize-none leading-relaxed text-[11px]"
+                    />
+                </div>
                 </div>
 
-                {errorMSG && (
-                  <div className="p-6 bg-red-50 text-red-500 border border-red-100 rounded-2xl flex items-start gap-4">
-                    <AlertCircle size={24} className="flex-shrink-0" />
-                    <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">{errorMSG}</p>
-                  </div>
-                )}
 
                 <div className="flex justify-end pt-2">
                   <button onClick={handleCreate} className="w-full h-16 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-2xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 active:scale-95 group">

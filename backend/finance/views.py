@@ -1,8 +1,9 @@
 from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
 from core.permissions import ModulePermission
-from .models import Transaction
-from .serializers import TransactionSerializer
+from django.db.models import Q, Sum
+from .models import Transaction, BankAccount
+from .serializers import TransactionSerializer, BankAccountSerializer
 
 
 class TenantScopedQuerysetMixin:
@@ -16,6 +17,19 @@ class TenantScopedQuerysetMixin:
             return qs.filter(organization=tenant)
         return qs.none()
 
+
+class BankAccountListCreateView(TenantScopedQuerysetMixin, generics.ListCreateAPIView):
+    queryset = BankAccount.objects.all().order_by("-id")
+    serializer_class = BankAccountSerializer
+    permission_classes = [IsAuthenticated, ModulePermission]
+
+    def perform_create(self, serializer):
+        serializer.save(organization=self.get_tenant())
+
+class BankAccountDetailView(TenantScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    queryset = BankAccount.objects.all()
+    serializer_class = BankAccountSerializer
+    permission_classes = [IsAuthenticated, ModulePermission]
 
 class TransactionListCreateView(TenantScopedQuerysetMixin, generics.ListCreateAPIView):
     queryset = Transaction.objects.all().order_by("-date", "-id")
@@ -45,8 +59,8 @@ def finance_summary(request):
     txns = Transaction.objects.filter(organization=tenant)
 
     totals = txns.aggregate(
-        total_income=Sum("amount", filter=models.Q(txn_type=Transaction.TYPE_INCOME)),
-        total_expense=Sum("amount", filter=models.Q(txn_type=Transaction.TYPE_EXPENSE))
+        total_income=Sum("amount", filter=Q(txn_type=Transaction.TYPE_INCOME)),
+        total_expense=Sum("amount", filter=Q(txn_type=Transaction.TYPE_EXPENSE))
     )
 
     income_by_cat = txns.filter(txn_type=Transaction.TYPE_INCOME).values("category").annotate(total=Sum("amount"))

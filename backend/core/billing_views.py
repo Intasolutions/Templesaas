@@ -197,6 +197,8 @@ class VerifySubscriptionView(APIView):
             with transaction.atomic():
                 # Update Tenant Plan
                 tenant.plan = plan
+                tenant.status = Tenant.STATUS_ACTIVE
+                tenant.is_trial = False
                 tenant.save()
                 
                 # Create/Update Subscription Record
@@ -317,7 +319,7 @@ class VerifyPaymentView(APIView):
                         days = 365
 
                 # 4. Create/Update the active subscription record
-                Subscription.objects.update_or_create(
+                sub, created = Subscription.objects.get_or_create(
                     tenant=tenant,
                     defaults={
                         "razorpay_plan_id": plan.razorpay_plan_id or "ONE_TIME",
@@ -326,6 +328,16 @@ class VerifyPaymentView(APIView):
                         "current_period_end": timezone.now() + timedelta(days=days)
                     }
                 )
+                
+                if not created:
+                    sub.status = "active"
+                    sub.razorpay_plan_id = plan.razorpay_plan_id or "ONE_TIME"
+                    if sub.current_period_end and sub.current_period_end > timezone.now():
+                        sub.current_period_end += timedelta(days=days)
+                    else:
+                        sub.current_period_start = timezone.now()
+                        sub.current_period_end = timezone.now() + timedelta(days=days)
+                    sub.save()
 
             return Response({
                 "success": True, 

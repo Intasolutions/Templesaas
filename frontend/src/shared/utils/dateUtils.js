@@ -25,3 +25,45 @@ export const getMonthName = (monthIndex) => {
     ];
     return months[monthIndex];
 };
+
+export const getCalendarDays = (month, year) => {
+    const days = [];
+    const firstDay = getFirstDayOfMonth(month, year);
+    const daysInMonth = getDaysInMonth(month, year);
+    
+    // Prev Month Days
+    const prevMonthDate = new Date(year, month - 1, 1);
+    const prevMonthDaysCount = getDaysInMonth(prevMonthDate.getMonth(), prevMonthDate.getFullYear());
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const d = prevMonthDaysCount - i;
+        const dDate = new Date(year, month - 1, d);
+        days.push({
+            day: d,
+            dateStr: formatDate(dDate),
+            isCurrentMonth: false
+        });
+    }
+
+    // Current Month Days
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dDate = new Date(year, month, d);
+        days.push({
+            day: d,
+            dateStr: formatDate(dDate),
+            isCurrentMonth: true
+        });
+    }
+
+    // Next Month Days
+    const remaining = 42 - days.length;
+    for (let d = 1; d <= remaining; d++) {
+        const dDate = new Date(year, month + 1, d);
+        days.push({
+            day: d,
+            dateStr: formatDate(dDate),
+            isCurrentMonth: false
+        });
+    }
+
+    return days;
+};

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../../shared/api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -24,23 +25,54 @@ import {
   Zap,
   ShieldCheck
 } from "lucide-react";
-import { getDaysInMonth, getFirstDayOfMonth, getMonthName, formatDate } from "../../shared/utils/dateUtils";
+import { getCalendarDays, getMonthName, formatDate } from "../../shared/utils/dateUtils";
 import Pagination from "../../components/common/Pagination";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
 
 const BookingsPage = () => {
   const { t } = useTranslation();
   const { checkPermission } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const [view, setView] = useState("calendar");
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState([]);
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [panchangMap, setPanchangMap] = useState({});
+  const [panchangCache, setPanchangCache] = useState({});
   const [selectedDayData, setSelectedDayData] = useState(null);
+
+  // URL State Management
+  const urlDate = searchParams.get('date');
+  const initialDate = useMemo(() => urlDate ? new Date(urlDate) : new Date(), [urlDate]);
+  const [currentDate, setCurrentDate] = useState(initialDate);
 
   const [page, setPage] = useState(1);
   const [count, setCount] = useState(0);
   const pageSize = 12;
   const totalPages = Math.ceil(count / pageSize) || 1;
+
+  useEffect(() => {
+    if (urlDate) {
+      const d = new Date(urlDate);
+      if (d.getMonth() !== currentDate.getMonth() || d.getFullYear() !== currentDate.getFullYear()) {
+        setCurrentDate(d);
+      }
+    }
+  }, [urlDate]);
+
+  useEffect(() => {
+    if (urlDate && bookings.length > 0) {
+      const d = new Date(urlDate);
+      const { bookings: dayBookings, events: dayEvents } = getItemsForDate(urlDate);
+      setSelectedDayData({ 
+        day: d.getDate(), 
+        dateStr: urlDate, 
+        bookings: dayBookings, 
+        events: dayEvents 
+      });
+    }
+  }, [urlDate, bookings, events]);
 
   useEffect(() => {
     fetchData();
@@ -53,19 +85,36 @@ const BookingsPage = () => {
         ? { page: 1, page_size: 1000 } 
         : { page, page_size: pageSize };
 
-      const [bookingsRes, eventsRes] = await Promise.all([
+      const promises = [
         api.get("/bookings/", { params: fetchParams }),
         api.get("/events/", { params: { is_active: true } })
-      ]);
-      const bData = bookingsRes.data;
-      if (bData.results) {
-          setBookings(bData.results);
-          setCount(bData.count);
-      } else {
-          setBookings(Array.isArray(bData) ? bData : []);
-          setCount(Array.isArray(bData) ? bData.length : 0);
-      }
+      ];
+
+      const [bookingsRes, eventsRes] = await Promise.all(promises);
+      setBookings(bookingsRes.data.results || bookingsRes.data || []);
       setEvents(eventsRes.data.results || eventsRes.data || []);
+      setCount(bookingsRes.data.count || (bookingsRes.data.results ? bookingsRes.data.results.length : 0));
+
+      // Fetch Panchang Asynchronously
+      const monthDays = getCalendarDays(currentDate.getMonth(), currentDate.getFullYear());
+      const cacheKey = `${currentDate.getMonth()}-${currentDate.getFullYear()}`;
+      
+      if (view === 'calendar') {
+        if (panchangCache[cacheKey]) {
+          setPanchangMap(panchangCache[cacheKey]);
+        } else {
+          const start = monthDays[0].dateStr;
+          const end = monthDays[monthDays.length - 1].dateStr;
+          const activeKey = `${currentDate.getMonth()}-${currentDate.getFullYear()}`;
+          api.get(`/panchangam/range/?start=${start}&end=${end}`).then(res => {
+            if (activeKey === `${currentDate.getMonth()}-${currentDate.getFullYear()}`) {
+              const newData = res.data;
+              setPanchangMap(newData);
+              setPanchangCache(prev => ({ ...prev, [cacheKey]: newData }));
+            }
+          }).catch(err => console.error("Panchang load failed", err));
+        }
+      }
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
@@ -73,23 +122,24 @@ const BookingsPage = () => {
     }
   };
 
-  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const handleDateSelect = (dateStr) => {
+    window.location.href = `/pooja/book?date=${dateStr}`;
+  };
+
+  const nextMonth = () => {
+    const next = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    setCurrentDate(next);
+  };
+  
+  const prevMonth = () => {
+    const prev = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    setCurrentDate(prev);
+  };
 
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
-  const daysInMonth = getDaysInMonth(month, year);
-  const firstDay = getFirstDayOfMonth(month, year);
+  const days = getCalendarDays(month, year);
   const todayStr = formatDate(new Date());
-
-  const days = [];
-  for (let i = 0; i < firstDay; i++) {
-    days.push({ day: null, dateStr: null });
-  }
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dStr = formatDate(new Date(year, month, d));
-    days.push({ day: d, dateStr: dStr });
-  }
 
   const getItemsForDate = (dateStr) => {
     if (!dateStr) return { bookings: [], events: [] };
@@ -123,7 +173,7 @@ const BookingsPage = () => {
       link.click();
       link.remove();
     } catch (err) {
-      alert(t('download_failed', "Failed to download ticket."));
+      notify.error(t('download_failed', "Failed to download ticket."));
     }
   };
 
@@ -144,22 +194,22 @@ const BookingsPage = () => {
       <motion.div 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
+        className="bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
       >
-        <div className="p-8 flex items-center justify-between border-b border-slate-50 bg-slate-50/30">
-          <div className="flex items-center gap-4">
-             <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-lg shadow-slate-900/20">
+        <div className="p-5 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-50 bg-slate-50/30">
+          <div className="flex items-center gap-3 md:gap-4">
+             <div className="h-8 w-8 md:h-10 md:w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-lg shadow-slate-900/20 text-xs md:text-base">
                 {year.toString().slice(-2)}
              </div>
-             <h2 className="text-xl font-bold text-slate-900 tracking-tight uppercase">
+             <h2 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight uppercase">
                 {getMonthName(month)} {year}
              </h2>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-end">
             <button className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 transition-all" onClick={prevMonth}>
               <ChevronLeft size={18} />
             </button>
-            <button className="px-5 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 text-[10px] font-bold uppercase tracking-widest transition-all" onClick={() => setCurrentDate(new Date())}>
+            <button className="flex-1 sm:flex-none px-5 h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-900 text-[10px] font-bold uppercase tracking-widest transition-all" onClick={() => setCurrentDate(new Date())}>
               {t('today', 'Current')}
             </button>
             <button className="h-10 w-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 transition-all" onClick={nextMonth}>
@@ -170,7 +220,7 @@ const BookingsPage = () => {
 
         <div className="grid grid-cols-7 border-b border-slate-50">
           {weekDays.map(wd => (
-            <div key={wd} className="py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div key={wd} className="py-3 md:py-4 text-center text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               {wd}
             </div>
           ))}
@@ -178,47 +228,57 @@ const BookingsPage = () => {
 
         <div className="grid grid-cols-7 bg-white">
           {days.map((dayObj, idx) => {
-            const { day, dateStr } = dayObj;
+            const { day, dateStr, isCurrentMonth } = dayObj;
             const isToday = dateStr === todayStr;
+            const isSelected = dateStr === urlDate;
+            const isSunday = idx % 7 === 0;
             const { bookings: dayBookings, events: dayEvents } = getItemsForDate(dateStr);
-            const hasData = dayBookings.length > 0 || dayEvents.length > 0;
+            const panData = panchangMap[dateStr] || {};
 
             return (
               <div
                 key={idx}
-                onClick={() => day && hasData && setSelectedDayData({ day, dateStr, bookings: dayBookings, events: dayEvents })}
-                className={`min-h-[140px] p-4 border-r border-b border-slate-50 transition-all duration-300 relative group
-                    ${!day ? 'bg-slate-50/10' : isToday ? 'bg-slate-900/5' : 'bg-white hover:bg-slate-50/50'}
-                    ${day && hasData ? 'cursor-pointer' : ''}
+                onClick={() => handleDateSelect(dateStr)}
+                className={`min-h-[80px] md:min-h-[140px] p-2 md:p-4 border-r border-b border-slate-50 transition-all duration-300 relative group cursor-pointer
+                    ${!isCurrentMonth ? 'bg-slate-50/20' : isToday ? 'bg-slate-900/5' : 'bg-white hover:bg-slate-50/50'}
+                    ${isSelected ? 'ring-2 ring-inset ring-slate-900 z-10' : ''}
                 `}
               >
-                {day && (
-                  <>
-                    <div className={`text-[10px] font-bold mb-4 transition-colors ${isToday ? 'text-slate-900' : 'text-slate-200 group-hover:text-slate-400'}`}>
-                      {day.toString().padStart(2, '0')}
-                    </div>
-                    {/* Event/Booking Dots */}
-                    <div className="absolute top-3 right-3 flex items-center gap-1 pointer-events-none">
-                      {dayEvents.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-orange-400" title="Event" />}
-                      {dayBookings.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-sm" title="Booking" />}
-                    </div>
+                {/* Kerala Calendar Headers */}
+                <div className="flex justify-between items-start mb-1 md:mb-2">
+                    <span className={`text-[7px] md:text-[9px] font-bold hidden sm:block ${!isCurrentMonth ? 'text-slate-200' : 'text-slate-400'}`}>
+                        {panData.malayalam_day || ''}
+                    </span>
+                    <span className={`text-[10px] md:text-[11px] font-black tracking-tighter ${!isCurrentMonth ? 'text-slate-200' : isSunday ? 'text-red-500' : 'text-slate-900'}`}>
+                        {day.toString().padStart(2, '0')}
+                    </span>
+                </div>
 
-                    {/* Booking Labels */}
-                    <div className="mt-7 space-y-1 pointer-events-none overflow-hidden h-[calc(100%-1.75rem)] px-1">
-                      {dayBookings.slice(0, 4).map(b => (
-                        <div key={b.id} className="px-2 py-1 rounded-md border border-slate-100 bg-slate-50/90 text-slate-800 text-[8.5px] font-bold uppercase tracking-tight truncate shadow-sm">
-                          {b.slot_time ? `[${b.slot_time}] ` : ''}{b.pooja_name || b.prasadam_item_name || 'Ritual'}
-                        </div>
-                      ))}
-                      {dayBookings.length > 4 && (
-                        <div className="text-[7.5px] font-bold text-primary uppercase tracking-widest pl-1">
-                          + {dayBookings.length - 4} MORE SERVICES
-                        </div>
-                      )}
+                {/* Nakshatra (Malayalam Script) - Hidden on very small screens */}
+                <div className="mt-1 md:mt-4 text-center">
+                    <div className={`text-[8px] md:text-[10px] font-bold truncate ${!isCurrentMonth ? 'text-slate-100' : 'text-slate-800'}`}>
+                        {panData.nakshatra_ml || ''}
                     </div>
-                    {isToday && <div className="absolute top-4 right-4 h-1.5 w-1.5 rounded-full bg-primary" />}
-                  </>
-                )}
+                    <div className="text-[6px] md:text-[7px] font-bold text-slate-300 uppercase tracking-widest mt-0.5 hidden md:block">
+                        {panData.nakshatra || ''}
+                    </div>
+                </div>
+                
+                {/* Event/Booking Dots */}
+                <div className="absolute top-8 md:top-10 right-1 md:right-3 flex flex-col items-center gap-1 pointer-events-none">
+                    {dayEvents.length > 0 && <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-orange-400" title="Event" />}
+                    {dayBookings.length > 0 && <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-primary shadow-sm" title="Booking" />}
+                </div>
+
+                {/* Booking Labels - Hidden on mobile, shown as dots */}
+                <div className="mt-1 md:mt-4 space-y-1 pointer-events-none overflow-hidden h-6 md:h-12 px-1 hidden md:block">
+                    {dayBookings.slice(0, 2).map(b => (
+                    <div key={b.id} className="px-2 py-0.5 rounded-md border border-slate-100 bg-slate-50/90 text-slate-800 text-[8px] font-bold uppercase tracking-tight truncate">
+                        {b.pooja_name || b.prasadam_item_name || 'Ritual'}
+                    </div>
+                    ))}
+                </div>
+                {isToday && <div className="absolute top-1 right-1 h-1 w-1 rounded-full bg-primary" />}
               </div>
             );
           })}
@@ -227,86 +287,113 @@ const BookingsPage = () => {
     );
   };
 
-  const renderList = () => (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/50 text-slate-400 border-b border-slate-50">
-              <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-wider">Initial</th>
-              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('devotee', 'IDENTIFIER')}</th>
-              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('service', 'RITUAL NODE')}</th>
-              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('date', 'TIMESTAMP')}</th>
-              <th className="px-6 py-6 text-[10px] font-bold uppercase tracking-wider">{t('status', 'AUDIT')}</th>
-              <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-wider text-right">{t('actions', 'PROTOCOL')}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {bookings.map((b) => (
-              <tr key={b.id} className="hover:bg-slate-50/50 transition-all group">
-                <td className="px-10 py-5">
-                   <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
-                      <Layers size={16} />
-                   </div>
-                </td>
-                 <td className="px-6 py-5">
-                   <div className="text-sm font-bold text-slate-900">{b.devotee_name || b.devotee?.full_name || '—'}</div>
-                   <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{b.devotee_phone || b.devotee?.phone || '—'}</div>
-                 </td>
-                 <td className="px-6 py-5">
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
-                        {b.slot_time ? `${b.slot_time.slice(0, 5)} - ` : ''}
-                        {b.pooja_name || b.prasadam_item_name || '—'}
-                    </span>
-                    <div className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
-                 </td>
-                <td className="px-6 py-5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                  {new Date(b.booking_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                </td>
-                <td className="px-6 py-5">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border ${getBadgeStyle(b.status)}`}>
-                    {b.status}
-                  </span>
-                </td>
-                <td className="px-10 py-5 text-right">
-                  <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                    <button 
-                      onClick={() => downloadTicket(b.id)}
-                      className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20"
-                    >
-                       <Download size={14} />
-                    </button>
-                    {b.status !== 'cancelled' && checkPermission('bookings', 'edit') && (
-                      <button 
-                        onClick={() => cancelBooking(b.id)}
-                        className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all"
-                      >
-                         <Plus size={16} className="rotate-45" />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      
-      <div className="p-8 bg-slate-50/30 border-t border-slate-50 rounded-b-[2.5rem]">
-        <Pagination 
-           currentPage={page} 
-           totalPages={totalPages} 
-           onPageChange={setPage} 
-           count={count} 
-           pageSize={pageSize} 
+  const renderList = () => {
+    const columns = [
+      {
+        header: "Initial",
+        key: "initial",
+        hidden: true, // Hide initial column on mobile cards
+        render: () => (
+          <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
+            <Layers size={16} />
+          </div>
+        )
+      },
+      {
+        header: t('devotee', 'IDENTIFIER'),
+        key: 'devotee_name',
+        mobileLabel: "Devotee Details",
+        render: (b) => (
+          <>
+            <div className="text-sm font-bold text-slate-900">{b.devotee_name || b.devotee?.full_name || '—'}</div>
+            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{b.devotee_phone || b.devotee?.phone || '—'}</div>
+          </>
+        )
+      },
+      {
+        header: t('service', 'RITUAL NODE'),
+        key: 'service',
+        mobileLabel: "Service & Amount",
+        render: (b) => (
+          <>
+            <span className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+              {b.slot_time ? `${b.slot_time.slice(0, 5)} - ` : ''}
+              {b.pooja_name || b.prasadam_item_name || '—'}
+            </span>
+            <div className="text-[9px] font-bold text-primary mt-1 uppercase tracking-widest">₹{(b.amount || 0).toLocaleString()} Credited</div>
+          </>
+        )
+      },
+      {
+        header: t('date', 'TIMESTAMP'),
+        key: 'booking_date',
+        mobileLabel: "Date",
+        render: (b) => (
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            {new Date(b.booking_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+        )
+      },
+      {
+        header: t('status', 'AUDIT'),
+        key: 'status',
+        mobileLabel: "Current Status",
+        render: (b) => (
+          <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border ${getBadgeStyle(b.status)}`}>
+            {b.status}
+          </span>
+        )
+      },
+      {
+        header: t('actions', 'PROTOCOL'),
+        key: 'actions',
+        align: 'right',
+        render: (b) => (
+          <div className="flex items-center justify-end gap-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all lg:translate-x-4 lg:group-hover:translate-x-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); downloadTicket(b.id); }}
+              className="h-9 w-9 flex items-center justify-center rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20"
+            >
+              <Download size={14} />
+            </button>
+            {b.status !== 'cancelled' && checkPermission('bookings', 'edit') && (
+              <button
+                onClick={(e) => { e.stopPropagation(); cancelBooking(b.id); }}
+                className="h-9 w-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all"
+              >
+                <Plus size={16} className="rotate-45" />
+              </button>
+            )}
+          </div>
+        )
+      }
+    ];
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden"
+      >
+        <ResponsiveTable 
+          columns={columns}
+          data={bookings}
+          loading={loading}
+          emptyMessage="No bookings found for the current selection."
         />
-      </div>
-    </motion.div>
-  );
+
+        <div className="p-6 md:p-8 bg-slate-50/30 border-t border-slate-50 rounded-b-[2rem] md:rounded-b-[2.5rem]">
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            count={count}
+            pageSize={pageSize}
+          />
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-10 pb-20">
@@ -386,7 +473,10 @@ const BookingsPage = () => {
                    </div>
                 </div>
                 <button
-                  onClick={() => setSelectedDayData(null)}
+                  onClick={() => {
+                    setSelectedDayData(null);
+                    setSearchParams({});
+                  }}
                   className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 hover:text-slate-900 transition-all border border-transparent hover:border-slate-100"
                 >
                   <X size={24} />
@@ -435,7 +525,7 @@ const BookingsPage = () => {
                                 {b.slot_time ? `[${b.slot_time.slice(0, 5)}] ` : ''}
                                 {b.pooja_name || b.prasadam_item_name || 'Ritual Service'}
                               </h5>
-                              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest truncate">{b.devotee_name || 'Anonymous'}</p>
+                              <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest truncate">{b.devotee_name || 'Anonymous'} • {b.devotee_nakshatra || 'No Star'}</p>
                            </div>
                            <div className="text-right">
                               <div className="text-sm font-bold text-slate-900">₹{(b.amount || 0).toLocaleString()}</div>
@@ -452,8 +542,11 @@ const BookingsPage = () => {
               
               <div className="absolute bottom-0 left-0 right-0 p-10 bg-gradient-to-t from-white via-white to-transparent">
                  {checkPermission('bookings', 'edit') && (
-                    <button onClick={() => window.location.href='/pooja/book'} className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/40">
-                        Add Observation
+                    <button 
+                      onClick={() => window.location.href=`/pooja/book?date=${selectedDayData.dateStr}`} 
+                      className="w-full h-14 bg-slate-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-slate-900/40 hover:bg-slate-800 transition-all flex items-center justify-center gap-3"
+                    >
+                        Initialize Ritual Portal <ArrowRight size={14} />
                     </button>
                  )}
               </div>

@@ -20,10 +20,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../lib/utils';
+import { useNotify } from '../../context/NotificationContext';
 
 export default function TempleProfilePage() {
     const { t } = useTranslation();
     const { tenant, updateTheme, setTenantData } = useAuth();
+    const notify = useNotify();
     const fileInputRef = useRef(null);
     
     const [formData, setFormData] = useState({
@@ -46,7 +48,7 @@ export default function TempleProfilePage() {
 
     const handleDetectLocation = () => {
         if (!navigator.geolocation) {
-            alert('Geolocation is not supported by your browser');
+            notify.warn('Geolocation is not supported by your browser');
             return;
         }
 
@@ -213,7 +215,7 @@ export default function TempleProfilePage() {
                                 </span>
                                 <span className="h-1 w-1 rounded-full bg-white/40" />
                                 <span className="text-white/60 text-xs font-bold uppercase tracking-widest">
-                                    {tenant?.subdomain || 'mahadeva'}.temple.io
+                                    {tenant?.name || 'Mahadeva Temple'}
                                 </span>
                             </div>
                         </div>

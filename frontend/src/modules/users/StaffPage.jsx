@@ -22,10 +22,15 @@ import {
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import SalaryModal from "./SalaryModal";
-import { IndianRupee, Activity } from "lucide-react";
+import { IndianRupee, Activity, CheckCircle2, AlertTriangle, Database, Zap, Fingerprint, Layers, ChevronRight, MapPin, ArrowRight, Save, X as CloseIcon } from "lucide-react";
+import ModernInput from "../../components/ui/ModernInput";
+import { ValidationUtils } from "../../shared/utils/ValidationUtils";
+import { useNotify } from "../../context/NotificationContext";
+import ResponsiveTable from "../../components/ui/ResponsiveTable";
 
 const StaffPage = () => {
     const { t } = useTranslation();
+    const notify = useNotify();
     const [users, setUsers] = useState([]);
     const [attendanceLogs, setAttendanceLogs] = useState([]);
     const [roster, setRoster] = useState([]);
@@ -35,6 +40,8 @@ const StaffPage = () => {
     const [showSalaryModal, setShowSalaryModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
     const [editingWage, setEditingWage] = useState(null);
+    const [wageValue, setWageValue] = useState("");
+    const [wageError, setWageError] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -63,13 +70,20 @@ const StaffPage = () => {
         u.role?.toLowerCase().includes(searchTerm.toLowerCase())
     ) : [];
 
-    const handleUpdateWage = async (userId, wage) => {
+    const handleUpdateWage = async (userId) => {
+        const err = ValidationUtils.validators.amount(wageValue);
+        if (err) {
+            setWageError(err);
+            return notify.warn("Invalid wage amount.");
+        }
+
         try {
-            await api.patch(`/users/management/${userId}/`, { daily_wage: wage });
+            await api.patch(`/users/management/${userId}/`, { daily_wage: wageValue });
             fetchData();
             setEditingWage(null);
+            notify.success("Wage protocol updated");
         } catch (err) {
-            console.error(err);
+            notify.error("Update failed");
         }
     };
 
@@ -134,97 +148,120 @@ const StaffPage = () => {
                             </button>
                         </div>
                         
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="bg-white text-slate-400">
-                                        <th className="px-12 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Unit Identity</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Sub-Domain</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Daily Wage</th>
-                                        <th className="px-10 py-6 text-[10px] font-bold uppercase tracking-widest border-b border-slate-50">Operational State</th>
-                                        <th className="px-12 py-6 border-b border-slate-50"></th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-50">
-                                    {loading ? (
-                                        <tr><td colSpan="4" className="px-12 py-32 text-center text-[11px] font-bold text-slate-200 uppercase tracking-[0.5em] animate-pulse">Establishing Logic Connection...</td></tr>
-                                    ) : filteredUsers.length === 0 ? (
-                                        <tr><td colSpan="4" className="px-12 py-24 text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Registry Empty: No Personnel Detected</td></tr>
-                                    ) : filteredUsers.map((profile) => (
-                                        <tr key={profile.id} className="group hover:bg-slate-100/30 transition-all">
-                                            <td className="px-12 py-7">
-                                                <div className="flex items-center gap-5">
-                                                    <div className="h-12 w-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center font-bold text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
-                                                        {profile.user?.username?.[0]?.toUpperCase() || "U"}
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-sm font-bold text-slate-900 uppercase tracking-tighter group-hover:text-primary transition-colors">{profile.user?.username || "Unknown Unit"}</div>
-                                                        <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
-                                                            <Database size={10} className="text-primary/40" /> ID: #{profile.id}
-                                                        </div>
-                                                    </div>
+                        <ResponsiveTable
+                            columns={[
+                                {
+                                    header: "Unit Identity",
+                                    key: "identity",
+                                    mobileLabel: "Personnel",
+                                    render: (profile) => (
+                                        <div className="flex items-center gap-5">
+                                            <div className="h-12 w-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center font-bold text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
+                                                {profile.user?.username?.[0]?.toUpperCase() || "U"}
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold text-slate-900 uppercase tracking-tighter group-hover:text-primary transition-colors">{profile.user?.username || "Unknown Unit"}</div>
+                                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                                    <Database size={10} className="text-primary/40" /> ID: #{profile.id}
                                                 </div>
-                                            </td>
-                                            <td className="px-10 py-7">
-                                                <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200/50">
-                                                    {profile.role || "Level 1 Cleared"}
+                                            </div>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: "Sub-Domain",
+                                    key: "role",
+                                    render: (profile) => (
+                                        <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200/50">
+                                            {profile.role || "Level 1 Cleared"}
+                                        </span>
+                                    )
+                                },
+                                {
+                                    header: "Daily Wage",
+                                    key: "wage",
+                                    render: (profile) => (
+                                        editingWage === profile.id ? (
+                                            <div className="flex items-center gap-2 max-w-[150px]">
+                                                <ModernInput 
+                                                    type="number" 
+                                                    value={wageValue} 
+                                                    error={wageError}
+                                                    success={parseFloat(wageValue) >= 1}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        setWageValue(val);
+                                                        setWageError(ValidationUtils.validators.amount(val));
+                                                    }}
+                                                    placeholder="0.00"
+                                                />
+                                                <button onClick={(e) => { e.stopPropagation(); handleUpdateWage(profile.id); }} className="p-2 bg-slate-900 text-white rounded-lg hover:bg-primary transition-all">
+                                                    <Save size={14} />
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); setEditingWage(null); }} className="p-2 bg-slate-100 text-slate-400 rounded-lg hover:bg-rose-50 hover:text-rose-500 transition-all">
+                                                    <CloseIcon size={14} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div 
+                                                className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingWage(profile.id);
+                                                    setWageValue(profile.daily_wage);
+                                                    setWageError(null);
+                                                }}
+                                            >
+                                                <IndianRupee size={12} className="text-slate-400" />
+                                                <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">
+                                                    {profile.daily_wage || "0.00"}
                                                 </span>
-                                            </td>
-                                            <td className="px-10 py-7">
-                                                {editingWage === profile.id ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <input 
-                                                            type="number" 
-                                                            defaultValue={profile.daily_wage} 
-                                                            onBlur={(e) => handleUpdateWage(profile.id, e.target.value)}
-                                                            autoFocus
-                                                            className="w-20 h-8 bg-slate-50 border border-slate-200 rounded px-2 text-xs font-bold outline-none focus:border-primary"
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <div 
-                                                        className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors"
-                                                        onClick={() => setEditingWage(profile.id)}
-                                                    >
-                                                        <IndianRupee size={12} className="text-slate-400" />
-                                                        <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">
-                                                            {profile.daily_wage || "0.00"}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="px-10 py-7">
-                                                <div className="flex items-center gap-2.5">
-                                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Mission Active</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-12 py-7 text-right">
-                                                <div className="flex justify-end items-center gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                                                    <button 
-                                                        onClick={() => {
-                                                            setSelectedStaff({ 
-                                                                id: profile.id, 
-                                                                user_id: profile.user?.id,
-                                                                username: profile.user?.username, 
-                                                                daily_wage: profile.daily_wage 
-                                                            });
-                                                            setShowSalaryModal(true);
-                                                        }}
-                                                        className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2"
-                                                    >
-                                                        <IndianRupee size={14} /> Salary
-                                                    </button>
-                                                    <button className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
-                                                        <MoreVertical size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            </div>
+                                        )
+                                    )
+                                },
+                                {
+                                    header: "Operational State",
+                                    key: "state",
+                                    render: () => (
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                            <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">Mission Active</span>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: "Actions",
+                                    key: "actions",
+                                    align: "right",
+                                    render: (profile) => (
+                                        <div className="flex justify-end items-center gap-3 lg:opacity-0 lg:group-hover:opacity-100 transition-all lg:translate-x-4 lg:group-hover:translate-x-0">
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedStaff({ 
+                                                        id: profile.id, 
+                                                        user_id: profile.user?.id,
+                                                        username: profile.user?.username, 
+                                                        daily_wage: profile.daily_wage 
+                                                    });
+                                                    setShowSalaryModal(true);
+                                                }}
+                                                className="h-10 px-4 rounded-xl bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary transition-all shadow-lg shadow-slate-900/10 flex items-center gap-2"
+                                            >
+                                                <IndianRupee size={14} /> Salary
+                                            </button>
+                                            <button onClick={(e) => e.stopPropagation()} className="h-10 w-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm">
+                                                <MoreVertical size={16} />
+                                            </button>
+                                        </div>
+                                    )
+                                }
+                            ]}
+                            data={filteredUsers}
+                            loading={loading}
+                            emptyMessage="Registry Empty: No Personnel Detected"
+                        />
                     </div>
                 </div>
 

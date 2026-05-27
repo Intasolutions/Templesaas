@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../../shared/api/client';
 import Pagination from '../../components/common/Pagination';
+import ResponsiveTable from '../../components/ui/ResponsiveTable';
 
 const APP_MODULES = [
   { id: 'dashboard', name: 'Dashboard' },
@@ -393,67 +394,70 @@ export default function UsersPage() {
                </div>
             </div>
 
-            <div className="overflow-x-auto text-[13px]">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Full Name</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Access Role</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Privileges</th>
-                    <th className="px-8 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                   {loading ? (
-                       <tr><td colSpan="4" className="py-20 text-center text-xs font-bold text-slate-300 uppercase tracking-widest animate-pulse">Loading data...</td></tr>
-                   ) : filteredUsers.length === 0 ? (
-                       <tr><td colSpan="4" className="py-20 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">No users found</td></tr>
-                   ) : filteredUsers.map(user => {
-                       const role = getRoleConfig(user.role);
-                       return (
-                           <tr key={user.id} className="group hover:bg-slate-50/50 transition-all">
-                              <td className="px-8 py-5">
-                                 <div className="flex items-center gap-4">
-                                     <div className="h-9 w-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
-                                        {(user.first_name?.[0] || user.username?.[0] || 'U').toUpperCase()}
-                                     </div>
-                                     <div>
-                                        <p className="font-bold text-slate-900">{user.first_name || "User"} {user.last_name}</p>
-                                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">@{user.username}</p>
-                                     </div>
-                                 </div>
-                              </td>
-                              <td className="px-8 py-5">
-                                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${role.color}`}>
-                                    {role.name}
-                                 </span>
-                              </td>
-                              <td className="px-8 py-5">
-                                 <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
-                                    <ShieldCheck size={14} className="text-primary" />
-                                    {Object.keys(user.module_permissions || {}).length} Access Point(s)
-                                 </div>
-                              </td>
-                              <td className="px-8 py-5 text-right">
-                                 <div className="flex justify-end items-center gap-2">
-                                    {checkPermission('users', 'edit') && (
-                                        <button onClick={() => handleEdit(user)} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
-                                            <Edit size={14} />
-                                        </button>
-                                    )}
-                                    {checkPermission('users', 'delete') && (
-                                        <button className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                                            <Trash2 size={14} />
-                                        </button>
-                                    )}
-                                 </div>
-                              </td>
-                           </tr>
-                       );
-                   })}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable
+              columns={[
+                {
+                  header: "Full Name",
+                  key: "first_name",
+                  mobileLabel: "User",
+                  render: (user) => (
+                    <div className="flex items-center gap-4">
+                      <div className="h-9 w-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
+                        {(user.first_name?.[0] || user.username?.[0] || 'U').toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900">{user.first_name || "User"} {user.last_name}</p>
+                        <p className="text-[10px] font-medium text-slate-400 mt-0.5">@{user.username}</p>
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  header: "Access Role",
+                  key: "role",
+                  render: (user) => {
+                    const role = getRoleConfig(user.role);
+                    return (
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${role.color}`}>
+                        {role.name}
+                      </span>
+                    );
+                  }
+                },
+                {
+                  header: "Privileges",
+                  key: "privileges",
+                  render: (user) => (
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600">
+                      <ShieldCheck size={14} className="text-primary" />
+                      {Object.keys(user.module_permissions || {}).length} Access Point(s)
+                    </div>
+                  )
+                },
+                {
+                  header: "Actions",
+                  key: "actions",
+                  align: "right",
+                  render: (user) => (
+                    <div className="flex justify-end items-center gap-2 lg:opacity-0 lg:group-hover:opacity-100 transition-all lg:translate-x-4 lg:group-hover:translate-x-0">
+                      {checkPermission('users', 'edit') && (
+                        <button onClick={(e) => { e.stopPropagation(); handleEdit(user); }} className="h-8 w-8 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all">
+                          <Edit size={14} />
+                        </button>
+                      )}
+                      {checkPermission('users', 'delete') && (
+                        <button onClick={(e) => { e.stopPropagation(); }} className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  )
+                }
+              ]}
+              data={filteredUsers}
+              loading={loading}
+              emptyMessage="No staff members found."
+            />
 
             <div className="p-8 border-t border-slate-50 flex justify-between items-center bg-slate-50/20">
                 <div className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Management Ledger v1.0</div>

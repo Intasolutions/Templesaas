@@ -5,6 +5,7 @@ from core.models import Tenant
 class Gothra(models.Model):
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="gothras", null=True, blank=True)
     name = models.CharField(max_length=100)
+    name_ml = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -22,6 +23,7 @@ class Gothra(models.Model):
 class Nakshatra(models.Model):
     organization = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name="nakshatras", null=True, blank=True)
     name = models.CharField(max_length=100)
+    name_ml = models.CharField(max_length=100, null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -60,10 +62,6 @@ class Devotee(models.Model):
     ID_PROOF_CHOICES = [
         (ID_AADHAR, "Aadhar"),
         (ID_PAN, "PAN"),
-        (ID_VOTER, "Voter ID"),
-        (ID_DL, "Driving License"),
-        (ID_PASSPORT, "Passport"),
-        (ID_OTHER, "Other"),
     ]
 
     id_proof_type = models.CharField(max_length=30, choices=ID_PROOF_CHOICES, blank=True)
@@ -72,6 +70,9 @@ class Devotee(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    is_trust_member = models.BooleanField(default=False)
+    family_head = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name="family_members")
 
     class Meta:
         constraints = [

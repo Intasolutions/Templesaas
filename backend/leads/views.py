@@ -5,7 +5,14 @@ from .models import Lead
 class LeadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lead
-        fields = ["id", "full_name", "temple_name", "phone", "email", "location", "message", "interested_plan", "trial_requested", "latitude", "longitude", "created_at"]
+        fields = "__all__"
+        extra_kwargs = {
+            'location': {'required': False},
+            'message': {'required': False},
+            'trial_requested': {'required': False},
+            'latitude': {'required': False},
+            'longitude': {'required': False},
+        }
 
 class LeadCreateView(generics.CreateAPIView):
     """

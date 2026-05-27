@@ -85,6 +85,7 @@ class Booking(models.Model):
     refund_reason = models.CharField(max_length=255, blank=True)
 
     notes = models.TextField(blank=True)
+    bank_account = models.ForeignKey("finance.BankAccount", on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -207,6 +208,16 @@ class Booking(models.Model):
         # Check if already exists to avoid duplicates
         txn = Transaction.objects.filter(reference=txn_ref, txn_type=txn_type).first()
         if not txn:
+            # Map booking payment mode to finance payment mode
+            mode_map = {
+                self.PAYMENT_CASH: "cash",
+                self.PAYMENT_UPI: "upi",
+                self.PAYMENT_CARD: "card",
+            }
+            # Note: booking models lack 'bank' in PAYMENT_CHOICES but they have UPI.
+            # We'll default to upi or cash.
+            finance_mode = mode_map.get(self.payment_mode, "cash")
+
             Transaction.objects.create(
                 organization=self.organization,
                 txn_type=txn_type,
@@ -215,6 +226,8 @@ class Booking(models.Model):
                 amount=amount,
                 date=timezone.now().date(),
                 reference=txn_ref,
+                payment_mode=finance_mode,
+                bank_account=self.bank_account,
                 notes=f"Auto-generated from Booking Protocol #{self.id}. Devotee: {self.devotee.full_name}"
             )
 

@@ -23,7 +23,7 @@ export const DevoteeService = {
     },
 
     async getNakshatras() {
-        const res = await api.get("/devotees/nakshatra/");
+        const res = await api.get("/devotees/nakshatra/", { params: { page_size: 1000 } });
         return Array.isArray(res.data) ? res.data : res.data.results || [];
     },
 
